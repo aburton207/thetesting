@@ -1134,7 +1134,11 @@ function parse_email_template($template, $data) {
     if (isset($data['CUSTOM_FIELD_VALUES']) && is_array($data['CUSTOM_FIELD_VALUES'])) {
         $custom_field_rows = '';
         foreach ($data['CUSTOM_FIELD_VALUES'] as $field) {
-            $custom_field_rows .= '<tr><td><strong>' . htmlspecialchars($field['title']) . '</strong></td><td>' . htmlspecialchars($field['value']) . '</td></tr>';
+            $value = $field['value'];
+            if (is_array($value)) {
+                $value = implode(', ', $value);
+            }
+            $custom_field_rows .= '<tr><td><strong>' . htmlspecialchars($field['title']) . '</strong></td><td>' . htmlspecialchars($value) . '</td></tr>';
         }
         $template = preg_replace('/{CUSTOM_FIELD_VALUES}.*?{\/CUSTOM_FIELD_VALUES}/s', $custom_field_rows, $template);
         $template = str_replace('{CUSTOM_FIELD_VALUES}', $custom_field_rows, $template);
