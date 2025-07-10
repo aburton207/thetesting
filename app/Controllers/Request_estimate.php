@@ -215,20 +215,13 @@ function save_estimate_request() {
             "files_data" => $files_data
         );
 
-        // Create notification with initial data
+        // Create notification including all data at once
         $notification_id = log_notification("estimate_request_received", array(
             "estimate_request_id" => $save_id,
             "user_id" => $user_id,
-            "assigned_to" => $assigned_to ? $assigned_to : 0
+            "assigned_to" => $assigned_to ? $assigned_to : 0,
+            "description" => json_encode($notification_data)
         ));
-
-        // Update notification with complex data in description field
-        if ($notification_id) {
-            $this->Notifications_model->ci_save(array(
-                "id" => $notification_id,
-                "description" => json_encode($notification_data)
-            ), $notification_id);
-        }
 
         echo json_encode(array("success" => true, 'message' => app_lang('estimate_submission_message')));
     } else {

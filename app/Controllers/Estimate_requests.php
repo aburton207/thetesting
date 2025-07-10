@@ -771,19 +771,13 @@ private function _make_estimate_request_row($data) {
                 "files_data" => $files_data
             );
 
-            //create notification and update description with extra data
+            // create notification with description included
             $notification_id = log_notification("estimate_request_received", array(
                 "estimate_request_id" => $save_id,
                 "user_id" => $this->login_user->id,
-                "assigned_to" => $assigned_to ? $assigned_to : 0
+                "assigned_to" => $assigned_to ? $assigned_to : 0,
+                "description" => json_encode($notification_data)
             ));
-
-            if ($notification_id) {
-                $this->Notifications_model->ci_save(array(
-                    "id" => $notification_id,
-                    "description" => json_encode($notification_data)
-                ), $notification_id);
-            }
 
             $this->session->setFlashdata("success_message", app_lang("estimate_submission_message"));
 
