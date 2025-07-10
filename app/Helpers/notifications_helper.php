@@ -750,6 +750,11 @@ if (!function_exists('send_notification_emails')) {
                 //add custom fields and form data if available
                 if ($notification->description) {
                     $extra_data = json_decode($notification->description, true);
+
+                    if (!$extra_data && json_last_error() !== JSON_ERROR_NONE) {
+                        $extra_data = json_decode(stripslashes($notification->description), true);
+                    }
+
                     if (is_array($extra_data)) {
                         $parser_data['FORM_DATA'] = get_array_value($extra_data, 'form_data');
                         $parser_data['CUSTOM_FIELD_VALUES'] = get_array_value($extra_data, 'custom_field_values');
