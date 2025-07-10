@@ -1096,8 +1096,14 @@ if (!function_exists('send_notification_emails')) {
 function parse_email_template($template, $data) {
     $parser = \Config\Services::parser();
 
+    // Don't let the CI parser convert array values to the string "Array".
+    // Remove placeholders which hold arrays before parsing, then handle them
+    // manually after parsing the simple placeholders.
+    $array_keys = array('FORM_DATA', 'CUSTOM_FIELD_VALUES', 'FILES_DATA');
+    $simple_data = array_diff_key($data, array_flip($array_keys));
+
     // Replace simple placeholders
-    $template = $parser->setData($data)->renderString($template);
+    $template = $parser->setData($simple_data)->renderString($template);
 
     // Handle FORM_DATA loop
     if (isset($data['FORM_DATA']) && is_array($data['FORM_DATA'])) {
