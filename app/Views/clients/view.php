@@ -30,6 +30,12 @@
                                 <?php $lead_information .= app_lang("owner") . ": " . $client_info->owner_name; ?>
                             <?php } ?>
 
+                            <span class="badge" style="background-color: <?php echo $client_info->lead_status_color; ?>; cursor: pointer;"
+                                data-id="<?php echo $client_info->id; ?>" data-value="<?php echo $client_info->lead_status_id; ?>"
+                                data-act="update-lead-status">
+                                <?php echo $client_info->lead_status_title; ?>
+                            </span>
+
                             <span data-bs-toggle="tooltip" data-bs-html="true" title="<?php echo $lead_information; ?>"><i data-feather="help-circle" class="icon-16"></i></span>
                         <?php } ?>
 
@@ -153,5 +159,26 @@
 
         $('[data-bs-toggle="tooltip"]').tooltip();
 
+    });
+</script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('body').on('click', '[data-act=update-lead-status]', function () {
+            var $element = $(this),
+                recordId = $element.attr('data-id');
+
+            $element.appModifier({
+                value: $element.attr('data-value'),
+                actionUrl: '<?php echo_uri("clients/save_client_status") ?>/' + recordId,
+                select2Option: {data: <?php echo json_encode(array_map(function($status){return array("id"=>$status->id, "text"=>$status->title);}, $lead_statuses)); ?>},
+                onSuccess: function (response, newValue) {
+                    if (response.success) {
+                        window.location.reload();
+                    }
+                }
+            });
+
+            return false;
+        });
     });
 </script>

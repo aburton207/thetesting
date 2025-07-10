@@ -378,6 +378,7 @@ function view($client_id = 0, $tab = "", $folder_id = 0) {
             $view_data["show_expense_info"] = (get_setting("module_expense") && $access_info->access_type == "all") ? true : false;
 
             $view_data['client_info'] = $client_info;
+            $view_data['lead_statuses'] = $this->Lead_status_model->get_details()->getResult();
 
             // Fetch owner name, prefer owner_name from get_details
             $view_data['owner_name'] = property_exists($client_info, 'owner_name') && $client_info->owner_name ? $client_info->owner_name : "-";
@@ -999,14 +1000,24 @@ function save_client_status($id = 0) {
     validate_numeric_value($id);
     $this->_validate_client_manage_access($id);
 
+    $new_status = $this->request->getPost('value');
+
     $data = array(
-        "lead_status_id" => $this->request->getPost('value')
+        "lead_status_id" => $new_status
     );
 
     $data = clean_data($data);
     $save_id = $this->Clients_model->ci_save($data, $id);
 
     if ($save_id) {
+        if ($new_status == 6) {
+            $this->Custom_field_values_model->upsert([
+                "related_to_type" => "clients",
+                "related_to_id" => $id,
+                "custom_field_id" => 272,
+                "value" => get_today_date()
+            ]);
+        }
         echo json_encode(array(
             "success" => true,
             "data" => $this->_row_data($save_id),
