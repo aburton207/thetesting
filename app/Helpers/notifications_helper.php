@@ -1118,9 +1118,14 @@ function parse_email_template($template, $data) {
     // Handle FORM_DATA loop
     if (isset($data['FORM_DATA']) && is_array($data['FORM_DATA'])) {
         $form_data_rows = '';
+        $custom_labels = [
+            'state' => 'Province',
+            'zip' => 'Postal Code'
+        ];
         foreach ($data['FORM_DATA'] as $key => $value) {
             if ($value) {
-                $form_data_rows .= '<tr><td><strong>' . ucfirst(str_replace('_', ' ', $key)) . '</strong></td><td>' . htmlspecialchars($value) . '</td></tr>';
+                $label = isset($custom_labels[$key]) ? $custom_labels[$key] : ucfirst(str_replace('_', ' ', $key));
+                $form_data_rows .= '<tr><td><strong>' . $label . '</strong></td><td>' . htmlspecialchars($value) . '</td></tr>';
             }
         }
         $template = preg_replace('/{FORM_DATA}.*?{\/FORM_DATA}/s', $form_data_rows, $template);
