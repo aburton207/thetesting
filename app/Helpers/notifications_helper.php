@@ -1108,9 +1108,11 @@ function parse_email_template($template, $data) {
             }
         }
         $template = preg_replace('/{FORM_DATA}.*?{\/FORM_DATA}/s', $form_data_rows, $template);
+        $template = str_replace('{FORM_DATA}', $form_data_rows, $template);
         $template = str_replace('{NO_FORM_DATA}', '', $template);
     } else {
         $template = preg_replace('/{FORM_DATA}.*?{\/FORM_DATA}/s', '', $template);
+        $template = str_replace('{FORM_DATA}', '', $template);
         $template = str_replace('{NO_FORM_DATA}', '<tr><td colspan="2">No standard fields provided.</td></tr>', $template);
     }
 
@@ -1121,9 +1123,11 @@ function parse_email_template($template, $data) {
             $custom_field_rows .= '<tr><td><strong>' . htmlspecialchars($field['title']) . '</strong></td><td>' . htmlspecialchars($field['value']) . '</td></tr>';
         }
         $template = preg_replace('/{CUSTOM_FIELD_VALUES}.*?{\/CUSTOM_FIELD_VALUES}/s', $custom_field_rows, $template);
+        $template = str_replace('{CUSTOM_FIELD_VALUES}', $custom_field_rows, $template);
         $template = str_replace('{NO_CUSTOM_FIELDS}', '', $template);
     } else {
         $template = preg_replace('/{CUSTOM_FIELD_VALUES}.*?{\/CUSTOM_FIELD_VALUES}/s', '', $template);
+        $template = str_replace('{CUSTOM_FIELD_VALUES}', '', $template);
         $template = str_replace('{NO_CUSTOM_FIELDS}', '<tr><td colspan="2">No custom fields provided.</td></tr>', $template);
     }
 
@@ -1134,9 +1138,11 @@ function parse_email_template($template, $data) {
             $file_rows .= '<p><a href="' . get_array_value($data, 'SITE_URL') . '/files/timeline/' . $file['file_name'] . '">' . $file['file_name'] . '</a></p>';
         }
         $template = preg_replace('/{FILES_DATA}.*?{\/FILES_DATA}/s', $file_rows, $template);
+        $template = str_replace('{FILES_DATA}', $file_rows, $template);
         $template = str_replace('{NO_FILES}', '', $template);
     } else {
         $template = preg_replace('/{FILES_DATA}.*?{\/FILES_DATA}/s', '', $template);
+        $template = str_replace('{FILES_DATA}', '', $template);
         $template = str_replace('{NO_FILES}', '<p>No files attached.</p>', $template);
     }
 
