@@ -72,7 +72,7 @@ class Notification_processor extends App_Controller {
         );
 
         // Fetch custom fields for estimate request notifications
-       if ($event === "estimate_request_submitted"
+       if (($event === "estimate_request_submitted" || $event === "estimate_request_received")
     && $options["estimate_request_id"]) {
 
     // Pull every custom field for this request in one shot
