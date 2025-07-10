@@ -737,6 +737,7 @@ private function _make_estimate_request_row($data) {
         if ($save_id) {
 
             //estimate request has been saved, now save the field values
+            $custom_field_values = array();
             foreach ($form_fields as $field) {
                 $value = $this->request->getPost("custom_field_" . $field->id);
                 if ($value) {
@@ -750,12 +751,39 @@ private function _make_estimate_request_row($data) {
                     $field_value_data = clean_data($field_value_data);
 
                     $this->Custom_field_values_model->ci_save($field_value_data);
+
+                    //store custom field title and value for notification
+                    $field_title = $field->title_language_key ? app_lang($field->title_language_key) : $field->title;
+                    $custom_field_values[] = array(
+                        "title" => $field_title,
+                        "value" => $value
+                    );
                 }
             }
 
-            //create notification
+            //prepare extra data for notification
+            $notification_data = array(
+                "estimate_request_id" => $save_id,
+                "user_id" => $this->login_user->id,
+                "assigned_to" => $assigned_to ? $assigned_to : 0,
+                "form_data" => array(),
+                "custom_field_values" => $custom_field_values,
+                "files_data" => $files_data
+            );
 
-            log_notification("estimate_request_received", array("estimate_request_id" => $save_id));
+            //create notification and update description with extra data
+            $notification_id = log_notification("estimate_request_received", array(
+                "estimate_request_id" => $save_id,
+                "user_id" => $this->login_user->id,
+                "assigned_to" => $assigned_to ? $assigned_to : 0
+            ));
+
+            if ($notification_id) {
+                $this->Notifications_model->ci_save(array(
+                    "id" => $notification_id,
+                    "description" => json_encode($notification_data)
+                ), $notification_id);
+            }
 
             $this->session->setFlashdata("success_message", app_lang("estimate_submission_message"));
 
