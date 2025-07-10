@@ -1096,6 +1096,11 @@ if (!function_exists('send_notification_emails')) {
 function parse_email_template($template, $data) {
     $parser = \Config\Services::parser();
 
+    // Detect whether template already has placeholders for these arrays
+    $has_form_data_placeholder = preg_match('/{FORM_DATA}|{NO_FORM_DATA}|{FORM_DATA}.*?{\\/FORM_DATA}/s', $template);
+    $has_custom_field_placeholder = preg_match('/{CUSTOM_FIELD_VALUES}|{NO_CUSTOM_FIELDS}|{CUSTOM_FIELD_VALUES}.*?{\\/CUSTOM_FIELD_VALUES}/s', $template);
+    $has_files_placeholder = preg_match('/{FILES_DATA}|{NO_FILES}|{FILES_DATA}.*?{\\/FILES_DATA}/s', $template);
+
     // Don't let the CI parser convert array values to the string "Array".
     // Remove placeholders which hold arrays before parsing, then handle them
     // manually after parsing the simple placeholders.
@@ -1116,6 +1121,9 @@ function parse_email_template($template, $data) {
         $template = preg_replace('/{FORM_DATA}.*?{\/FORM_DATA}/s', $form_data_rows, $template);
         $template = str_replace('{FORM_DATA}', $form_data_rows, $template);
         $template = str_replace('{NO_FORM_DATA}', '', $template);
+        if (!$has_form_data_placeholder && $form_data_rows) {
+            $template .= "<table>" . $form_data_rows . "</table>";
+        }
     } else {
         $template = preg_replace('/{FORM_DATA}.*?{\/FORM_DATA}/s', '', $template);
         $template = str_replace('{FORM_DATA}', '', $template);
@@ -1131,6 +1139,9 @@ function parse_email_template($template, $data) {
         $template = preg_replace('/{CUSTOM_FIELD_VALUES}.*?{\/CUSTOM_FIELD_VALUES}/s', $custom_field_rows, $template);
         $template = str_replace('{CUSTOM_FIELD_VALUES}', $custom_field_rows, $template);
         $template = str_replace('{NO_CUSTOM_FIELDS}', '', $template);
+        if (!$has_custom_field_placeholder && $custom_field_rows) {
+            $template .= "<table>" . $custom_field_rows . "</table>";
+        }
     } else {
         $template = preg_replace('/{CUSTOM_FIELD_VALUES}.*?{\/CUSTOM_FIELD_VALUES}/s', '', $template);
         $template = str_replace('{CUSTOM_FIELD_VALUES}', '', $template);
@@ -1146,6 +1157,9 @@ function parse_email_template($template, $data) {
         $template = preg_replace('/{FILES_DATA}.*?{\/FILES_DATA}/s', $file_rows, $template);
         $template = str_replace('{FILES_DATA}', $file_rows, $template);
         $template = str_replace('{NO_FILES}', '', $template);
+        if (!$has_files_placeholder && $file_rows) {
+            $template .= $file_rows;
+        }
     } else {
         $template = preg_replace('/{FILES_DATA}.*?{\/FILES_DATA}/s', '', $template);
         $template = str_replace('{FILES_DATA}', '', $template);
