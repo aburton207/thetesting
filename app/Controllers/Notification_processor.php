@@ -67,7 +67,8 @@ class Notification_processor extends App_Controller {
             "subscription_id" => get_array_value($data, "subscription_id"),
             "expense_id" => get_array_value($data, "expense_id"),
             "proposal_comment_id" => get_array_value($data, "proposal_comment_id"),
-            "reminder_log_id" => get_array_value($data, "reminder_log_id")
+            "reminder_log_id" => get_array_value($data, "reminder_log_id"),
+            "description" => get_array_value($data, "description")
         );
 
         // Fetch custom fields for estimate request notifications

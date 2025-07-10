@@ -554,7 +554,7 @@ class Notifications_model extends Crud_model {
 
         $data = array(
             "user_id" => $user_id,
-            "description" => "",
+            "description" => get_array_value($options, "description") ? get_array_value($options, "description") : "",
             "created_at" => get_current_utc_time(),
             "notify_to" => $web_notify_to,
             "read_by" => "",
