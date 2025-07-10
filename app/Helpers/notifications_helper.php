@@ -746,6 +746,17 @@ if (!function_exists('send_notification_emails')) {
 
                 $parser_data["ESTIMATE_REQUEST_ID"] = $notification->estimate_request_id;
                 $parser_data["ESTIMATE_REQUEST_URL"] = $url;
+
+                //add custom fields and form data if available
+                if ($notification->description) {
+                    $extra_data = json_decode($notification->description, true);
+                    if (is_array($extra_data)) {
+                        $parser_data['FORM_DATA'] = get_array_value($extra_data, 'form_data');
+                        $parser_data['CUSTOM_FIELD_VALUES'] = get_array_value($extra_data, 'custom_field_values');
+                        $parser_data['FILES_DATA'] = get_array_value($extra_data, 'files_data');
+                        $parser_data['SITE_URL'] = get_uri();
+                    }
+                }
             } else {
                 //attach a pdf copy of estimate
                 $estimate_data = get_estimate_making_data($notification->estimate_id);
@@ -981,6 +992,7 @@ if (!function_exists('send_notification_emails')) {
                 $parser_data["EVENT_TITLE"] = $notification->user_name . " " . sprintf(app_lang("notification_" . $notification->event), $notification->to_user_name);
                 $subject = get_array_value($email_template, "subject_$user_language") ? get_array_value($email_template, "subject_$user_language") : get_array_value($email_template, "subject_default");
                 $subject = $parser->setData($parser_data)->renderString($subject);
+                $message = parse_email_template($message, $parser_data);
 
                 if ($user_email_address) {
                     send_app_mail($user_email_address, $subject, $message, $email_options);
@@ -1025,6 +1037,7 @@ if (!function_exists('send_notification_emails')) {
 
                     $message = $parser->setData($parser_data)->renderString($message);
                     $subject = $parser->setData($parser_data)->renderString($subject);
+                    $message = parse_email_template($message, $parser_data);
 
                     try {
                         //it'll be used for specific notifications for plugins individually
