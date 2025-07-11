@@ -228,7 +228,6 @@ class Signup extends App_Controller {
                 return false;
             }
 
-
             //create a client
             $client_id = $this->Clients_model->ci_save($client_data);
             if ($client_id) {
@@ -297,12 +296,6 @@ class Signup extends App_Controller {
         $ReCAPTCHA->validate_recaptcha();
 
         $email = $this->request->getPost("email");
-
-        if ($this->Users_model->is_email_exists($email)) {
-            echo json_encode(array("success" => false, 'message' => app_lang("account_already_exists_for_your_mail") . " " . anchor(get_uri("signin"), app_lang('signin'), array("class" => "text-white text-off"))));
-            return false;
-        }
-
         $email_template = $this->Email_templates_model->get_final_template("verify_email"); //use default template
 
         $parser_data["SIGNATURE"] = $email_template->signature;
