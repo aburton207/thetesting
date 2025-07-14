@@ -306,7 +306,7 @@ private function _make_row($data, $custom_fields) {
 
     // Calculate Potential Margin
     $margin_above_rack = isset($data->cfv_241) ? floatval($data->cfv_241) : 0;
-    $volume = isset($data->cfv_263) ? floatval($data->cfv_263) : 0;
+    $volume = isset($data->cfv_273) ? floatval($data->cfv_273) : 0;
     $potential_margin = "-";
     if ($margin_above_rack > 0 && $volume > 0) {
         $potential_margin = to_currency($margin_above_rack * $volume, $data->currency_symbol);
