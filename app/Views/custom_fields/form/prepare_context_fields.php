@@ -2,6 +2,14 @@
 $label_column = isset($label_column) ? $label_column : "col-md-3";
 $field_column = isset($field_column) ? $field_column : "col-md-9";
 
+$has_image_field = false;
+foreach ($custom_fields as $temp_field) {
+    if ($temp_field->field_type === "image") {
+        $has_image_field = true;
+        break;
+    }
+}
+
 foreach ($custom_fields as $field) {
 
     $title = "";
@@ -35,4 +43,18 @@ foreach ($custom_fields as $field) {
             </div>
         </div>
     </div>
-<?php } ?>
+<?php }
+
+if ($has_image_field) {
+    echo view("includes/cropbox");
+    ?>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $(".cropbox-upload").change(function () {
+                showCropBox(this);
+            });
+        });
+    </script>
+    <?php
+}
+?>
