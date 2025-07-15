@@ -3461,3 +3461,32 @@ if (!function_exists('add_client_note')) {
         return false;
     }
 }
+
+//populate first and last name custom fields for leads
+if (!function_exists('set_lead_name_custom_fields')) {
+    function set_lead_name_custom_fields($lead_id, $first_name = '', $last_name = '') {
+        if (!$lead_id) {
+            return;
+        }
+
+        $Custom_field_values_model = model('App\Models\Custom_field_values_model');
+
+        if ($first_name !== null) {
+            $Custom_field_values_model->upsert([
+                'related_to_type' => 'leads',
+                'related_to_id' => $lead_id,
+                'custom_field_id' => 277,
+                'value' => $first_name
+            ]);
+        }
+
+        if ($last_name !== null) {
+            $Custom_field_values_model->upsert([
+                'related_to_type' => 'leads',
+                'related_to_id' => $lead_id,
+                'custom_field_id' => 278,
+                'value' => $last_name
+            ]);
+        }
+    }
+}
