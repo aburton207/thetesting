@@ -1124,6 +1124,9 @@ if (!function_exists('get_contract_making_data')) {
         $data['client_info']->region = $client_info->client_groups ? $client_info->client_groups : 'N/A';
         log_message('debug', 'Client Region for Client ID ' . $client_id . ': ' . $data['client_info']->region);
 
+        // Fetch primary contact information
+        $data['primary_contact_info'] = $ci->Clients_model->get_primary_contact($client_id, true);
+
         $data['contract_items'] = $ci->Contract_items_model->get_details(array("contract_id" => $contract_id))->getResult();
         $data["contract_total_summary"] = $ci->Contracts_model->get_contract_total_summary($contract_id);
 
@@ -1976,6 +1979,11 @@ if (!function_exists('prepare_contract_view')) {
             $parser_data["region"] = isset($client_info->region) ? $client_info->region : "N/A";
             log_message('debug', 'Region for Contract ID ' . $contract_info->id . ': ' . $parser_data["region"]);
 
+            // Include primary contact details
+            $primary_contact = get_array_value($contract_data, "primary_contact_info");
+            $parser_data["CONTACT_FIRST_NAME"] = isset($primary_contact->first_name) ? $primary_contact->first_name : "";
+            $parser_data["CONTACT_LAST_NAME"] = isset($primary_contact->last_name) ? $primary_contact->last_name : "";
+
             $signer_info = @unserialize($contract_info->meta_data);
             if (!($signer_info && is_array($signer_info))) {
                 $signer_info = array();
@@ -2182,6 +2190,8 @@ if (!function_exists('get_available_contract_variables')) {
             "STAFF_SIGNER_EMAIL",
             "STAFF_SIGNING_DATE",
             "STAFF_SIGNATURE",
+            "CONTACT_FIRST_NAME",
+            "CONTACT_LAST_NAME",
             "COMPANY_INFO",
             "COMPANY_NAME",
             "COMPANY_ADDRESS",
