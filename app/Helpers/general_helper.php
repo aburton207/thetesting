@@ -1370,6 +1370,16 @@ if (!function_exists('save_custom_fields')) {
             if (array_key_exists($field_name, $_POST)) {
                 $value = $request->getPost($field_name);
 
+                if ($field->field_type === "image" && $value) {
+                    if (strpos($value, "data") === 0) {
+                        $value = explode(",", $value);
+                        $value = get_array_value($value, 1);
+                        $value = base64_decode($value);
+                        $file_data = move_temp_file("custom_field_image.png", get_setting("timeline_file_path"), "custom_field", NULL, "", $value);
+                        $value = serialize($file_data);
+                    }
+                }
+
                 if ($field->field_type === "time" && get_setting("time_format") !== "24_hours") {
                     //convert to 24hrs time format
                     $value = convert_time_to_24hours_format($value);
