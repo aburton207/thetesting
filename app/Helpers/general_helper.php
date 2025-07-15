@@ -1367,7 +1367,22 @@ if (!function_exists('save_custom_fields')) {
             }
 
             //save only submitted fields
-            if (array_key_exists($field_name, $_POST)) {
+            $file_field_name = "custom_field_file_" . $field->id;
+            if ($user_id) {
+                $file_field_name .= "_" . $user_id;
+            }
+
+            $has_post_value = array_key_exists($field_name, $_POST);
+            $file_info = get_array_value($_FILES, $file_field_name);
+            $value = null;
+
+            if ($field->field_type === "image" && $file_info && get_array_value($file_info, "tmp_name")) {
+                $temp_file = get_array_value($file_info, "tmp_name");
+                $file_size = get_array_value($file_info, "size");
+                $file_name = get_array_value($file_info, "name");
+                $file_data = move_temp_file($file_name, get_setting("timeline_file_path"), "custom_field", $temp_file, "", "", false, $file_size);
+                $value = serialize($file_data);
+            } else if ($has_post_value) {
                 $value = $request->getPost($field_name);
 
                 if ($field->field_type === "image" && $value) {
@@ -1379,6 +1394,11 @@ if (!function_exists('save_custom_fields')) {
                         $value = serialize($file_data);
                     }
                 }
+            }
+
+            if ($value === null && !$has_post_value) {
+                continue;
+            }
 
                 if ($field->field_type === "time" && get_setting("time_format") !== "24_hours") {
                     //convert to 24hrs time format
@@ -1418,7 +1438,6 @@ if (!function_exists('save_custom_fields')) {
         //finally save the changes to activity logs table
         return update_custom_fields_changes($related_to_type, $related_to_id, $changes, $activity_log_id);
     }
-}
 
 /**
  * update custom fields changes to activity logs table
