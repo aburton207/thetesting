@@ -1,6 +1,21 @@
 <?php
+
 $label_column = isset($label_column) ? $label_column : "col-md-3";
 $field_column = isset($field_column) ? $field_column : "col-md-9";
+
+//check if there is any image type custom field
+$has_image_field = false;
+foreach ($custom_fields as $field_check) {
+    if ($field_check->field_type === "image") {
+        $has_image_field = true;
+        break;
+    }
+}
+
+//load the cropbox view once when there is an image field
+if ($has_image_field) {
+    echo view("includes/cropbox");
+}
 
 foreach ($custom_fields as $field) {
 
@@ -35,4 +50,14 @@ foreach ($custom_fields as $field) {
             </div>
         </div>
     </div>
+<?php } ?>
+
+<?php if ($has_image_field) { ?>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $(".cropbox-upload").change(function () {
+            showCropBox(this);
+        });
+    });
+</script>
 <?php } ?>
