@@ -210,17 +210,19 @@ class Clients extends Security_Controller {
 function list_data() {
     $this->access_only_allowed_members();
     $custom_fields = $this->Custom_fields_model->get_available_fields_for_table("clients", $this->login_user->is_admin, $this->login_user->user_type);
-    $options = array(
-        "custom_fields" => $custom_fields,
-        "custom_field_filter" => $this->prepare_custom_field_filter_values("clients", $this->login_user->is_admin, $this->login_user->user_type),
-        "group_id" => $this->request->getPost("group_id"),
-        "show_own_clients_only_user_id" => $this->show_own_clients_only_user_id(),
-        "quick_filter" => $this->request->getPost("quick_filter"),
-        "created_by" => $this->request->getPost("created_by"),
-        "client_groups" => $this->allowed_client_groups,
-        "label_id" => $this->request->getPost('label_id'),
-        "is_lead" => 0 // Explicitly filter for clients only
-    );
+        $show_own_clients_only_user_id = $this->show_own_clients_only_user_id();
+
+        $options = array(
+            "custom_fields" => $custom_fields,
+            "custom_field_filter" => $this->prepare_custom_field_filter_values("clients", $this->login_user->is_admin, $this->login_user->user_type),
+            "group_id" => $this->request->getPost("group_id"),
+            "show_own_clients_only_user_id" => $show_own_clients_only_user_id,
+            "quick_filter" => $this->request->getPost("quick_filter"),
+            "owner_id" => $show_own_clients_only_user_id ? $show_own_clients_only_user_id : $this->request->getPost("owner_id"),
+            "client_groups" => $this->allowed_client_groups,
+            "label_id" => $this->request->getPost('label_id'),
+            "is_lead" => 0 // Explicitly filter for clients only
+        );
 
     $all_options = append_server_side_filtering_commmon_params($options);
 
