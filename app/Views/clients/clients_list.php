@@ -66,7 +66,7 @@
             filterDropdown: [
                 {name: "quick_filter", class: "w200", options: quick_filters_dropdown},
                 <?php if ($login_user->is_admin || get_array_value($login_user->permissions, "client") === "all") { ?>
-                    {name: "created_by", class: "w200", options: <?php echo $team_members_dropdown; ?>},
+                    {name: "owner_id", class: "w200", options: <?php echo $team_members_dropdown; ?>},
                 <?php } ?>
                 {name: "group_id", class: "w200", options: <?php echo $groups_dropdown; ?>},
                 <?php echo $custom_field_filters; ?>
