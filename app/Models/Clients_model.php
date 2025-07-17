@@ -74,6 +74,11 @@ function get_details($options = array()) {
         $where .= " AND FIND_IN_SET('$group_id', $clients_table.group_ids)";
     }
 
+    $account_type = $this->_get_clean_value($options, "account_type");
+    if ($account_type) {
+        $where .= " AND $clients_table.type='$account_type'";
+    }
+
     $quick_filter = $this->_get_clean_value($options, "quick_filter");
     if ($quick_filter) {
         $where .= $this->make_quick_filter_query($quick_filter, $clients_table, $projects_table, $invoices_table, $invoice_payments_table, $estimates_table, $estimate_requests_table, $tickets_table, $orders_table, $proposals_table);
@@ -120,6 +125,7 @@ function get_details($options = array()) {
         "id" => $clients_table . ".id",
         "company_name" => $clients_table . ".company_name",
         "created_date" => $clients_table . ".created_date",
+        "account_type" => $clients_table . ".type",
         "primary_contact" => $users_table . ".first_name",
         "status" => "lead_status_title",
         "owner_name" => "owner_details.owner_name",
@@ -148,13 +154,15 @@ function get_details($options = array()) {
 
         $where .= " OR owner_details.owner_name LIKE '%$search_by%' ESCAPE '!' ";
         $where .= " OR $lead_status_table.title LIKE '%$search_by%' ESCAPE '!' ";
+        $where .= " OR $clients_table.type LIKE '%$search_by%' ESCAPE '!' ";
         $where .= $this->get_custom_field_search_query($clients_table, $custom_field_type, $search_by);
 
         $where .= " )";
     }
 
-    $sql = "SELECT SQL_CALC_FOUND_ROWS $clients_table.*, 
-                   CONCAT($users_table.first_name, ' ', $users_table.last_name) AS primary_contact, 
+    $sql = "SELECT SQL_CALC_FOUND_ROWS $clients_table.*,
+                   $clients_table.type AS account_type,
+                   CONCAT($users_table.first_name, ' ', $users_table.last_name) AS primary_contact,
                    $users_table.id AS primary_contact_id, 
                    $users_table.image AS contact_avatar, 
                    project_table.total_projects, 
