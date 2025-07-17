@@ -1442,9 +1442,9 @@ if (!function_exists('save_custom_fields')) {
 /**
  * update custom fields changes to activity logs table
  */
-if (!function_exists('update_custom_fields_changes')) {
-
-    function update_custom_fields_changes($related_to_type, $related_to_id, $changes, $activity_log_id = 0) {
+//helper function to log custom field changes into the activity logs table.
+//defined unconditionally to avoid "undefined function" errors on some setups
+function update_custom_fields_changes($related_to_type, $related_to_id, $changes, $activity_log_id = 0) {
         if ($changes && count($changes)) {
             $ci = new App_Controller();
 
@@ -1495,7 +1495,6 @@ if (!function_exists('update_custom_fields_changes')) {
             }
         }
     }
-}
 
 
 /**
