@@ -216,6 +216,7 @@ function list_data() {
             "custom_fields" => $custom_fields,
             "custom_field_filter" => $this->prepare_custom_field_filter_values("clients", $this->login_user->is_admin, $this->login_user->user_type),
             "group_id" => $this->request->getPost("group_id"),
+            "account_type" => $this->request->getPost("account_type"),
             "show_own_clients_only_user_id" => $show_own_clients_only_user_id,
             "quick_filter" => $this->request->getPost("quick_filter"),
             "owner_id" => $show_own_clients_only_user_id ? $show_own_clients_only_user_id : $this->request->getPost("owner_id"),
@@ -333,6 +334,7 @@ private function _make_row($data, $custom_fields) {
         anchor(get_uri("clients/view/" . $data->id), $data->company_name),
         $data->primary_contact ? $primary_contact : "",
         $data->phone,
+        ucfirst($data->account_type),
         $created_date, // Add created_date here
         $group_list,
         $owner_name, // This now reflects the owner_id

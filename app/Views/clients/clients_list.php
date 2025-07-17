@@ -19,6 +19,11 @@
 
         var ignoreSavedFilter = false;
         var quick_filters_dropdown = <?php echo view("clients/quick_filters_dropdown"); ?>;
+        var type_dropdown = [
+            {id: "", text: "- <?php echo app_lang('type'); ?> -"},
+            {id: "person", text: "<?php echo app_lang('person'); ?>"},
+            {id: "organization", text: "<?php echo app_lang('organization'); ?>"}
+        ];
         if (window.selectedClientQuickFilter) {
             var filterIndex = quick_filters_dropdown.findIndex(x => x.id === window.selectedClientQuickFilter);
             if (filterIndex > -1) {
@@ -33,6 +38,7 @@
             {title: "<?php echo app_lang('name') ?>", "class": "all", order_by: "company_name"},
             {title: "<?php echo app_lang('primary_contact') ?>", order_by: "primary_contact"},
             {title: "<?php echo app_lang('phone') ?>", order_by: "phone"},
+            {title: "<?php echo app_lang('type') ?>", order_by: "account_type"},
               {title: "Created Date", order_by: "created_date"},
             {title: "<?php echo app_lang('client_groups') ?>", order_by: "client_groups"},
             {title: "<?php echo app_lang('owner') ?>", order_by: "client_owner"},
@@ -69,12 +75,13 @@
                     {name: "owner_id", class: "w200", options: <?php echo $team_members_dropdown; ?>},
                 <?php } ?>
                 {name: "group_id", class: "w200", options: <?php echo $groups_dropdown; ?>},
+                {name: "account_type", class: "w200", options: type_dropdown},
                 <?php echo $custom_field_filters; ?>
             ],
             rangeDatepicker: [{startDate: {name: "start_date", value: ""}, endDate: {name: "end_date", value: ""}, label: "<?php echo app_lang('created_date'); ?>", showClearButton: true}],
             columns: columns,
-            printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], '<?php echo $custom_field_headers; ?>'),
-            xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], '<?php echo $custom_field_headers; ?>'),
+            printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], '<?php echo $custom_field_headers; ?>'),
+            xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], '<?php echo $custom_field_headers; ?>'),
             ajax: {
                 dataSrc: function (data) {
                     console.log('Table Data:', data);
