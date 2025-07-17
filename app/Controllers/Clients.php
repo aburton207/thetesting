@@ -264,9 +264,11 @@ function list_data() {
     /* prepare a row of client list table */
 
 private function _make_row($data, $custom_fields) {
-    $image_url = get_avatar($data->contact_avatar);
-    $contact = "<span class='avatar avatar-xs mr10'><img src='$image_url' alt='...'></span> $data->primary_contact";
-    $primary_contact = get_client_contact_profile_link($data->primary_contact_id, $contact);
+    // Show the primary contact's full name instead of the avatar. If the name is
+    // not available, show a dash to make the column consistent.
+    $contact_name = trim($data->primary_contact);
+    $contact_name = $contact_name !== "" ? $contact_name : "-";
+    $primary_contact = get_client_contact_profile_link($data->primary_contact_id, $contact_name);
 
     $group_list = "";
     if ($data->client_groups) {
