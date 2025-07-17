@@ -76,6 +76,7 @@
                 <?php } ?>
                 {name: "group_id", class: "w200", options: <?php echo $groups_dropdown; ?>},
                 {name: "account_type", class: "w200", options: type_dropdown},
+                {name: "status", class: "w200", options: <?php echo view("clients/client_statuses"); ?>},
                 <?php echo $custom_field_filters; ?>
             ],
             rangeDatepicker: [{startDate: {name: "start_date", value: ""}, endDate: {name: "end_date", value: ""}, label: "<?php echo app_lang('created_date'); ?>", showClearButton: true}],
