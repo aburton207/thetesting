@@ -95,7 +95,6 @@ class Collect_leads extends App_Controller {
         }
 
         save_custom_fields("leads", $lead_id, 1, "staff");
-        set_lead_name_custom_fields($lead_id, $first_name, $last_name);
 
         //lead created, create a contact on that lead
         //if first name or last name or email is not provided, don't create a contact

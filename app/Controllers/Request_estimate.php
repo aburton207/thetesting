@@ -161,7 +161,6 @@ function save_estimate_request() {
 
             $lead_contact_data = clean_data($lead_contact_data);
             $lead_contact_id = $this->Users_model->ci_save($lead_contact_data);
-            set_lead_name_custom_fields($lead_id, $form_data['first_name'], $form_data['last_name']);
         }
 
         $request_data = array(

@@ -123,8 +123,7 @@
                 "number" => app_lang("field_type_number"),
                 "external_link" => app_lang("field_type_external_link"),
                 "multiple_choice" => app_lang("field_type_multiple_choice"),
-                "checkboxes" => app_lang("field_type_checkboxes"),
-                "image" => "Image"
+                "checkboxes" => app_lang("field_type_checkboxes")
             );
             echo form_dropdown("field_type", $field_type_dropdown, $model_info->field_type, "class='select2' id='field_type' $disabled");
             ?>

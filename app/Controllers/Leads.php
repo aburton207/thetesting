@@ -754,10 +754,6 @@ class Leads extends Security_Controller {
 
             save_custom_fields("lead_contacts", $save_id, $this->login_user->is_admin, $this->login_user->user_type);
 
-            if (!$contact_id && get_array_value($user_data, 'is_primary_contact')) {
-                set_lead_name_custom_fields($client_id, $user_data['first_name'], $user_data['last_name']);
-            }
-
             //has changed the existing primary contact? updete previous primary contact and set is_primary_contact=0
             if ($is_primary_contact) {
                 $user_data = array("is_primary_contact" => 0);
@@ -1372,8 +1368,6 @@ class Leads extends Security_Controller {
         //add lead id to contact data
         $lead_contact_data["client_id"] = $saved_id;
         $this->Users_model->ci_save($lead_contact_data);
-
-        set_lead_name_custom_fields($saved_id, get_array_value($lead_contact_data, 'first_name'), get_array_value($lead_contact_data, 'last_name'));
         return true;
     }
 
