@@ -71,6 +71,7 @@
                 {name: "group_id", class: "w200", options: <?php echo $groups_dropdown; ?>},
                 <?php echo $custom_field_filters; ?>
             ],
+            rangeDatepicker: [{startDate: {name: "start_date", value: ""}, endDate: {name: "end_date", value: ""}, label: "<?php echo app_lang('created_date'); ?>", showClearButton: true}],
             columns: columns,
             printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], '<?php echo $custom_field_headers; ?>'),
             xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], '<?php echo $custom_field_headers; ?>'),

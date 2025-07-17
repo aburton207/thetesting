@@ -221,6 +221,8 @@ function list_data() {
             "owner_id" => $show_own_clients_only_user_id ? $show_own_clients_only_user_id : $this->request->getPost("owner_id"),
             "client_groups" => $this->allowed_client_groups,
             "label_id" => $this->request->getPost('label_id'),
+            "start_date" => $this->request->getPost("start_date"),
+            "end_date" => $this->request->getPost("end_date"),
             "is_lead" => 0 // Explicitly filter for clients only
         );
 
