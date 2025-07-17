@@ -1367,38 +1367,8 @@ if (!function_exists('save_custom_fields')) {
             }
 
             //save only submitted fields
-            $file_field_name = "custom_field_file_" . $field->id;
-            if ($user_id) {
-                $file_field_name .= "_" . $user_id;
-            }
-
-            $has_post_value = array_key_exists($field_name, $_POST);
-            $file_info = get_array_value($_FILES, $file_field_name);
-            $value = null;
-
-            if ($field->field_type === "image" && $file_info && get_array_value($file_info, "tmp_name")) {
-                $temp_file = get_array_value($file_info, "tmp_name");
-                $file_size = get_array_value($file_info, "size");
-                $file_name = get_array_value($file_info, "name");
-                $file_data = move_temp_file($file_name, get_setting("timeline_file_path"), "custom_field", $temp_file, "", "", false, $file_size);
-                $value = serialize($file_data);
-            } else if ($has_post_value) {
+            if (array_key_exists($field_name, $_POST)) {
                 $value = $request->getPost($field_name);
-
-                if ($field->field_type === "image" && $value) {
-                    if (strpos($value, "data") === 0) {
-                        $value = explode(",", $value);
-                        $value = get_array_value($value, 1);
-                        $value = base64_decode($value);
-                        $file_data = move_temp_file("custom_field_image.png", get_setting("timeline_file_path"), "custom_field", NULL, "", $value);
-                        $value = serialize($file_data);
-                    }
-                }
-            }
-
-            if ($value === null && !$has_post_value) {
-                continue;
-            }
 
                 if ($field->field_type === "time" && get_setting("time_format") !== "24_hours") {
                     //convert to 24hrs time format
@@ -1438,13 +1408,14 @@ if (!function_exists('save_custom_fields')) {
         //finally save the changes to activity logs table
         return update_custom_fields_changes($related_to_type, $related_to_id, $changes, $activity_log_id);
     }
+}
 
 /**
  * update custom fields changes to activity logs table
  */
-//helper function to log custom field changes into the activity logs table.
-//defined unconditionally to avoid "undefined function" errors on some setups
-function update_custom_fields_changes($related_to_type, $related_to_id, $changes, $activity_log_id = 0) {
+if (!function_exists('update_custom_fields_changes')) {
+
+    function update_custom_fields_changes($related_to_type, $related_to_id, $changes, $activity_log_id = 0) {
         if ($changes && count($changes)) {
             $ci = new App_Controller();
 
@@ -1495,6 +1466,7 @@ function update_custom_fields_changes($related_to_type, $related_to_id, $changes
             }
         }
     }
+}
 
 
 /**
@@ -2011,7 +1983,8 @@ if (!function_exists('prepare_contract_view')) {
             $primary_contact = get_array_value($contract_data, "primary_contact_info");
             $parser_data["CONTACT_FIRST_NAME"] = isset($primary_contact->first_name) ? $primary_contact->first_name : "";
             $parser_data["CONTACT_LAST_NAME"] = isset($primary_contact->last_name) ? $primary_contact->last_name : "";
-
+            $parser_data["CONTACT_PHONE"] = isset($primary_contact->phone) ? $primary_contact->phone : "";
+            $parser_data["CONTACT_EMAIL"] = isset($primary_contact->email) ? $primary_contact->email : "";
             $signer_info = @unserialize($contract_info->meta_data);
             if (!($signer_info && is_array($signer_info))) {
                 $signer_info = array();
@@ -2220,6 +2193,8 @@ if (!function_exists('get_available_contract_variables')) {
             "STAFF_SIGNATURE",
             "CONTACT_FIRST_NAME",
             "CONTACT_LAST_NAME",
+            "CONTACT_PHONE",
+            "CONTACT_EMAIL",
             "COMPANY_INFO",
             "COMPANY_NAME",
             "COMPANY_ADDRESS",
