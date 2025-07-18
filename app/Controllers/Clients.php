@@ -43,6 +43,8 @@ class Clients extends Security_Controller {
         $view_data['tab'] = clean_data($tab);
         $view_data['statuses'] = $this->Lead_status_model->get_details()->getResult(); // Add statuses for the view
         $view_data['owners_dropdown'] = json_encode($this->_get_owners_dropdown("filter"));
+        $view_data['lead_sources'] = $this->Lead_source_model->get_details()->getResult();
+        $view_data['sources_dropdown'] = json_encode($this->_get_sources_dropdown());
 
         return $this->template->rander("clients/index", $view_data);
     }
@@ -222,6 +224,7 @@ function list_data() {
             "show_own_clients_only_user_id" => $show_own_clients_only_user_id,
             "quick_filter" => $this->request->getPost("quick_filter"),
             "owner_id" => $show_own_clients_only_user_id ? $show_own_clients_only_user_id : $this->request->getPost("owner_id"),
+            "source" => $this->request->getPost("source_id"),
             "client_groups" => $this->allowed_client_groups,
             "label_id" => $this->request->getPost('label_id'),
             "start_date" => $this->request->getPost("start_date"),
@@ -336,7 +339,7 @@ private function _make_row($data, $custom_fields) {
     // Format created_date to show only the date (YYYY-MM-DD)
     $created_date = $data->created_date ? date('Y-m-d', strtotime($data->created_date)) : "-";
 
-    $row_data = array(
+        $row_data = array(
         $data->id,
         anchor(get_uri("clients/view/" . $data->id), $data->company_name),
         $data->primary_contact ? $primary_contact : "",
@@ -345,6 +348,7 @@ private function _make_row($data, $custom_fields) {
         $created_date, // Add created_date here
         $group_list,
         $owner_name, // This now reflects the owner_id
+        $data->lead_source_title ? $data->lead_source_title : "-",
         to_currency($data->invoice_value, $data->currency_symbol),
         to_currency($data->payment_received, $data->currency_symbol),
         to_currency($due, $data->currency_symbol),
@@ -1901,6 +1905,9 @@ private function _save_a_row_of_excel_data($row_data) {
         $view_data["team_members_dropdown"] = $this->get_team_members_dropdown(true);
         $view_data['labels_dropdown'] = json_encode($this->make_labels_dropdown("client", "", true));
 
+        $view_data['lead_sources'] = $this->Lead_source_model->get_details()->getResult();
+        $view_data['sources_dropdown'] = json_encode($this->_get_sources_dropdown());
+
         // Pass the custom field id for Estimated Close Date to the view
         $view_data['estimated_close_cf_id'] = 167; // see general_helper mapping
 
@@ -1933,6 +1940,17 @@ private function _save_a_row_of_excel_data($row_data) {
         }
 
         return $team_members_dropdown;
+    }
+
+    private function _get_sources_dropdown() {
+        $sources = $this->Lead_source_model->get_details()->getResult();
+
+        $dropdown = array(array("id" => "", "text" => "- " . app_lang("source") . " -"));
+        foreach ($sources as $source) {
+            $dropdown[] = array("id" => $source->id, "text" => $source->title);
+        }
+
+        return $dropdown;
     }
 
     private function make_access_permissions_view_data() {

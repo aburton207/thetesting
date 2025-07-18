@@ -14,7 +14,7 @@
                             <?php echo round($summary->trend->clients_percent); ?>%
                         </span>
                     </div>
-                    <canvas id="client-count-chart" height="30"></canvas>
+                    <!-- removed chart canvas -->
                 </div>
             </div>
         </div>
@@ -34,7 +34,7 @@
                             <?php echo round($summary->trend->volume_percent); ?>%
                         </span>
                     </div>
-                    <canvas id="client-volume-chart" height="30"></canvas>
+                    <!-- removed chart canvas -->
                 </div>
             </div>
         </div>
@@ -54,7 +54,7 @@
                             <?php echo round($summary->trend->margin_percent); ?>%
                         </span>
                     </div>
-                    <canvas id="client-margin-chart" height="30"></canvas>
+                    <!-- removed chart canvas -->
                 </div>
             </div>
         </div>
@@ -74,35 +74,11 @@
                             <?php echo round($summary->trend->forecast_percent); ?>%
                         </span>
                     </div>
-                    <canvas id="client-forecast-chart" height="30"></canvas>
+                    <!-- removed chart canvas -->
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<script>
-    $(document).ready(function () {
-        var labels = <?php echo json_encode($summary->months); ?>;
-        new Chart(document.getElementById('client-count-chart'), {
-            type: 'line',
-            data: {labels: labels, datasets: [{data: <?php echo json_encode($summary->monthly_clients); ?>, borderColor: '#2196f3', backgroundColor: 'rgba(33,150,243,0.1)', borderWidth: 1, pointRadius: 0}]},
-            options: {responsive: true, maintainAspectRatio: false, legend: {display: false}, scales:{xAxes:[{display:false}], yAxes:[{display:false}]}}
-        });
-        new Chart(document.getElementById('client-volume-chart'), {
-            type: 'line',
-            data: {labels: labels, datasets: [{data: <?php echo json_encode($summary->monthly_volume); ?>, borderColor: '#17a2b8', backgroundColor: 'rgba(23,162,184,0.1)', borderWidth: 1, pointRadius: 0}]},
-            options: {responsive: true, maintainAspectRatio: false, legend: {display: false}, scales:{xAxes:[{display:false}], yAxes:[{display:false}]}}
-        });
-        new Chart(document.getElementById('client-margin-chart'), {
-            type: 'line',
-            data: {labels: labels, datasets: [{data: <?php echo json_encode($summary->monthly_margin); ?>, borderColor: '#28a745', backgroundColor: 'rgba(40,167,69,0.1)', borderWidth: 1, pointRadius: 0}]},
-            options: {responsive: true, maintainAspectRatio: false, legend: {display: false}, scales:{xAxes:[{display:false}], yAxes:[{display:false}]}}
-        });
-        new Chart(document.getElementById('client-forecast-chart'), {
-            type: 'line',
-            data: {labels: labels, datasets: [{data: <?php echo json_encode($summary->monthly_forecast); ?>, borderColor: '#ff7043', backgroundColor: 'rgba(255,112,67,0.1)', borderWidth: 1, pointRadius: 0}]},
-            options: {responsive: true, maintainAspectRatio: false, legend: {display: false}, scales:{xAxes:[{display:false}], yAxes:[{display:false}]}}
-        });
-    });
-</script>
+<!-- removed chart scripts -->
