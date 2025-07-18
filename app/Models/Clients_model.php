@@ -749,8 +749,50 @@ function get_details($options = array()) {
 
 
         $sql = "SELECT $clients_table.id, $clients_table.company_name AS name
-        FROM $clients_table 
+        FROM $clients_table
         WHERE $clients_table.deleted=0 AND $clients_table.is_lead=0 $where $limit_offset";
         return $this->db->query($sql);
+    }
+
+    function get_dashboard_summary() {
+        $clients_table = $this->db->prefixTable('clients');
+        $custom_field_values_table = $this->db->prefixTable('custom_field_values');
+
+        $sql = "SELECT $clients_table.id, volume.value AS volume, margin.value AS margin, $clients_table.lead_status_id
+                FROM $clients_table
+                LEFT JOIN $custom_field_values_table AS volume ON volume.custom_field_id=273 AND volume.related_to_type='clients' AND volume.related_to_id=$clients_table.id AND volume.deleted=0
+                LEFT JOIN $custom_field_values_table AS margin ON margin.custom_field_id=241 AND margin.related_to_type='clients' AND margin.related_to_id=$clients_table.id AND margin.deleted=0
+                WHERE $clients_table.deleted=0 AND $clients_table.is_lead=0";
+
+        $rows = $this->db->query($sql)->getResult();
+
+        $summary = new \stdClass();
+        $summary->total_clients = 0;
+        $summary->total_volume = 0;
+        $summary->potential_margin = 0;
+        $summary->weighted_forecast = 0;
+
+        $probability_mappings = [
+            1 => 15,
+            2 => 40,
+            3 => 50,
+            10 => 70,
+            6 => 100,
+            8 => 0,
+            9 => 0
+        ];
+
+        foreach ($rows as $row) {
+            $volume = $row->volume ? floatval($row->volume) : 0;
+            $margin = $row->margin ? floatval($row->margin) : 0;
+            $prob = isset($probability_mappings[$row->lead_status_id]) ? $probability_mappings[$row->lead_status_id] : 0;
+
+            $summary->total_clients += 1;
+            $summary->total_volume += $volume;
+            $summary->potential_margin += $margin * $volume;
+            $summary->weighted_forecast += ($margin * $volume) * ($prob / 100);
+        }
+
+        return $summary;
     }
 }
