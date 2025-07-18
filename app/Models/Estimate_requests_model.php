@@ -43,13 +43,20 @@ class Estimate_requests_model extends Crud_model {
             $where .= " AND $estimate_requests_table.status='$status'";
         }
 
+        $form_id = $this->_get_clean_value($options, "estimate_form_id");
+        if ($form_id) {
+            $where .= " AND $estimate_requests_table.estimate_form_id=$form_id";
+        }
+
         $clients_only = $this->_get_clean_value($options, "clients_only");
         if ($clients_only) {
             $where .= " AND $estimate_requests_table.client_id IN(SELECT $clients_table.id FROM $clients_table WHERE $clients_table.deleted=0 AND $clients_table.is_lead=0)";
         }
 
-        $sql = "SELECT $estimate_requests_table.*, $clients_table.company_name, $estimate_forms_table.title AS form_title, $clients_table.is_lead,
-              CONCAT($users_table.first_name, ' ',$users_table.last_name) AS assigned_to_user, $users_table.image as assigned_to_avatar, $clients_table.is_lead 
+        $sql = "SELECT $estimate_requests_table.*,
+              $clients_table.company_name, $clients_table.address, $clients_table.state, $clients_table.zip, $clients_table.phone,
+              $estimate_forms_table.title AS form_title, $clients_table.is_lead,
+              CONCAT($users_table.first_name, ' ', $users_table.last_name) AS assigned_to_user, $users_table.image as assigned_to_avatar, $clients_table.is_lead
         FROM $estimate_requests_table
         LEFT JOIN $clients_table ON $clients_table.id = $estimate_requests_table.client_id
         LEFT JOIN $users_table ON $users_table.id = $estimate_requests_table.assigned_to

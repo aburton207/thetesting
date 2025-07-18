@@ -20,25 +20,33 @@
     $(document).ready(function () {
         $("#estimate-request-table").appTable({
             source: '<?php echo_uri("estimate_requests/estimate_request_list_data") ?>',
-            order: [[4, 'desc']],
-            filterDropdown: [{name: "assigned_to", class: "w150", options: <?php echo $assigned_to_dropdown; ?>}, {name: "status", class: "w150", options: <?php echo $statuses_dropdown; ?>}],
+            order: [[14, 'desc']],
+            filterDropdown: [
+                {name: "assigned_to", class: "w150", options: <?php echo $assigned_to_dropdown; ?>},
+                {name: "status", class: "w150", options: <?php echo $statuses_dropdown; ?>},
+                {name: "form_id", class: "w150", options: <?php echo $forms_dropdown; ?>}
+            ],
             columns: [
                 {title: "<?php echo app_lang('id'); ?>", "class": "all"},
                 {title: "<?php echo app_lang('client'); ?>", "class": "all"},
-                   {title: "<?php echo app_lang('title'); ?>"},
-               
+                {title: "<?php echo app_lang('title'); ?>"},
+                {title: "<?php echo app_lang('address'); ?>"},
+                {title: "<?php echo app_lang('state'); ?>"},
+                {title: "<?php echo app_lang('zip'); ?>"},
+                {title: "<?php echo app_lang('phone'); ?>"},
                 {title: "Account #"},
-               {title: "Auto Delivery"},
-{title: "Monthly Autopay"},
-{title: "Bank Payment"},
-{title: "e-Invoice"},
+                {title: "Auto Delivery"},
+                {title: "Monthly Autopay"},
+                {title: "Bank Payment"},
+                {title: "e-Invoice"},
+                {title: "Custom 271"},
                 {title: "<?php echo app_lang('assigned_to'); ?>"},
                 {visible: false, searchable: false},
-                {title: '<?php echo app_lang("created_date") ?>', "iDataSort": 4},
+                {title: '<?php echo app_lang("created_date") ?>', "iDataSort": 14},
                 {title: "<?php echo app_lang('status'); ?>"},
                 {title: "<i data-feather='menu' class='icon-16'></i>", "class": "text-center dropdown-option w50"}
             ],
-            printColumns: [0, 1, 2, 3, 5, 6]
+            printColumns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
         });
     });
 </script>
