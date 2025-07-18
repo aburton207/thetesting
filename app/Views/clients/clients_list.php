@@ -79,7 +79,10 @@
                 {name: "status", class: "w200", options: <?php echo view("clients/client_statuses"); ?>},
                 <?php echo $custom_field_filters; ?>
             ],
-            rangeDatepicker: [{startDate: {name: "start_date", value: ""}, endDate: {name: "end_date", value: ""}, label: "<?php echo app_lang('created_date'); ?>", showClearButton: true}],
+            rangeDatepicker: [
+                {startDate: {name: "start_date", value: ""}, endDate: {name: "end_date", value: ""}, label: "<?php echo app_lang('created_date'); ?>", showClearButton: true},
+                {startDate: {name: "estimated_close_start_date", value: ""}, endDate: {name: "estimated_close_end_date", value: ""}, label: "Estimated Close", showClearButton: true}
+            ],
             columns: columns,
             printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], '<?php echo $custom_field_headers; ?>'),
             xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], '<?php echo $custom_field_headers; ?>'),

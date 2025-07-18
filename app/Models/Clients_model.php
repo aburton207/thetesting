@@ -93,6 +93,16 @@ function get_details($options = array()) {
         $where .= " AND DATE($clients_table.created_date)<='$end_date'";
     }
 
+    // Range filter for Estimated Close Date custom field (id 167)
+    $ec_start_date = $this->_get_clean_value($options, "ec_start_date");
+    if ($ec_start_date) {
+        $where .= " AND DATE(cfvt_167.value)>='$ec_start_date'";
+    }
+    $ec_end_date = $this->_get_clean_value($options, "ec_end_date");
+    if ($ec_end_date) {
+        $where .= " AND DATE(cfvt_167.value)<='$ec_end_date'";
+    }
+
     $label_id = $this->_get_clean_value($options, "label_id");
     if ($label_id) {
         $where .= " AND (FIND_IN_SET('$label_id', $clients_table.labels)) ";
