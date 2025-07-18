@@ -76,9 +76,14 @@
 
 <script type="text/javascript">
     $(document).ready(function () {
-        $("#dashboard-owner-filter").select2({data: <?php echo $owners_dropdown; ?>}).on("change", function () {
+        $("#dashboard-owner-filter").select2({data: <?php echo $owners_dropdown; ?>});
+
+        //reload stats on owner change
+        $(document).on("change", "#dashboard-owner-filter", function () {
             loadDashboardSummary($(this).val());
         });
+
+        //initial load
         loadDashboardSummary("");
 
         function loadDashboardSummary(ownerId) {
