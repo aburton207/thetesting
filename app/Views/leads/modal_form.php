@@ -12,7 +12,7 @@
 <?php echo form_close(); ?>
 
 <!-- Google Maps API Script -->
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCN7FS848BKLuWUjFlV6c7NKxDlcebCL_g&libraries=places&callback=initAutocomplete" async defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCN7FS848BKLuWUjFlV6c7NKxDlcebCL_g&libraries=places&callback=initLeadModalAutocomplete" async defer></script>
 
 <script type="text/javascript">
     $(document).ready(function () {
@@ -97,7 +97,7 @@
     }
 
     // Google Places Autocomplete Initialization
-    function initAutocomplete() {
+    function initLeadModalAutocomplete() {
         var addressInput = document.getElementById('address');
         var autocomplete = new google.maps.places.Autocomplete(addressInput, {
             types: ['address'],
