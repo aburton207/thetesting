@@ -64,42 +64,12 @@
         </div>
     </div>
 
-    <div class="row mt20">
-        <div class="col-md-3 mb15">
-            <select id="dashboard-owner-filter" class="w-100" data-placeholder="<?php echo app_lang('owner'); ?>"></select>
-        </div>
-    </div>
-    <div id="client-dashboard-summary-container">
-        <?php echo client_dashboard_summary_widget(); ?>
-    </div>
+    <!-- Dashboard summary removed -->
 </div>
 
 <script type="text/javascript">
     $(document).ready(function () {
-        $("#dashboard-owner-filter").select2({data: <?php echo $owners_dropdown; ?>});
-
-        //reload stats on owner change
-        $(document).on("change", "#dashboard-owner-filter", function () {
-            loadDashboardSummary($(this).val());
-        });
-
-        //initial load
-        loadDashboardSummary("");
-
-        function loadDashboardSummary(ownerId) {
-            $.ajax({
-                url: "<?php echo get_uri('clients/load_client_dashboard_summary'); ?>",
-                type: 'POST',
-                data: {owner_id: ownerId},
-                dataType: 'json',
-                success: function (result) {
-                    if (result.success) {
-                        $("#client-dashboard-summary-container").html(result.statistics);
-                        if (window.feather) { feather.replace(); }
-                    }
-                }
-            });
-        }
+        //dashboard summary script removed
         //trigger clients tab when it's client overview page
         $('body').on('click', '.client-widget-link', function (e) {
             e.preventDefault();

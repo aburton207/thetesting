@@ -91,6 +91,8 @@ class Clients extends Security_Controller {
         $view_data['label_suggestions'] = $this->make_labels_dropdown("client", $view_data['model_info']->labels);
         $view_data["custom_fields"] = $this->Custom_fields_model->get_combined_details("clients", $client_id, $this->login_user->is_admin, $this->login_user->user_type)->getResult();
         $view_data['statuses'] = $this->Lead_status_model->get_details()->getResult(); // Add statuses for dropdown
+        $view_data['lead_sources'] = $this->Lead_source_model->get_details()->getResult();
+        $view_data['sources_dropdown'] = json_encode($this->_get_sources_dropdown());
 
         return $this->template->view('clients/modal_form', $view_data);
     }
@@ -108,19 +110,20 @@ class Clients extends Security_Controller {
 
     $company_name = $this->request->getPost('company_name');
 
-    $data = array(
-        "company_name" => $company_name,
-        "type" => $this->request->getPost('account_type'),
-        "address" => $this->request->getPost('address'),
-        "city" => $this->request->getPost('city'),
-        "state" => $this->request->getPost('state'),
-        "zip" => $this->request->getPost('zip'),
-        "country" => $this->request->getPost('country'),
-        "phone" => $this->request->getPost('phone'),
-        "website" => $this->request->getPost('website'),
-        "vat_number" => $this->request->getPost('vat_number'),
-        "gst_number" => $this->request->getPost('gst_number')
-    );
+        $data = array(
+            "company_name" => $company_name,
+            "type" => $this->request->getPost('account_type'),
+            "address" => $this->request->getPost('address'),
+            "city" => $this->request->getPost('city'),
+            "state" => $this->request->getPost('state'),
+            "zip" => $this->request->getPost('zip'),
+            "country" => $this->request->getPost('country'),
+            "phone" => $this->request->getPost('phone'),
+            "website" => $this->request->getPost('website'),
+            "vat_number" => $this->request->getPost('vat_number'),
+            "gst_number" => $this->request->getPost('gst_number'),
+            "lead_source_id" => $this->request->getPost('lead_source_id')
+        );
 
     if ($this->login_user->user_type === "staff") {
         $group_ids = $this->request->getPost('group_ids');
