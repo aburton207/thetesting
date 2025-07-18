@@ -109,6 +109,19 @@ $(document).ready(function () {
 
                 $("#ajaxModalContent").html(response);
 
+                // Execute inline scripts from the loaded modal content
+                var $modalScripts = $("#ajaxModalContent").find("script");
+                $modalScripts.each(function () {
+                    if (this.src) {
+                        var scriptTag = document.createElement("script");
+                        scriptTag.src = this.src;
+                        document.head.appendChild(scriptTag);
+                    } else {
+                        $.globalEval(this.innerHTML);
+                    }
+                });
+                $modalScripts.remove();
+
                 initAllNotEmptyWYSIWYGEditors(true, $("#ajaxModalContent"));
                 setModalScrollbar();
 
