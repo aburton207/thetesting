@@ -754,15 +754,21 @@ function get_details($options = array()) {
         return $this->db->query($sql);
     }
 
-    function get_dashboard_summary() {
+    function get_dashboard_summary($options = array()) {
         $clients_table = $this->db->prefixTable('clients');
         $custom_field_values_table = $this->db->prefixTable('custom_field_values');
 
-        $sql = "SELECT $clients_table.id, volume.value AS volume, margin.value AS margin, $clients_table.lead_status_id
+        $owner_id = get_array_value($options, "owner_id");
+        $owner_where = "";
+        if ($owner_id) {
+            $owner_where = " AND $clients_table.owner_id=$owner_id";
+        }
+
+        $sql = "SELECT $clients_table.id, $clients_table.created_date, volume.value AS volume, margin.value AS margin, $clients_table.lead_status_id
                 FROM $clients_table
                 LEFT JOIN $custom_field_values_table AS volume ON volume.custom_field_id=273 AND volume.related_to_type='clients' AND volume.related_to_id=$clients_table.id AND volume.deleted=0
                 LEFT JOIN $custom_field_values_table AS margin ON margin.custom_field_id=241 AND margin.related_to_type='clients' AND margin.related_to_id=$clients_table.id AND margin.deleted=0
-                WHERE $clients_table.deleted=0 AND $clients_table.is_lead=0";
+                WHERE $clients_table.deleted=0 AND $clients_table.is_lead=0 $owner_where";
 
         $rows = $this->db->query($sql)->getResult();
 
@@ -771,6 +777,35 @@ function get_details($options = array()) {
         $summary->total_volume = 0;
         $summary->potential_margin = 0;
         $summary->weighted_forecast = 0;
+
+        $summary->trend = new \stdClass();
+        $summary->trend->current_clients = 0;
+        $summary->trend->previous_clients = 0;
+        $summary->trend->current_volume = 0;
+        $summary->trend->previous_volume = 0;
+        $summary->trend->current_margin = 0;
+        $summary->trend->previous_margin = 0;
+        $summary->trend->current_forecast = 0;
+        $summary->trend->previous_forecast = 0;
+
+        $months = array();
+        $month_clients = array();
+        $month_volume = array();
+        $month_margin = array();
+        $month_forecast = array();
+
+        for ($i = 5; $i >= 0; $i--) {
+            $m = date("Y-m", strtotime("-$i month"));
+            $months[$m] = date("M", strtotime("-$i month"));
+            $month_clients[$m] = 0;
+            $month_volume[$m] = 0;
+            $month_margin[$m] = 0;
+            $month_forecast[$m] = 0;
+        }
+
+        $now = strtotime(get_current_utc_time());
+        $current_start = strtotime("-30 days", $now);
+        $previous_start = strtotime("-60 days", $now);
 
         $probability_mappings = [
             1 => 15,
@@ -791,7 +826,39 @@ function get_details($options = array()) {
             $summary->total_volume += $volume;
             $summary->potential_margin += $margin * $volume;
             $summary->weighted_forecast += ($margin * $volume) * ($prob / 100);
+
+            $created = strtotime($row->created_date);
+            if ($created >= $current_start) {
+                $summary->trend->current_clients += 1;
+                $summary->trend->current_volume += $volume;
+                $summary->trend->current_margin += $margin * $volume;
+                $summary->trend->current_forecast += ($margin * $volume) * ($prob / 100);
+            } elseif ($created >= $previous_start && $created < $current_start) {
+                $summary->trend->previous_clients += 1;
+                $summary->trend->previous_volume += $volume;
+                $summary->trend->previous_margin += $margin * $volume;
+                $summary->trend->previous_forecast += ($margin * $volume) * ($prob / 100);
+            }
+
+            $m = date("Y-m", $created);
+            if (isset($month_clients[$m])) {
+                $month_clients[$m] += 1;
+                $month_volume[$m] += $volume;
+                $month_margin[$m] += $margin * $volume;
+                $month_forecast[$m] += ($margin * $volume) * ($prob / 100);
+            }
         }
+
+        $summary->trend->clients_percent = $summary->trend->previous_clients ? (($summary->trend->current_clients - $summary->trend->previous_clients) / $summary->trend->previous_clients) * 100 : 0;
+        $summary->trend->volume_percent = $summary->trend->previous_volume ? (($summary->trend->current_volume - $summary->trend->previous_volume) / $summary->trend->previous_volume) * 100 : 0;
+        $summary->trend->margin_percent = $summary->trend->previous_margin ? (($summary->trend->current_margin - $summary->trend->previous_margin) / $summary->trend->previous_margin) * 100 : 0;
+        $summary->trend->forecast_percent = $summary->trend->previous_forecast ? (($summary->trend->current_forecast - $summary->trend->previous_forecast) / $summary->trend->previous_forecast) * 100 : 0;
+
+        $summary->months = array_values($months);
+        $summary->monthly_clients = array_values($month_clients);
+        $summary->monthly_volume = array_values($month_volume);
+        $summary->monthly_margin = array_values($month_margin);
+        $summary->monthly_forecast = array_values($month_forecast);
 
         return $summary;
     }

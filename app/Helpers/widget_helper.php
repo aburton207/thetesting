@@ -1163,12 +1163,12 @@ if (!function_exists('total_contacts_widget')) {
 
 if (!function_exists('client_dashboard_summary_widget')) {
 
-    function client_dashboard_summary_widget() {
+    function client_dashboard_summary_widget($owner_id = 0, $return_as_data = false) {
         $Clients_model = model("App\Models\Clients_model");
-        $view_data["summary"] = $Clients_model->get_dashboard_summary();
+        $view_data["summary"] = $Clients_model->get_dashboard_summary(array("owner_id" => $owner_id));
 
         $template = new Template();
-        return $template->view("clients/widgets/client_dashboard_summary_widget", $view_data);
+        return $template->view("clients/widgets/client_dashboard_summary_widget", $view_data, $return_as_data);
     }
 }
 
