@@ -1,5 +1,29 @@
+<style type="text/css">
+    .summary-container h1 {
+        font-family: "Poppins", sans-serif;
+        font-weight: 600;
+    }
+
+    .summary-container h4 {
+        font-family: "Inter", sans-serif;
+        font-weight: 600;
+    }
+
+    .summary-list li {
+        display: flex;
+        justify-content: space-between;
+        border-bottom: 1px solid #eee;
+        padding: 6px 0;
+        font-family: "Inter", sans-serif;
+    }
+
+    .summary-list .count {
+        font-weight: 600;
+    }
+</style>
+
 <div id="page-content" class="page-wrapper clearfix">
-    <div class="card">
+    <div class="card summary-container" id="summary-card">
         <div class="page-title clearfix">
             <h1><?php echo app_lang('estimate_request_summary'); ?></h1>
             <?php if (!empty($form_title)) { ?>
@@ -12,16 +36,18 @@
                     <i data-feather="download" class="icon-16"></i> <?php echo app_lang('download_pdf'); ?>
                 </button>
             </div>
-            <div class="row">
-                <div class="col-md-3">
-                    <ul class="list-unstyled">
-                        <?php foreach ($labels_array as $index => $label) { ?>
-                            <li><strong><?php echo $data_array[$index]; ?></strong> - <?php echo $label; ?></li>
-                        <?php } ?>
-                    </ul>
-                </div>
-                <div class="col-md-9">
-                    <canvas id="summary-chart" height="150"></canvas>
+            <div id="summary-content">
+                <div class="row">
+                    <div class="col-md-3">
+                        <ul class="list-unstyled summary-list">
+                            <?php foreach ($labels_array as $index => $label) { ?>
+                                <li><span><?php echo $label; ?></span><span class="count"><?php echo $data_array[$index]; ?></span></li>
+                            <?php } ?>
+                        </ul>
+                    </div>
+                    <div class="col-md-9">
+                        <canvas id="summary-chart" height="150"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
@@ -50,13 +76,16 @@
         });
 
         document.getElementById('download-summary-pdf').addEventListener('click', function () {
-            html2canvas(document.getElementById('summary-section')).then(function (canvas) {
+            var button = document.getElementById('download-summary-pdf');
+            button.style.display = 'none';
+            html2canvas(document.getElementById('summary-card')).then(function (canvas) {
                 var imgData = canvas.toDataURL('image/png');
                 var pdf = new jspdf.jsPDF();
                 var width = pdf.internal.pageSize.getWidth();
                 var height = canvas.height * width / canvas.width;
                 pdf.addImage(imgData, 'PNG', 0, 0, width, height);
                 pdf.save('summary.pdf');
+                button.style.display = '';
             });
         });
     });
