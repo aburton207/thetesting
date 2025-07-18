@@ -33,14 +33,14 @@
         }, 200);
 
         // Prevent browser autofill on address field
-        var addressInput = $('#address');
+        var addressInput = $('#lead-form #address');
         addressInput.attr('autocomplete', 'new-address');
         addressInput.on('focus', function () {
             $(this).attr('autocomplete', 'new-address');
         });
 
         // Dynamic logic: override lead source based on location
-        $("#state, #city").on("change keyup", updateLeadSource);
+        $(document).on("change keyup", "#state, #city", updateLeadSource);
 
         loadMapsScript(initLeadModalAutocomplete);
     });
@@ -110,7 +110,10 @@
 
     // Google Places Autocomplete Initialization
     function initLeadModalAutocomplete() {
-        var addressInput = document.getElementById('address');
+        var addressInput = document.querySelector('#lead-form #address');
+        if (!addressInput) {
+            return;
+        }
         var autocomplete = new google.maps.places.Autocomplete(addressInput, {
             types: ['address'],
             componentRestrictions: { country: ['ca'] },
@@ -121,11 +124,11 @@
             var place = autocomplete.getPlace();
             var addressComponents = place.address_components;
 
-            $('#address').val('');
-            $('#city').val('');
-            $('#state').val('');
-            $('#zip').val('');
-            $('#country').val('');
+            $('#lead-form #address').val('');
+            $('#lead-form #city').val('');
+            $('#lead-form #state').val('');
+            $('#lead-form #zip').val('');
+            $('#lead-form #country').val('');
 
             var streetNumber = '';
             var route = '';
@@ -159,11 +162,11 @@
             }
 
             var fullAddress = streetNumber && route ? streetNumber + ' ' + route : route;
-            $('#address').val(fullAddress);
-            $('#city').val(city);
-            $('#state').val(province).trigger('change');
-            $('#zip').val(postalCode);
-            $('#country').val(country);
+            $('#lead-form #address').val(fullAddress);
+            $('#lead-form #city').val(city);
+            $('#lead-form #state').val(province).trigger('change');
+            $('#lead-form #zip').val(postalCode);
+            $('#lead-form #country').val(country);
 
             updateLeadSource();
         });
