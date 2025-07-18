@@ -39,14 +39,15 @@
                 {title: "Monthly Autopay"},
                 {title: "Bank Payment"},
                 {title: "e-Invoice"},
-                {title: "Custom 271"},
+                {title: "Additional Info"},
                 {title: "<?php echo app_lang('assigned_to'); ?>"},
                 {visible: false, searchable: false},
                 {title: '<?php echo app_lang("created_date") ?>', "iDataSort": 14},
                 {title: "<?php echo app_lang('status'); ?>"},
                 {title: "<i data-feather='menu' class='icon-16'></i>", "class": "text-center dropdown-option w50"}
             ],
-            printColumns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+            printColumns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 15, 16],
+            xlsColumns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 15, 16]
         });
     });
 </script>
