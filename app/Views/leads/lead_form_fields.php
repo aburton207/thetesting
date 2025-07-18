@@ -158,15 +158,17 @@
     <div class="row">
         <label for="state" class="<?php echo $label_column; ?>"><?php echo app_lang('state'); ?></label>
         <div class="<?php echo $field_column; ?>">
-            <?php
-            echo form_input(array(
-                "id" => "state",
-                "name" => "state",
-                "value" => $model_info->state,
-                "class" => "form-control",
-                "placeholder" => app_lang('state')
-            ));
-            ?>
+            <select id="state" name="state" class="form-control select2" data-rule-required="true" data-msg-required="<?php echo app_lang('field_required'); ?>">
+                <option value="">- Select Province -</option>
+                <option value="New Brunswick" <?php echo $model_info->state == 'New Brunswick' ? 'selected' : ''; ?>>New Brunswick</option>
+                <option value="Nova Scotia" <?php echo $model_info->state == 'Nova Scotia' ? 'selected' : ''; ?>>Nova Scotia</option>
+                <option value="Prince Edward Island" <?php echo $model_info->state == 'Prince Edward Island' ? 'selected' : ''; ?>>Prince Edward Island</option>
+                <option value="Quebec" <?php echo $model_info->state == 'Quebec' ? 'selected' : ''; ?>>Quebec</option>
+                <option value="Ontario" <?php echo $model_info->state == 'Ontario' ? 'selected' : ''; ?>>Ontario</option>
+                <option value="Manitoba" <?php echo $model_info->state == 'Manitoba' ? 'selected' : ''; ?>>Manitoba</option>
+                <option value="Northwest Territories" <?php echo $model_info->state == 'Northwest Territories' ? 'selected' : ''; ?>>Northwest Territories</option>
+                <option value="British Columbia" <?php echo $model_info->state == 'British Columbia' ? 'selected' : ''; ?>>British Columbia</option>
+            </select>
         </div>
     </div>
 </div>
