@@ -12,7 +12,6 @@
 <?php echo form_close(); ?>
 
 <!-- Google Maps API Script -->
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCN7FS848BKLuWUjFlV6c7NKxDlcebCL_g&libraries=places&callback=initLeadModalAutocomplete" async defer></script>
 <script type="text/javascript">
     $(document).ready(function () {
         $("#lead-form").appForm({
@@ -160,3 +159,5 @@
         });
     }
 </script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCN7FS848BKLuWUjFlV6c7NKxDlcebCL_g&libraries=places&callback=initLeadModalAutocomplete" async defer></script>
+
