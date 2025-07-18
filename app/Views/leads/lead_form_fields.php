@@ -123,12 +123,15 @@
         <label for="address" class="<?php echo $label_column; ?>"><?php echo app_lang('address'); ?></label>
         <div class="<?php echo $field_column; ?>">
             <?php
-            echo form_textarea(array(
+            echo form_input(array(
                 "id" => "address",
                 "name" => "address",
                 "value" => $model_info->address ? $model_info->address : "",
                 "class" => "form-control",
-                "placeholder" => app_lang('address')
+                "placeholder" => app_lang('address'),
+                "autocomplete" => "off",
+                "data-autofill" => "new-address",
+                "aria-autocomplete" => "list"
             ));
             ?>
 
