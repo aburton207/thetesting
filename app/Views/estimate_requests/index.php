@@ -26,6 +26,7 @@
                 {name: "status", class: "w150", options: <?php echo $statuses_dropdown; ?>},
                 {name: "form_id", class: "w150", options: <?php echo $forms_dropdown; ?>}
             ],
+            rangeDatepicker: [{startDate: {name: "start_date", value: ""}, endDate: {name: "end_date", value: ""}, label: "<?php echo app_lang('created_date'); ?>", showClearButton: true}],
             columns: [
                 {title: "<?php echo app_lang('id'); ?>", "class": "all"},
                 {title: "<?php echo app_lang('client'); ?>", "class": "all"},

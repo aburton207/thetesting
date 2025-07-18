@@ -22,6 +22,7 @@
                 {title: "<?php echo app_lang("title"); ?>", "class": "all"},
                 {title: "<?php echo app_lang("public"); ?>", "class": "w150"},
                 {title: "<?php echo app_lang("embed"); ?>", "class": "option w150"},
+                {title: "<?php echo app_lang('summary'); ?>", "class": "w100"},
                 {title: "<?php echo app_lang("status"); ?>", "class": "w150"},
                 {title: '<i data-feather="menu" class="icon-16"></i>', "class": "text-center option w100"}
             ]

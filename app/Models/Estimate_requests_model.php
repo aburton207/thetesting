@@ -48,6 +48,15 @@ class Estimate_requests_model extends Crud_model {
             $where .= " AND $estimate_requests_table.estimate_form_id=$form_id";
         }
 
+        $start_date = $this->_get_clean_value($options, "start_date");
+        if ($start_date) {
+            $where .= " AND DATE($estimate_requests_table.created_at) >= '$start_date'";
+        }
+        $end_date = $this->_get_clean_value($options, "end_date");
+        if ($end_date) {
+            $where .= " AND DATE($estimate_requests_table.created_at) <= '$end_date'";
+        }
+
         $clients_only = $this->_get_clean_value($options, "clients_only");
         if ($clients_only) {
             $where .= " AND $estimate_requests_table.client_id IN(SELECT $clients_table.id FROM $clients_table WHERE $clients_table.deleted=0 AND $clients_table.is_lead=0)";
@@ -93,10 +102,10 @@ function get_pdf_details($id) {
         }
         return null;
     }
-function download_pdf($estimate_request_id = 0) {
-    if (!$estimate_request_id) {
-        show_404();
-    }
+    function download_pdf($estimate_request_id = 0) {
+        if (!$estimate_request_id) {
+            show_404();
+        }
 
     validate_numeric_value($estimate_request_id);
 
@@ -121,4 +130,36 @@ function download_pdf($estimate_request_id = 0) {
     // Generate PDF
     prepare_estimate_request_pdf($estimate_request_data, "download");
 }
+
+    //get counts of yes for selected custom fields within a form
+    function get_custom_field_summary($form_id) {
+        $estimate_requests_table = $this->db->prefixTable('estimate_requests');
+        $cf_table = $this->db->prefixTable('custom_field_values');
+
+        $counts = [267 => 0, 268 => 0, 269 => 0, 270 => 0];
+
+        $sql = "SELECT cf.custom_field_id, COUNT(cf.id) AS total
+                FROM $estimate_requests_table er
+                INNER JOIN $cf_table cf ON cf.related_to_type='estimate_request' AND cf.related_to_id=er.id AND cf.deleted=0
+                WHERE er.deleted=0 AND er.estimate_form_id=$form_id AND cf.custom_field_id IN (267,268,269,270) AND LOWER(cf.value)='yes'
+                GROUP BY cf.custom_field_id";
+        $result = $this->db->query($sql)->getResult();
+        foreach ($result as $row) {
+            $counts[$row->custom_field_id] = intval($row->total);
+        }
+
+        $total_requests = $this->db->query("SELECT COUNT(id) AS total FROM $estimate_requests_table WHERE deleted=0 AND estimate_form_id=$form_id")->getRow()->total ?? 0;
+
+        $yes_requests = $this->db->query("SELECT COUNT(DISTINCT er.id) AS total
+                FROM $estimate_requests_table er
+                INNER JOIN $cf_table cf ON cf.related_to_type='estimate_request' AND cf.related_to_id=er.id AND cf.deleted=0 AND cf.custom_field_id IN (267,268,269,270) AND LOWER(cf.value)='yes'
+                WHERE er.deleted=0 AND er.estimate_form_id=$form_id")->getRow()->total ?? 0;
+
+        $summary = [
+            'counts' => $counts,
+            'unhappy' => intval($total_requests) - intval($yes_requests)
+        ];
+
+        return $summary;
+    }
 }
