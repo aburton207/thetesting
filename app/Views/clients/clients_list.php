@@ -42,6 +42,7 @@
               {title: "Created Date", order_by: "created_date"},
             {title: "<?php echo app_lang('client_groups') ?>", order_by: "client_groups"},
             {title: "<?php echo app_lang('owner') ?>", order_by: "client_owner"},
+            {title: "<?php echo app_lang('source') ?>", order_by: "lead_source_title"},
             {visible: showInvoiceInfo, searchable: showInvoiceInfo, title: "<?php echo app_lang('total_invoiced') ?>", "class": "text-right"},
             {visible: showInvoiceInfo, searchable: showInvoiceInfo, title: "<?php echo app_lang('payment_received') ?>", "class": "text-right"},
             {visible: showInvoiceInfo, searchable: showInvoiceInfo, title: "<?php echo app_lang('due') ?>", "class": "text-right"},
@@ -77,6 +78,7 @@
                 {name: "group_id", class: "w200", options: <?php echo $groups_dropdown; ?>},
                 {name: "account_type", class: "w200", options: type_dropdown},
                 {name: "status", class: "w200", options: <?php echo view("clients/client_statuses"); ?>},
+                {name: "source_id", class: "w200", options: <?php echo view("leads/lead_sources", array("lead_sources" => $lead_sources)); ?>},
                 <?php echo $custom_field_filters; ?>
             ],
             rangeDatepicker: [
@@ -84,8 +86,8 @@
                 {startDate: {name: "estimated_close_start_date", value: ""}, endDate: {name: "estimated_close_end_date", value: ""}, label: "Estimated Close", showClearButton: true}
             ],
             columns: columns,
-            printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], '<?php echo $custom_field_headers; ?>'),
-            xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], '<?php echo $custom_field_headers; ?>'),
+            printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], '<?php echo $custom_field_headers; ?>'),
+            xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], '<?php echo $custom_field_headers; ?>'),
             ajax: {
                 dataSrc: function (data) {
                     console.log('Table Data:', data);

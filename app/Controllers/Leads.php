@@ -276,7 +276,8 @@ class Leads extends Security_Controller {
             $data->primary_contact ? $primary_contact : "",
             $phone,
             $owner,
-        
+            $data->lead_source_title ? $data->lead_source_title : "-",
+
             $data->created_date,
             format_to_date($data->created_date, false)
         );

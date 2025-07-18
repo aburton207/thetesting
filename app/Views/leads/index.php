@@ -44,7 +44,8 @@
             {title: "<?php echo app_lang("primary_contact") ?>", order_by: "primary_contact"},
             {title: "<?php echo app_lang("phone") ?>"},
             {title: "<?php echo app_lang("owner") ?>", order_by: "owner_name"},
-        
+            {title: "<?php echo app_lang('source') ?>", order_by: "lead_source_title"},
+
             {visible: false, searchable: false, order_by: "created_date"},
             {title: "<?php echo app_lang("created_date") ?>", "iDataSort": 5, order_by: "created_date"},
             {title: "<?php echo app_lang("status") ?>", order_by: "status"}
@@ -63,8 +64,8 @@
             <?php echo $custom_field_filters; ?>
             ],
             rangeDatepicker: [{startDate: {name: "start_date", value: ""}, endDate: {name: "end_date", value: ""}, label: "<?php echo app_lang('created_date'); ?>", showClearButton: true}],
-            printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 6, 7], '<?php echo $custom_field_headers; ?>'),
-            xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 6, 7], '<?php echo $custom_field_headers; ?>')
+            printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 7, 8], '<?php echo $custom_field_headers; ?>'),
+            xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 7, 8], '<?php echo $custom_field_headers; ?>')
     });
     }
     );

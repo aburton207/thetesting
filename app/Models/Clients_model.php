@@ -19,6 +19,7 @@ function get_details($options = array()) {
     $invoice_payments_table = $this->db->prefixTable('invoice_payments');
     $client_groups_table = $this->db->prefixTable('client_groups');
     $lead_status_table = $this->db->prefixTable('lead_status');
+    $lead_source_table = $this->db->prefixTable('lead_source');
     $estimates_table = $this->db->prefixTable('estimates');
     $estimate_requests_table = $this->db->prefixTable('estimate_requests');
     $tickets_table = $this->db->prefixTable('tickets');
@@ -140,7 +141,8 @@ function get_details($options = array()) {
         "status" => "lead_status_title",
         "owner_name" => "owner_details.owner_name",
         "primary_contact" => "primary_contact",
-        "client_groups" => "client_groups"
+        "client_groups" => "client_groups",
+        "lead_source_title" => "lead_source_title"
     );
 
     $order_by = get_array_value($available_order_by_list, $this->_get_clean_value($options, "order_by"));
@@ -179,11 +181,12 @@ function get_details($options = array()) {
                    IFNULL(invoice_details.payment_received,0) AS payment_received $select_custom_fieds,
                    IFNULL(invoice_details.invoice_value,0) AS invoice_value,
                    (SELECT $users_table.phone FROM $users_table WHERE $users_table.client_id = $clients_table.id AND $users_table.deleted=0 AND $users_table.is_primary_contact=1) AS primary_contact_phone,
-                   (SELECT GROUP_CONCAT($client_groups_table.title) FROM $client_groups_table WHERE FIND_IN_SET($client_groups_table.id, $clients_table.group_ids)) AS client_groups, 
-                   $lead_status_table.title AS lead_status_title, 
+                   (SELECT GROUP_CONCAT($client_groups_table.title) FROM $client_groups_table WHERE FIND_IN_SET($client_groups_table.id, $clients_table.group_ids)) AS client_groups,
+                   $lead_status_table.title AS lead_status_title,
                    $lead_status_table.color AS lead_status_color,
-                   owner_details.owner_name, 
-                   owner_details.owner_avatar, 
+                   $lead_source_table.title AS lead_source_title,
+                   owner_details.owner_name,
+                   owner_details.owner_avatar,
                    $select_labels_data_query
             FROM $clients_table
             LEFT JOIN $users_table ON $users_table.client_id = $clients_table.id AND $users_table.deleted=0 AND $users_table.is_primary_contact=1
@@ -193,10 +196,11 @@ function get_details($options = array()) {
                        LEFT JOIN (SELECT invoice_id, SUM(amount) AS payment_received FROM $invoice_payments_table WHERE deleted=0 GROUP BY invoice_id) AS payments_table ON payments_table.invoice_id=$invoices_table.id 
                        WHERE $invoices_table.deleted=0 AND $invoices_table.status='not_paid'
                        GROUP BY $invoices_table.client_id) AS invoice_details ON invoice_details.client_id= $clients_table.id 
-            LEFT JOIN $lead_status_table ON $clients_table.lead_status_id = $lead_status_table.id 
-            LEFT JOIN (SELECT $users_table.id, CONCAT($users_table.first_name, ' ', $users_table.last_name) AS owner_name, $users_table.image AS owner_avatar 
+            LEFT JOIN $lead_status_table ON $clients_table.lead_status_id = $lead_status_table.id
+            LEFT JOIN $lead_source_table ON $clients_table.lead_source_id = $lead_source_table.id
+            LEFT JOIN (SELECT $users_table.id, CONCAT($users_table.first_name, ' ', $users_table.last_name) AS owner_name, $users_table.image AS owner_avatar
                        FROM $users_table WHERE $users_table.deleted=0 AND $users_table.user_type='staff') AS owner_details ON owner_details.id=$clients_table.owner_id
-            $join_custom_fieds               
+            $join_custom_fieds
             WHERE $clients_table.deleted=0 $where $custom_fields_where  
             $order $limit_offset";
 
