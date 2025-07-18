@@ -427,7 +427,10 @@ private function _make_estimate_request_row($data) {
             $embedded_code = modal_anchor(get_uri("estimate_requests/embedded_code_modal_form"), "<i data-feather='code' class='icon-16'></i>", array("title" => app_lang('embed'), "class" => "edit", "data-post-id" => $data->id));
         }
 
-        $summary = anchor(get_uri("estimate_requests/form_summary/" . $data->id), "<i data-feather='bar-chart-2' class='icon-16'></i>", array("title" => app_lang('estimate_request_summary')));
+        $summary = "-";
+        if ($data->id == 6) {
+            $summary = anchor(get_uri("estimate_requests/form_summary/" . $data->id), "<i data-feather='bar-chart-2' class='icon-16'></i>", array("title" => app_lang('estimate_request_summary')));
+        }
 
         return array(
             $title,
