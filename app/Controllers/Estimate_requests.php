@@ -838,6 +838,8 @@ private function _make_estimate_request_row($data) {
 
         $summary = $this->Estimate_requests_model->get_custom_field_summary($form_id);
 
+        $form_info = $this->Estimate_forms_model->get_one($form_id);
+
         $labels = [
             'Switch from Will Call to Automatic Delivery with Monitor',
             'Switch from Cheque/Cash payment per Delivery to Equal Monthly Budget Autopay',
@@ -856,6 +858,9 @@ private function _make_estimate_request_row($data) {
 
         $view_data['labels'] = json_encode($labels);
         $view_data['data'] = json_encode($data);
+        $view_data['labels_array'] = $labels;
+        $view_data['data_array'] = $data;
+        $view_data['form_title'] = $form_info->title ?? '';
         return $this->template->rander('estimate_requests/form_summary', $view_data);
     }
 }

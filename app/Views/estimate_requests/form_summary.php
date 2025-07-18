@@ -2,14 +2,28 @@
     <div class="card">
         <div class="page-title clearfix">
             <h1><?php echo app_lang('estimate_request_summary'); ?></h1>
+            <?php if (!empty($form_title)) { ?>
+                <h4 class="mt-2"><?php echo $form_title; ?></h4>
+            <?php } ?>
         </div>
-        <div class="card-body">
+        <div class="card-body" id="summary-section">
             <div class="text-end mb-3">
                 <button id="download-summary-pdf" class="btn btn-default">
                     <i data-feather="download" class="icon-16"></i> <?php echo app_lang('download_pdf'); ?>
                 </button>
             </div>
-            <canvas id="summary-chart" height="200"></canvas>
+            <div class="row">
+                <div class="col-md-3">
+                    <ul class="list-unstyled">
+                        <?php foreach ($labels_array as $index => $label) { ?>
+                            <li><strong><?php echo $data_array[$index]; ?></strong> - <?php echo $label; ?></li>
+                        <?php } ?>
+                    </ul>
+                </div>
+                <div class="col-md-9">
+                    <canvas id="summary-chart" height="150"></canvas>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -36,7 +50,7 @@
         });
 
         document.getElementById('download-summary-pdf').addEventListener('click', function () {
-            html2canvas(document.getElementById('summary-chart')).then(function (canvas) {
+            html2canvas(document.getElementById('summary-section')).then(function (canvas) {
                 var imgData = canvas.toDataURL('image/png');
                 var pdf = new jspdf.jsPDF();
                 var width = pdf.internal.pageSize.getWidth();
