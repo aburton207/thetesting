@@ -9,3 +9,12 @@
     background: #0E4C80;
     border: 1px solid #0E4C80;
 }
+
+#client-dashboard-summary-container .widget-details h1 {
+    font-size: 1.5rem;
+}
+
+#client-dashboard-summary-container canvas {
+    width: 100% !important;
+    max-height: 80px !important;
+}
