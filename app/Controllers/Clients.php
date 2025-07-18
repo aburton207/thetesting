@@ -225,6 +225,9 @@ function list_data() {
             "label_id" => $this->request->getPost('label_id'),
             "start_date" => $this->request->getPost("start_date"),
             "end_date" => $this->request->getPost("end_date"),
+            // Date range filter for Estimated Close Date custom field
+            "ec_start_date" => $this->request->getPost("estimated_close_start_date"),
+            "ec_end_date" => $this->request->getPost("estimated_close_end_date"),
             "is_lead" => 0 // Explicitly filter for clients only
         );
 
@@ -1896,6 +1899,9 @@ private function _save_a_row_of_excel_data($row_data) {
         $view_data['can_edit_clients'] = $this->can_edit_clients();
         $view_data["team_members_dropdown"] = $this->get_team_members_dropdown(true);
         $view_data['labels_dropdown'] = json_encode($this->make_labels_dropdown("client", "", true));
+
+        // Pass the custom field id for Estimated Close Date to the view
+        $view_data['estimated_close_cf_id'] = 167; // see general_helper mapping
 
         return $this->template->view("clients/clients_list", $view_data);
     }
