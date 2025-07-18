@@ -12,6 +12,7 @@
 <?php echo form_close(); ?>
 
 <!-- Google Maps API Script -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCN7FS848BKLuWUjFlV6c7NKxDlcebCL_g&libraries=places&callback=initLeadModalAutocomplete" async defer></script>
 <script type="text/javascript">
     $(document).ready(function () {
         $("#lead-form").appForm({
@@ -42,21 +43,10 @@
         // Dynamic logic: override lead source based on location
         $("#state, #city").on("change keyup", updateLeadSource);
 
-        loadMapsScript(initLeadModalAutocomplete);
-    });
-
-    function loadMapsScript(callback) {
         if (window.google && google.maps && google.maps.places) {
-            callback();
-            return;
+            initLeadModalAutocomplete();
         }
-        var script = document.createElement('script');
-        script.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyCN7FS848BKLuWUjFlV6c7NKxDlcebCL_g&libraries=places";
-        script.async = true;
-        script.defer = true;
-        script.onload = callback;
-        document.head.appendChild(script);
-    }
+    });
 
     function updateLeadSource() {
         var cityVal = $("#city").val().trim().toLowerCase();
