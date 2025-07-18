@@ -25,9 +25,9 @@
 <div id="page-content" class="page-wrapper clearfix">
     <div class="card summary-container" id="summary-card">
         <div class="page-title clearfix">
-            <h1><?php echo app_lang('estimate_request_summary'); ?></h1>
+        
             <?php if (!empty($form_title)) { ?>
-                <h4 class="mt-2"><?php echo $form_title; ?></h4>
+                <h4 class="mt-2"><?php echo $form_title; ?> Summary</h4>
             <?php } ?>
         </div>
         <div class="card-body" id="summary-section">
@@ -48,6 +48,7 @@
                     <div class="col-md-9">
                         <canvas id="summary-chart" height="150"></canvas>
                     </div>
+                    
                 </div>
             </div>
         </div>
