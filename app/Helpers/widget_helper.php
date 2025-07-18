@@ -1161,6 +1161,17 @@ if (!function_exists('total_contacts_widget')) {
     }
 }
 
+if (!function_exists('client_dashboard_summary_widget')) {
+
+    function client_dashboard_summary_widget() {
+        $Clients_model = model("App\Models\Clients_model");
+        $view_data["summary"] = $Clients_model->get_dashboard_summary();
+
+        $template = new Template();
+        return $template->view("clients/widgets/client_dashboard_summary_widget", $view_data);
+    }
+}
+
 /**
  * get active members on projects widget
  * 

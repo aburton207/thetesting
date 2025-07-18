@@ -63,6 +63,10 @@
             ?>
         </div>
     </div>
+
+    <div class="row mt20">
+        <?php echo client_dashboard_summary_widget(); ?>
+    </div>
 </div>
 
 <script type="text/javascript">
