@@ -42,6 +42,7 @@ class Clients extends Security_Controller {
         $view_data["allowed_client_groups"] = $this->allowed_client_groups;
         $view_data['tab'] = clean_data($tab);
         $view_data['statuses'] = $this->Lead_status_model->get_details()->getResult(); // Add statuses for the view
+        $view_data['owners_dropdown'] = json_encode($this->_get_owners_dropdown("filter"));
 
         return $this->template->rander("clients/index", $view_data);
     }
@@ -1904,6 +1905,34 @@ private function _save_a_row_of_excel_data($row_data) {
         $view_data['estimated_close_cf_id'] = 167; // see general_helper mapping
 
         return $this->template->view("clients/clients_list", $view_data);
+    }
+
+    function load_client_dashboard_summary() {
+        $this->access_only_allowed_members();
+
+        $owner_id = $this->request->getPost('owner_id');
+        $widget = client_dashboard_summary_widget($owner_id, true);
+
+        if ($widget) {
+            echo json_encode(array("success" => true, "statistics" => $widget));
+        } else {
+            echo json_encode(array("success" => false, 'message' => app_lang('error_occurred')));
+        }
+    }
+
+    private function _get_owners_dropdown($view_type = "") {
+        $team_members = $this->Users_model->get_all_where(array("user_type" => "staff", "deleted" => 0, "status" => "active"))->getResult();
+        $team_members_dropdown = array();
+
+        if ($view_type == "filter") {
+            $team_members_dropdown = array(array("id" => "", "text" => "- " . app_lang("owner") . " -"));
+        }
+
+        foreach ($team_members as $member) {
+            $team_members_dropdown[] = array("id" => $member->id, "text" => $member->first_name . " " . $member->last_name);
+        }
+
+        return $team_members_dropdown;
     }
 
     private function make_access_permissions_view_data() {
