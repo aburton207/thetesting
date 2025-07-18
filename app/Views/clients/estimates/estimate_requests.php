@@ -24,6 +24,7 @@
         $("#estimate-request-table").appTable({
             source: '<?php echo_uri("estimate_requests/estimate_requests_list_data_of_client/" . $client_id) ?>',
             order: [[0, 'desc']],
+            rangeDatepicker: [{startDate: {name: "start_date", value: ""}, endDate: {name: "end_date", value: ""}, label: "<?php echo app_lang('created_date'); ?>", showClearButton: true}],
             columns: [
                 {title: "<?php echo app_lang('id'); ?>", "class": "all"},
                 {visible: false, searchable: false},

@@ -106,7 +106,9 @@ class Estimate_requests extends Security_Controller {
         $options = array(
             "assigned_to" => $this->request->getPost("assigned_to"),
             "status" => $this->request->getPost("status"),
-            "estimate_form_id" => $this->request->getPost("form_id")
+            "estimate_form_id" => $this->request->getPost("form_id"),
+            "start_date" => $this->request->getPost("start_date"),
+            "end_date" => $this->request->getPost("end_date")
         );
         $list_data = $this->Estimate_requests_model->get_details($options)->getResult();
         $result = array();
@@ -133,7 +135,12 @@ class Estimate_requests extends Security_Controller {
         validate_numeric_value($client_id);
         $this->access_only_allowed_members_or_client_contact($client_id);
 
-        $options = array("client_id" => $client_id, "status" => $this->request->getPost("status"));
+        $options = array(
+            "client_id" => $client_id,
+            "status" => $this->request->getPost("status"),
+            "start_date" => $this->request->getPost("start_date"),
+            "end_date" => $this->request->getPost("end_date")
+        );
         $list_data = $this->Estimate_requests_model->get_details($options)->getResult();
         $result = array();
         foreach ($list_data as $data) {
@@ -420,10 +427,13 @@ private function _make_estimate_request_row($data) {
             $embedded_code = modal_anchor(get_uri("estimate_requests/embedded_code_modal_form"), "<i data-feather='code' class='icon-16'></i>", array("title" => app_lang('embed'), "class" => "edit", "data-post-id" => $data->id));
         }
 
+        $summary = anchor(get_uri("estimate_requests/form_summary/" . $data->id), "<i data-feather='bar-chart-2' class='icon-16'></i>", array("title" => app_lang('estimate_request_summary')));
+
         return array(
             $title,
             $public,
             $embedded_code,
+            $summary,
             app_lang($data->status),
             modal_anchor(get_uri("estimate_requests/estimate_request_modal_form"), "<i data-feather='edit' class='icon-16'></i>", array("class" => "edit", "title" => app_lang('edit_form'), "data-post-id" => $data->id))
                 . js_anchor("<i data-feather='x' class='icon-16'></i>", array('title' => app_lang('delete_estimate_form'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("estimate_requests/delete_estimate_request_form"), "data-action" => "delete"))
@@ -816,6 +826,34 @@ private function _make_estimate_request_row($data) {
         $view_data['embedded'] = $embedded_code;
 
         return $this->template->view('estimate_requests/embedded_code_modal_form', $view_data);
+    }
+
+    //show summary chart for a specific estimate form
+    function form_summary($form_id = 0) {
+        $this->access_only_allowed_members();
+        validate_numeric_value($form_id);
+
+        $summary = $this->Estimate_requests_model->get_custom_field_summary($form_id);
+
+        $labels = [
+            'Switch from Will Call to Automatic Delivery with Monitor',
+            'Switch from Cheque/Cash payment per Delivery to Equal Monthly Budget Autopay',
+            'Switch from Credit Card Payment to Bank Payment',
+            'Switch from Paper Invoice to electronic Invoice',
+            'Unhappy'
+        ];
+
+        $data = [
+            get_array_value($summary['counts'], 267),
+            get_array_value($summary['counts'], 268),
+            get_array_value($summary['counts'], 269),
+            get_array_value($summary['counts'], 270),
+            get_array_value($summary, 'unhappy')
+        ];
+
+        $view_data['labels'] = json_encode($labels);
+        $view_data['data'] = json_encode($data);
+        return $this->template->rander('estimate_requests/form_summary', $view_data);
     }
 }
 
