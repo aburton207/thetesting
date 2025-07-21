@@ -77,13 +77,26 @@
             printColumns: combineCustomFieldsColumns([0,1,2,3,4,5,6,7,8,9,10,11,12,13], '<?php echo $custom_field_headers; ?>'),
             xlsColumns: combineCustomFieldsColumns([0,1,2,3,4,5,6,7,8,9,10,11,12,13], '<?php echo $custom_field_headers; ?>'),
             onInitComplete: function (instance) {
-                updateSummary(instance.settings.summationInfo);
+                var info = null;
+                if (instance && typeof instance.settings === "function") {
+                    info = instance.settings()[0].oInit.summationInfo;
+                } else if (instance && instance.settings) {
+                    info = instance.settings.summationInfo;
+                }
+                updateSummary(info);
             },
             onRelaodCallback: function (instance) {
-                updateSummary(instance.settings.summationInfo);
+                var info = null;
+                if (instance && typeof instance.settings === "function") {
+                    info = instance.settings()[0].oInit.summationInfo;
+                } else if (instance && instance.settings) {
+                    info = instance.settings.summationInfo;
+                }
+                updateSummary(info);
             },
             footerCallback: function (row, data, start, end, display, table) {
-                updateSummary(table.settings()[0].oInit.summationInfo);
+                var dt = (table && typeof table.settings === "function") ? table : $(table).DataTable();
+                updateSummary(dt.settings()[0].oInit.summationInfo);
             }
         });
     });
