@@ -48,9 +48,6 @@
                     <?php } ?>
                 </div>
 
-                <div>
-                    <?php echo view("clients/info_widgets/index"); ?>
-                </div>
 
                 <ul id="client-tabs" data-bs-toggle="ajax-tab" class="nav nav-tabs scrollable-tabs border-bottom-0" role="tablist">
                     <li><a role="presentation" data-bs-toggle="tab" href="<?php echo_uri("clients/contacts/" . $client_info->id); ?>" data-bs-target="#client-contacts"> <?php echo app_lang('contacts'); ?></a></li>
