@@ -59,11 +59,11 @@
                     echo form_checkbox("", "1", false, "class=' batch-update-checkbox form-check-input field-required'");
                     ?>
                 </div>
-                <label for="lead_source_id" class=" col-md-2 text-off"><?php echo app_lang('source'); ?></label>
+                <label for="batch_lead_source_id" class=" col-md-2 text-off"><?php echo app_lang('source'); ?></label>
                 <div class="col-md-9">
                     <?php
                     echo form_input(array(
-                        "id" => "lead_source_id",
+                        "id" => "batch_lead_source_id",
                         "name" => "lead_source_id",
                         "class" => "form-control",
                         "placeholder" => app_lang('source'),
@@ -162,7 +162,7 @@
             data: <?php echo json_encode($lead_statuses_dropdown); ?>
         });
 
-        $('#lead_source_id').select2({
+        $('#batch_lead_source_id').select2({
             data: <?php echo json_encode($sources_dropdown); ?>
         });
 
