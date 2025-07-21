@@ -378,6 +378,90 @@ private function _make_row($data, $custom_fields) {
     return $row_data;
 }
 
+    private function _make_report_row($data, $custom_fields) {
+        $contact_name = trim($data->primary_contact);
+        $contact_name = $contact_name !== "" ? $contact_name : "-";
+        $primary_contact = get_client_contact_profile_link($data->primary_contact_id, $contact_name);
+
+        $group_list = "";
+        if ($data->client_groups) {
+            $groups = explode(",", $data->client_groups);
+            foreach ($groups as $group) {
+                if ($group) {
+                    $group_list .= "<li>" . $group . "</li>";
+                }
+            }
+        }
+
+        if ($group_list) {
+            $group_list = "<ul class='pl15'>" . $group_list . "</ul>";
+        }
+
+        $due = 0;
+        if ($data->invoice_value) {
+            $due = ignor_minor_value($data->invoice_value - $data->payment_received);
+        }
+
+        $owner = $this->Users_model->get_one($data->owner_id);
+        $owner_name = $owner->id ? $owner->first_name . " " . $owner->last_name : "-";
+
+        $probability = 0;
+        $probability_mappings = [1 => 15, 2 => 40, 3 => 50, 10 => 70, 6 => 100, 8 => 0, 9 => 0];
+        if (isset($probability_mappings[$data->lead_status_id])) {
+            $probability = $probability_mappings[$data->lead_status_id];
+        }
+
+        $margin_above_rack = isset($data->cfv_241) ? floatval($data->cfv_241) : 0;
+        $volume = isset($data->cfv_273) ? floatval($data->cfv_273) : 0;
+        $potential_margin = "-";
+        if ($margin_above_rack > 0 && $volume > 0) {
+            $potential_margin = to_currency($margin_above_rack * $volume, $data->currency_symbol);
+        }
+
+        $weighted_forecast = "-";
+        if ($margin_above_rack > 0 && $volume > 0) {
+            $weighted_forecast = to_currency(($margin_above_rack * $volume) * ($probability / 100), $data->currency_symbol);
+        }
+
+        $status_title = $data->lead_status_title ?: "-";
+        $status_color = $data->lead_status_color ?: "#666666";
+
+        $created_date = $data->created_date ? date('Y-m-d', strtotime($data->created_date)) : "-";
+
+        $row_data = array(
+            $data->id,
+            anchor(get_uri("clients/view/" . $data->id), $data->company_name),
+            ucfirst($data->account_type),
+            $created_date,
+            $group_list,
+            $owner_name,
+            $data->lead_source_title ? $data->lead_source_title : "-",
+            to_currency($data->invoice_value, $data->currency_symbol),
+            to_currency($data->payment_received, $data->currency_symbol),
+            to_currency($due, $data->currency_symbol),
+            js_anchor($status_title, array(
+                "style" => "background-color: $status_color; cursor: pointer;",
+                "class" => "badge",
+                "data-id" => $data->id,
+                "data-value" => $data->lead_status_id,
+                "data-act" => "update-lead-status"
+            )),
+            $probability . "%",
+            $potential_margin,
+            $weighted_forecast
+        );
+
+        foreach ($custom_fields as $field) {
+            $cf_id = "cfv_" . $field->id;
+            $row_data[] = $this->template->view("custom_fields/output_" . $field->field_type, array("value" => $data->$cf_id));
+        }
+
+        $row_data[] = modal_anchor(get_uri("clients/modal_form"), "<i data-feather='edit' class='icon-16'></i>", array("class" => "edit", "title" => app_lang('edit_client'), "data-post-id" => $data->id))
+            . js_anchor("<i data-feather='x' class='icon-16'></i>", array('title' => app_lang('delete_client'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("clients/delete"), "data-action" => "delete-confirmation"));
+
+        return $row_data;
+    }
+
     /* load client details view */
 
 function view($client_id = 0, $tab = "", $folder_id = 0) {
@@ -1917,6 +2001,97 @@ private function _save_a_row_of_excel_data($row_data) {
         $view_data['estimated_close_cf_id'] = 167; // see general_helper mapping
 
         return $this->template->view("clients/clients_list", $view_data);
+    }
+
+    function clients_report() {
+        $this->access_only_allowed_members();
+
+        $view_data["custom_field_filters"] = $this->Custom_fields_model->get_custom_field_filters("clients", $this->login_user->is_admin, $this->login_user->user_type);
+
+        $access_info = $this->get_access_info("invoice");
+        $view_data["show_invoice_info"] = (get_setting("module_invoice") && $access_info->access_type == "all") ? true : false;
+
+        $view_data["custom_field_headers"] = $this->Custom_fields_model->get_custom_field_headers_for_table("clients", $this->login_user->is_admin, $this->login_user->user_type);
+        $view_data['statuses'] = $this->Lead_status_model->get_details()->getResult();
+        $view_data['groups_dropdown'] = json_encode($this->_get_groups_dropdown_select2_data(true));
+        $view_data['can_edit_clients'] = $this->can_edit_clients();
+        $view_data["team_members_dropdown"] = $this->get_team_members_dropdown(true);
+        $view_data['labels_dropdown'] = json_encode($this->make_labels_dropdown("client", "", true));
+        $view_data['lead_sources'] = $this->Lead_source_model->get_details()->getResult();
+        $view_data['sources_dropdown'] = json_encode($this->_get_sources_dropdown());
+        $view_data['estimated_close_cf_id'] = 167;
+
+        return $this->template->view("clients/reports/client_summary", $view_data);
+    }
+
+    function clients_report_list_data() {
+        $this->access_only_allowed_members();
+
+        $custom_fields = $this->Custom_fields_model->get_available_fields_for_table("clients", $this->login_user->is_admin, $this->login_user->user_type);
+
+        $options = array(
+            "custom_fields" => $custom_fields,
+            "custom_field_filter" => $this->prepare_custom_field_filter_values("clients", $this->login_user->is_admin, $this->login_user->user_type),
+            "group_id" => $this->request->getPost("group_id"),
+            "account_type" => $this->request->getPost("account_type"),
+            "status" => $this->request->getPost("status"),
+            "quick_filter" => $this->request->getPost("quick_filter"),
+            "owner_id" => $this->request->getPost("owner_id"),
+            "source" => $this->request->getPost("source_id"),
+            "client_groups" => $this->allowed_client_groups,
+            "label_id" => $this->request->getPost('label_id'),
+            "start_date" => $this->request->getPost("start_date"),
+            "end_date" => $this->request->getPost("end_date"),
+            "ec_start_date" => $this->request->getPost("estimated_close_start_date"),
+            "ec_end_date" => $this->request->getPost("estimated_close_end_date"),
+            "is_lead" => 0
+        );
+
+        $result = $this->Clients_model->get_details($options)->getResult();
+
+        $result_data = array();
+        $sum_probability = $sum_potential_margin = $sum_weighted_forecast = 0;
+        $sum_volume = $sum_margin_above_rack = 0;
+        $count = 0;
+
+        foreach ($result as $data) {
+            $result_data[] = $this->_make_report_row($data, $custom_fields);
+
+            $probability = 0;
+            $probability_mappings = [1 => 15, 2 => 40, 3 => 50, 10 => 70, 6 => 100, 8 => 0, 9 => 0];
+            if (isset($probability_mappings[$data->lead_status_id])) {
+                $probability = $probability_mappings[$data->lead_status_id];
+            }
+
+            $margin_above_rack = isset($data->cfv_241) ? floatval($data->cfv_241) : 0;
+            $volume = isset($data->cfv_273) ? floatval($data->cfv_273) : 0;
+
+            if ($margin_above_rack && $volume) {
+                $sum_potential_margin += $margin_above_rack * $volume;
+                $sum_weighted_forecast += ($margin_above_rack * $volume) * ($probability / 100);
+            }
+
+            $sum_probability += $probability;
+            $sum_volume += $volume;
+            $sum_margin_above_rack += $margin_above_rack;
+            $count++;
+        }
+
+        $avg_probability = $count ? $sum_probability / $count : 0;
+        $avg_margin_above_rack = $count ? $sum_margin_above_rack / $count : 0;
+
+        $result = array(
+            "data" => $result_data,
+            "summation" => array(
+                "avg_probability" => $avg_probability,
+                "sum_potential_margin" => $sum_potential_margin,
+                "sum_weighted_forecast" => $sum_weighted_forecast,
+                "sum_volume" => $sum_volume,
+                "avg_margin_above_rack" => $avg_margin_above_rack
+            )
+        );
+
+        echo json_encode($result);
     }
 
     function load_client_dashboard_summary() {
