@@ -1483,6 +1483,26 @@ class Leads extends Security_Controller {
         $view_data["source_wise_labels"] = json_encode($source_wise_data['labels']);
         $view_data["source_wise_data"] = json_encode($source_wise_data['data']);
 
+        //prepare lead status wise data for pie chart
+        $lead_status_options = array();
+        if (get_array_value($this->login_user->permissions, "lead") == "own" && !$this->login_user->is_admin) {
+            $lead_status_options["show_own_leads_only_user_id"] = $this->login_user->id;
+        }
+
+        $lead_statistics = $this->Clients_model->get_lead_statistics($lead_status_options);
+        $lead_status_labels = array();
+        $lead_status_data = array();
+        $lead_status_colors = array();
+        foreach ($lead_statistics->lead_statuses as $status) {
+            $lead_status_labels[] = $status->title;
+            $lead_status_data[] = $status->total * 1;
+            $lead_status_colors[] = $status->color;
+        }
+
+        $view_data["lead_status_labels"] = json_encode($lead_status_labels);
+        $view_data["lead_status_data"] = json_encode($lead_status_data);
+        $view_data["lead_status_colors"] = json_encode($lead_status_colors);
+
         return $this->template->view("leads/reports/converted_to_client_monthly_chart", $view_data);
     }
 
@@ -1492,14 +1512,14 @@ class Leads extends Security_Controller {
         $converted_to_client = array();
 
         $options["group_by"] = "created_date";
-        $converted_result = $this->Clients_model->get_converted_to_client_statistics($options)->getResult();
+        $converted_result = $this->Clients_model->get_client_statistics($options)->getResult();
 
         for ($i = 1; $i <= $days_of_month; $i++) {
             $converted_to_client[$i] = 0;
         }
 
         foreach ($converted_result as $value) {
-            $converted_to_client[$value->day * 1] = $value->total_converted ? $value->total_converted : 0;
+            $converted_to_client[$value->day * 1] = $value->total_clients ? $value->total_clients : 0;
         }
 
         foreach ($converted_to_client as $value) {
@@ -1516,14 +1536,14 @@ class Leads extends Security_Controller {
     private function _converted_to_client_chart_owner_wise_data($options) {
 
         $options["group_by"] = "owner_id";
-        $converted_result = $this->Clients_model->get_converted_to_client_statistics($options)->getResult();
+        $converted_result = $this->Clients_model->get_client_statistics($options)->getResult();
 
         $labels_array = array();
         $data_array = array();
 
         foreach ($converted_result as $value) {
             $labels_array[] = $value->owner_name;
-            $data_array[] = $value->total_converted ? $value->total_converted : 0;
+            $data_array[] = $value->total_clients ? $value->total_clients : 0;
         }
 
         return array("labels" => $labels_array, "data" => $data_array);
@@ -1532,14 +1552,14 @@ class Leads extends Security_Controller {
     private function _converted_to_client_chart_source_wise_data($options) {
 
         $options["group_by"] = "source_id";
-        $converted_result = $this->Clients_model->get_converted_to_client_statistics($options)->getResult();
+        $converted_result = $this->Clients_model->get_client_statistics($options)->getResult();
 
         $labels_array = array();
         $data_array = array();
 
         foreach ($converted_result as $value) {
             $labels_array[] = $value->title;
-            $data_array[] = $value->total_converted ? $value->total_converted : 0;
+            $data_array[] = $value->total_clients ? $value->total_clients : 0;
         }
         return array("labels" => $labels_array, "data" => $data_array);
     }

@@ -746,6 +746,55 @@ function get_details($options = array()) {
         return $this->db->query($sql);
     }
 
+    //get statistics based on all clients
+    function get_client_statistics($options = array()) {
+        $clients_table = $this->db->prefixTable('clients');
+        $users_table = $this->db->prefixTable('users');
+        $lead_source_table = $this->db->prefixTable('lead_source');
+
+        $where = "";
+
+        $start_date = $this->_get_clean_value($options, "start_date");
+        $end_date = $this->_get_clean_value($options, "end_date");
+
+        if ($start_date && $end_date) {
+            $where .= " AND ($clients_table.created_date BETWEEN '$start_date' AND '$end_date') ";
+        }
+
+        $owner_id = $this->_get_clean_value($options, "owner_id");
+        if ($owner_id) {
+            $where .= " AND $clients_table.owner_id=$owner_id";
+        }
+
+        $source_id = $this->_get_clean_value($options, "source_id");
+        if ($source_id) {
+            $where .= " AND $clients_table.lead_source_id=$source_id";
+        }
+
+        $group_by = $this->_get_clean_value($options, "group_by");
+
+        if ($group_by == "created_date") {
+            $sql = "SELECT DATE_FORMAT($clients_table.created_date,'%d') AS day, SUM(1) total_clients
+                FROM $clients_table
+                WHERE $clients_table.is_lead=0 AND $clients_table.deleted=0 $where
+                GROUP BY DATE($clients_table.created_date)";
+        } else if ($group_by == "owner_id") {
+            $sql = "SELECT $clients_table.owner_id, SUM(1) total_clients, CONCAT($users_table.first_name, ' ' ,$users_table.last_name) AS owner_name
+                FROM $clients_table
+                LEFT JOIN $users_table ON $users_table.id = $clients_table.owner_id
+                WHERE $clients_table.is_lead=0 AND $clients_table.deleted=0 $where
+                GROUP BY $clients_table.owner_id";
+        } else if ($group_by == "source_id") {
+            $sql = "SELECT $clients_table.lead_source_id, SUM(1) total_clients, $lead_source_table.title
+                FROM $clients_table
+                LEFT JOIN $lead_source_table ON $lead_source_table.id = $clients_table.lead_source_id
+                WHERE $clients_table.is_lead=0 AND $clients_table.deleted=0 $where
+                GROUP BY $clients_table.lead_source_id";
+        }
+
+        return $this->db->query($sql);
+    }
+
     function get_clients_id_and_name($options = array()) {
         $clients_table = $this->db->prefixTable('clients');
 

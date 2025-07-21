@@ -20,6 +20,14 @@
             </div>
 
         </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="mt20"><strong><?php echo app_lang("lead_status"); ?></strong></div>
+                <div class="mt20 pt10">
+                    <canvas id="leads-status-wise-chart" style="width:100%; height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -32,7 +40,7 @@
             data: {
                 labels: <?php echo $day_wise_labels; ?>,
                 datasets: [{
-                        label: '<?php echo app_lang("converted_to_client"); ?>',
+                        label: '<?php echo app_lang("clients"); ?>',
                         data: <?php echo $day_wise_data; ?>,
                         fill: true,
                         borderColor: '#2196f3',
@@ -167,7 +175,7 @@
                             return data['labels'][tooltipItem[0]['index']];
                         },
                         label: function (tooltipItem, data) {
-                            return "<?php echo app_lang('converted_to_client'); ?>:" + data['datasets'][0]['data'][tooltipItem['index']];
+                            return "<?php echo app_lang('clients'); ?>:" + data['datasets'][0]['data'][tooltipItem['index']];
                         }
                     }
                 },
@@ -191,6 +199,34 @@
                                 display: true
                             }
                         }]
+                }
+            }
+        });
+
+        new Chart(document.getElementById("leads-status-wise-chart"), {
+            type: 'pie',
+            data: {
+                labels: <?php echo $lead_status_labels; ?>,
+                datasets: [
+                    {
+                        data: <?php echo $lead_status_data; ?>,
+                        backgroundColor: <?php echo $lead_status_colors; ?>,
+                        borderWidth: 0
+                    }]
+            },
+            options: {
+                cutoutPercentage:60,
+                responsive: true,
+                maintainAspectRatio: false,
+                legend: {
+                    display: true,
+                    position: 'bottom',
+                    labels: {
+                        fontColor: "#898fa9"
+                    }
+                },
+                animation: {
+                    animateScale: true
                 }
             }
         });
