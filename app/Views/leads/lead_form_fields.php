@@ -106,15 +106,7 @@
     <div class="row">
         <label for="lead_source_id" class="<?php echo $label_column; ?>"><?php echo app_lang('source'); ?></label>
         <div class="<?php echo $field_column; ?>">
-            <?php
-            $lead_source = array();
-
-            foreach ($sources as $source) {
-                $lead_source[$source->id] = $source->title;
-            }
-
-            echo form_dropdown("lead_source_id", $lead_source, array($model_info->lead_source_id), "class='select2'");
-            ?>
+            <?php echo view('partials/lead_source_select', ['lead_sources' => $sources, 'selected' => $model_info->lead_source_id]); ?>
         </div>
     </div>
 </div>

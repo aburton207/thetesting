@@ -100,15 +100,7 @@
     <div class="row">
         <label for="lead_source_id" class="<?php echo $label_column; ?>"><?php echo app_lang('source'); ?></label>
         <div class="<?php echo $field_column; ?>">
-            <?php
-            echo form_input(array(
-                "id" => "lead_source_id",
-                "name" => "lead_source_id",
-                "value" => $model_info->lead_source_id,
-                "class" => "form-control",
-                "placeholder" => app_lang('source')
-            ));
-            ?>
+            <?php echo view('partials/lead_source_select', ['sources_dropdown' => $sources_dropdown, 'selected' => $model_info->lead_source_id]); ?>
         </div>
     </div>
 </div>
@@ -368,11 +360,6 @@
             });
         <?php } ?>
 
-        <?php if (isset($sources_dropdown)) { ?>
-            $('#lead_source_id').select2({
-                data: <?php echo $sources_dropdown; ?>
-            });
-        <?php } ?>
 
         <?php if ($login_user->is_admin || get_array_value($login_user->permissions, "client") === "all") { ?>
             $('#owner_id').select2({ // Changed from created_by
