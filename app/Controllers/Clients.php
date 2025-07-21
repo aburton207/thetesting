@@ -2021,7 +2021,7 @@ private function _save_a_row_of_excel_data($row_data) {
         $view_data['sources_dropdown'] = json_encode($this->_get_sources_dropdown());
         $view_data['estimated_close_cf_id'] = 167;
 
-        return $this->template->view("clients/reports/client_summary", $view_data);
+        return $this->template->rander("clients/reports/client_summary", $view_data);
     }
 
     function clients_report_list_data() {
