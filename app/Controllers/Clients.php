@@ -991,6 +991,8 @@ function view($client_id = 0, $tab = "", $folder_id = 0) {
             $view_data["team_members_dropdown"] = $this->get_team_members_dropdown();
             $view_data["currency_dropdown"] = $this->_get_currency_dropdown_select2_data();
             $view_data['label_suggestions'] = $this->make_labels_dropdown("client", $view_data['model_info']->labels);
+            $view_data['lead_sources'] = $this->Lead_source_model->get_details()->getResult();
+            $view_data['sources_dropdown'] = json_encode($this->_get_sources_dropdown());
 
             return $this->template->view('clients/contacts/company_info_tab', $view_data);
         }
