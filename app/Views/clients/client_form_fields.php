@@ -98,9 +98,9 @@
 
 <div class="form-group">
     <div class="row">
-        <label for="lead_source_id" class="<?php echo $label_column; ?>"><?php echo app_lang('source'); ?></label>
+        <label for="client_lead_source_id" class="<?php echo $label_column; ?>"><?php echo app_lang('source'); ?></label>
         <div class="<?php echo $field_column; ?>">
-            <?php echo view('partials/lead_source_select', ['sources_dropdown' => $sources_dropdown, 'selected' => $model_info->lead_source_id]); ?>
+            <?php echo view('partials/lead_source_select', ['sources_dropdown' => $sources_dropdown, 'selected' => $model_info->lead_source_id, 'id' => 'client_lead_source_id']); ?>
         </div>
     </div>
 </div>
