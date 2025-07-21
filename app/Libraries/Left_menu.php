@@ -212,6 +212,7 @@ class Left_menu {
                     "expenses/summary",
                     "projects/team_members_summary",
                     "leads/converted_to_client_report",
+                    "clients/clients_report",
                     "tickets/tickets_chart_report"
                 )
             );

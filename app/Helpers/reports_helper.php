@@ -95,6 +95,7 @@ if (!function_exists('get_reports_topbar')) {
 
         if (get_setting("module_lead") == "1" && ($ci->login_user->is_admin || $access_lead == "all")) {
             $reports_menu[] = array("name" => "leads", "url" => "leads/converted_to_client_report", "class" => "layers", "single_button" => true);
+            $reports_menu[] = array("name" => "clients", "url" => "clients/clients_report", "class" => "users", "single_button" => true);
         }
 
         if (get_setting("module_ticket") == "1" && ($ci->login_user->is_admin || $access_ticket == "all")) {
