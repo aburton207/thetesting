@@ -1561,7 +1561,8 @@ class Leads extends Security_Controller {
             "created_date_from" => $this->request->getPost("created_date_from"),
             "created_date_to" => $this->request->getPost("created_date_to"),
             "source_id" => $this->request->getPost("source_id"),
-            "label_id" => $this->request->getPost("label_id")
+            "label_id" => $this->request->getPost("label_id"),
+            "is_lead" => 0
         );
 
         $list_data = $this->Clients_model->get_leads_team_members_summary($options)->getResult();
@@ -1594,11 +1595,22 @@ class Leads extends Security_Controller {
             $status_total_array[get_array_value($status_total, 0)] = get_array_value($status_total, 1);
         }
 
+        $won = 0;
+        $lost = 0;
+
         foreach ($lead_statuses as $status) {
             $total = get_array_value($status_total_array, $status->id);
             $row_data[] = $total ? $total : 0;
+
+            if ($status->id == 6) {
+                $won = $total ? $total : 0;
+            } else if ($status->id == 8) {
+                $lost = $total ? $total : 0;
+            }
         }
-        $row_data[] = $data->converted_to_client ? $data->converted_to_client : 0;
+
+        $percent = ($won + $lost) ? round(($won / ($won + $lost)) * 100, 2) : 0;
+        $row_data[] = $percent;
 
         return $row_data;
     }

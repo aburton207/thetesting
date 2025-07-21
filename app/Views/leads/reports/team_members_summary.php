@@ -8,7 +8,10 @@ $columns = array(array("title" => app_lang("owner"), "class" => "all"));
 foreach ($lead_statuses as $status) {
     $columns[] = array("title" => $status->title, "class" => "text-right");
 }
-$columns[] = array("title" => app_lang("converted_to_client"), "class" => "text-right all");
+$columns[] = array("title" => "Won %", "class" => "text-right all");
+
+$total_columns = count($columns);
+$print_columns = range(0, $total_columns - 1);
 ?>
 
 <script type="text/javascript">
@@ -24,8 +27,8 @@ $columns[] = array("title" => app_lang("converted_to_client"), "class" => "text-
                 {name: "label_id", class: "w200", options: <?php echo $labels_dropdown; ?>}
             ],
             columns: <?php echo json_encode($columns) ?>,
-            printColumns: [0, 1, 2, 3, 4, 5, 6, 7],
-            xlsColumns: [0, 1, 2, 3, 4, 5, 6, 7]
+            printColumns: <?php echo json_encode($print_columns); ?>,
+            xlsColumns: <?php echo json_encode($print_columns); ?>
         });
     }
     );
