@@ -12,13 +12,13 @@ if (isset($sources_dropdown)) {
     }
 }
 ?>
-<select id="<?php echo $id; ?>" name="lead_source_id" class="form-control select2"></select>
+<select id="<?php echo $id; ?>" name="lead_source_id" class="form-control select2">
+    <?php foreach ($dropdown_data as $item) { ?>
+        <option value="<?php echo $item['id']; ?>" <?php echo ($selected == $item['id']) ? 'selected' : ''; ?>><?php echo $item['text']; ?></option>
+    <?php } ?>
+</select>
 <script>
-    $(function(){
-        var data = <?php echo json_encode($dropdown_data); ?>;
-        $('#<?php echo $id; ?>').select2({data: data});
-        <?php if ($selected) { ?>
-        $('#<?php echo $id; ?>').val('<?php echo $selected; ?>').trigger('change');
-        <?php } ?>
+    $(function () {
+        $('#<?php echo $id; ?>').select2();
     });
 </script>
