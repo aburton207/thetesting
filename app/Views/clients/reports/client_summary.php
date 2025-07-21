@@ -105,8 +105,8 @@
                 updateSummary(info);
             },
             footerCallback: function (row, data, start, end, display, table) {
-                var dt = (table && typeof table.settings === "function") ? table : $(table).DataTable();
-                var api = dt.api();
+                var api = new $.fn.dataTable.Api(table);
+                var dt = api;
 
                 //calculate page average for probability column
                 var probData = api.column(11, {page: 'current'}).data();
