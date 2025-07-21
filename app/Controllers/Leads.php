@@ -1579,6 +1579,8 @@ class Leads extends Security_Controller {
     }
 
     private function _make_team_members_summary_row($data, $lead_statuses) {
+        
+        list($won_status_id, $lost_status_id) = $this->_get_won_lost_status_ids($lead_statuses);
 
         $image_url = get_avatar($data->image);
         $member = "<span class='avatar avatar-xs mr10'><img src='$image_url' alt=''></span> $data->team_member_name";
@@ -1602,9 +1604,9 @@ class Leads extends Security_Controller {
             $total = get_array_value($status_total_array, $status->id);
             $row_data[] = $total ? $total : 0;
 
-            if ($status->id == 6) {
+            if ($status->id == $won_status_id) {
                 $won = $total ? $total : 0;
-            } else if ($status->id == 8) {
+            } else if ($status->id == $lost_status_id) {
                 $lost = $total ? $total : 0;
             }
         }
@@ -1613,6 +1615,22 @@ class Leads extends Security_Controller {
         $row_data[] = $percent;
 
         return $row_data;
+    }
+
+    private function _get_won_lost_status_ids($lead_statuses) {
+        $won_id = 6;
+        $lost_id = 8;
+
+        foreach ($lead_statuses as $status) {
+            $title = strtolower($status->title);
+            if (strpos($title, 'won') !== false) {
+                $won_id = $status->id;
+            } else if (strpos($title, 'lost') !== false) {
+                $lost_id = $status->id;
+            }
+        }
+
+        return array($won_id, $lost_id);
     }
 
     /* batch update modal form */
