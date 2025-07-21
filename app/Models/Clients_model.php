@@ -644,6 +644,10 @@ function get_details($options = array()) {
         $users_table = $this->db->prefixTable('users');
 
         $clients_where = "";
+        $is_lead = $this->_get_clean_value($options, "is_lead");
+        if ($is_lead === "" || $is_lead === null) {
+            $is_lead = 1;
+        }
         $created_date_from = $this->_get_clean_value($options, "created_date_from");
         $created_date_to = $this->_get_clean_value($options, "created_date_to");
         if ($created_date_from && $created_date_to) {
@@ -661,14 +665,25 @@ function get_details($options = array()) {
             $clients_where .= " AND (FIND_IN_SET('$label_id', $clients_table.labels)) ";
         }
 
-        $sql = "SELECT $users_table.id AS team_member_id, CONCAT($users_table.first_name, ' ',$users_table.last_name) AS team_member_name, $users_table.image, leads_details.status_total_meta, leads_migrated.converted_to_client
+        $sql = "SELECT $users_table.id AS team_member_id, CONCAT($users_table.first_name, ' ',$users_table.last_name) AS team_member_name, $users_table.image, leads_details.status_total_meta";
+        if ($is_lead) {
+            $sql .= ", leads_migrated.converted_to_client";
+        }
+
+        $sql .= "
                 FROM $users_table
                 INNER JOIN(
                     SELECT leads_group_table.owner_id, GROUP_CONCAT(CONCAT(leads_group_table.lead_status_id,'_',leads_group_table.total_leads)) AS status_total_meta
-                    FROM (SELECT $clients_table.owner_id, $clients_table.lead_status_id, COUNT(1) AS total_leads FROM $clients_table WHERE $clients_table.is_lead=1 AND $clients_table.deleted=0 $clients_where GROUP BY $clients_table.owner_id, $clients_table.lead_status_id) AS leads_group_table
+                    FROM (SELECT $clients_table.owner_id, $clients_table.lead_status_id, COUNT(1) AS total_leads FROM $clients_table WHERE $clients_table.is_lead=$is_lead AND $clients_table.deleted=0 $clients_where GROUP BY $clients_table.owner_id, $clients_table.lead_status_id) AS leads_group_table
                     GROUP BY leads_group_table.owner_id
-                ) AS leads_details ON leads_details.owner_id = $users_table.id
-                LEFT JOIN (SELECT $clients_table.owner_id, COUNT(1) AS converted_to_client FROM $clients_table WHERE $clients_table.is_lead=0 AND $clients_table.deleted=0 AND $clients_table.client_migration_date > '2000-01-01' $clients_where GROUP BY $clients_table.owner_id) as leads_migrated ON leads_migrated.owner_id = $users_table.id
+                ) AS leads_details ON leads_details.owner_id = $users_table.id";
+
+        if ($is_lead) {
+            $sql .= "
+                LEFT JOIN (SELECT $clients_table.owner_id, COUNT(1) AS converted_to_client FROM $clients_table WHERE $clients_table.is_lead=0 AND $clients_table.deleted=0 AND $clients_table.client_migration_date > '2000-01-01' $clients_where GROUP BY $clients_table.owner_id) as leads_migrated ON leads_migrated.owner_id = $users_table.id";
+        }
+
+        $sql .= "
                 WHERE $users_table.deleted=0 AND $users_table.status='active' AND $users_table.user_type='staff'
                 GROUP BY $users_table.id";
         return $this->db->query($sql);
