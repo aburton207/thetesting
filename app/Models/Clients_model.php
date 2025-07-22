@@ -746,6 +746,43 @@ function get_details($options = array()) {
         return $this->db->query($sql);
     }
 
+    function get_converted_client_status_statistics($options = array()) {
+        $clients_table = $this->db->prefixTable('clients');
+        $lead_status_table = $this->db->prefixTable('lead_status');
+
+        $where = "";
+
+        $date_range_type = $this->_get_clean_value($options, "date_range_type");
+
+        $start_date = $this->_get_clean_value($options, "start_date");
+        $end_date = $this->_get_clean_value($options, "end_date");
+
+        if ($start_date && $end_date && $date_range_type == "created_date_wise") {
+            $where .= " AND ($clients_table.created_date BETWEEN '$start_date' AND '$end_date') ";
+        } else if ($start_date && $end_date) {
+            $where .= " AND ($clients_table.client_migration_date BETWEEN '$start_date' AND '$end_date') ";
+        }
+
+        $owner_id = $this->_get_clean_value($options, "owner_id");
+        if ($owner_id) {
+            $where .= " AND $clients_table.owner_id=$owner_id";
+        }
+
+        $source_id = $this->_get_clean_value($options, "source_id");
+        if ($source_id) {
+            $where .= " AND $clients_table.lead_source_id=$source_id";
+        }
+
+        $sql = "SELECT COUNT($clients_table.id) AS total, $clients_table.lead_status_id, $lead_status_table.title, $lead_status_table.color
+                FROM $clients_table
+                LEFT JOIN $lead_status_table ON $lead_status_table.id = $clients_table.lead_status_id
+                WHERE $clients_table.deleted=0 AND $clients_table.is_lead=0 AND $clients_table.client_migration_date > '2000-01-01' $where
+                GROUP BY $clients_table.lead_status_id
+                ORDER BY $lead_status_table.sort ASC";
+
+        return $this->db->query($sql);
+    }
+
     //get statistics based on all clients
     function get_client_statistics($options = array()) {
         $clients_table = $this->db->prefixTable('clients');
