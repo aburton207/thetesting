@@ -811,7 +811,7 @@ function get_details($options = array()) {
         $group_by = $this->_get_clean_value($options, "group_by");
 
         if ($group_by == "created_date") {
-            $sql = "SELECT DATE_FORMAT($clients_table.created_date,'%d') AS day, SUM(1) total_clients
+            $sql = "SELECT DATE($clients_table.created_date) AS date, SUM(1) total_clients
                 FROM $clients_table
                 WHERE $clients_table.is_lead=0 AND $clients_table.deleted=0 $where
                 GROUP BY DATE($clients_table.created_date)";

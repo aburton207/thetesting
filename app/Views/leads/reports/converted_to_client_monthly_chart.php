@@ -53,7 +53,7 @@
                 tooltips: {
                     callbacks: {
                         title: function (tooltipItem, data) {
-                            return  data['labels'][tooltipItem[0]['index']] + " <?php echo app_lang($month) ?>";
+                            return  data['labels'][tooltipItem[0]['index']];
                         }
                     }
                 },
