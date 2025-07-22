@@ -1464,14 +1464,11 @@ class Leads extends Security_Controller {
             "date_range_type" => $this->request->getPost("date_range_type")
         );
 
-        $days_of_month = date("t", strtotime($start_date));
-
-        $day_wise_data = $this->_converted_to_client_chart_day_wise_data($options, $days_of_month);
+        $day_wise_data = $this->_converted_to_client_chart_day_wise_data($options);
 
         $view_data["day_wise_labels"] = json_encode($day_wise_data['labels']);
         $view_data["day_wise_data"] = json_encode($day_wise_data['data']);
 
-        $view_data["month"] = strtolower(date("F", strtotime($start_date)));
 
         $owner_wise_data = $this->_converted_to_client_chart_owner_wise_data($options);
 
@@ -1506,28 +1503,33 @@ class Leads extends Security_Controller {
         return $this->template->view("leads/reports/converted_to_client_monthly_chart", $view_data);
     }
 
-    private function _converted_to_client_chart_day_wise_data($options, $days_of_month) {
+    private function _converted_to_client_chart_day_wise_data($options) {
         $data_array = array();
         $labels = array();
-        $converted_to_client = array();
+        $datewise_converted = array();
+
+        $start_date = get_array_value($options, "start_date");
+        $end_date = get_array_value($options, "end_date");
 
         $options["group_by"] = "created_date";
         $converted_result = $this->Clients_model->get_client_statistics($options)->getResult();
 
-        for ($i = 1; $i <= $days_of_month; $i++) {
-            $converted_to_client[$i] = 0;
+        $start = strtotime($start_date);
+        $end = strtotime($end_date);
+
+        for ($current = $start; $current <= $end; $current = strtotime('+1 day', $current)) {
+            $date = date("Y-m-d", $current);
+            $datewise_converted[$date] = 0;
         }
 
         foreach ($converted_result as $value) {
-            $converted_to_client[$value->day * 1] = $value->total_clients ? $value->total_clients : 0;
+            $date = $value->date;
+            $datewise_converted[$date] = $value->total_clients ? $value->total_clients : 0;
         }
 
-        foreach ($converted_to_client as $value) {
-            $data_array[] = $value;
-        }
-
-        for ($i = 1; $i <= $days_of_month; $i++) {
-            $labels[] = $i;
+        foreach ($datewise_converted as $date => $total) {
+            $labels[] = date("M d", strtotime($date));
+            $data_array[] = $total;
         }
 
         return array("labels" => $labels, "data" => $data_array);

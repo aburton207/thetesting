@@ -35,10 +35,11 @@ $range_type_dropdown = json_encode(array(
 <script type="text/javascript">
 
     $(document).ready(function () {
+        var dynamicDates = getDynamicDates();
         $("#converted-to-client-monthly-chart-filters").appFilters({
             source: '<?php echo_uri("leads/converted_to_client_charts_data") ?>',
             targetSelector: '#load-converted-to-client-monthly-chart',
-            dateRangeType: "monthly",
+            rangeDatepicker: [{startDate: {name: "start_date", value: dynamicDates.start_of_month}, endDate: {name: "end_date", value: dynamicDates.end_of_month}, showClearButton: true, label: "<?php echo app_lang('date'); ?>", ranges: ['this_month', 'last_month', 'this_year', 'last_year', 'last_30_days', 'last_7_days']}],
             reloadSelector: "#converted-to-client-button",
             filterDropdown: [
                 {name: "owner_id", class: "w200", options: <?php echo $owners_dropdown; ?>},
