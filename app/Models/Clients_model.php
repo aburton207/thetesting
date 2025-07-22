@@ -746,21 +746,17 @@ function get_details($options = array()) {
         return $this->db->query($sql);
     }
 
-    function get_converted_client_status_statistics($options = array()) {
+    function get_client_status_statistics($options = array()) {
         $clients_table = $this->db->prefixTable('clients');
         $lead_status_table = $this->db->prefixTable('lead_status');
 
         $where = "";
 
-        $date_range_type = $this->_get_clean_value($options, "date_range_type");
-
         $start_date = $this->_get_clean_value($options, "start_date");
         $end_date = $this->_get_clean_value($options, "end_date");
 
-        if ($start_date && $end_date && $date_range_type == "created_date_wise") {
+        if ($start_date && $end_date) {
             $where .= " AND ($clients_table.created_date BETWEEN '$start_date' AND '$end_date') ";
-        } else if ($start_date && $end_date) {
-            $where .= " AND ($clients_table.client_migration_date BETWEEN '$start_date' AND '$end_date') ";
         }
 
         $owner_id = $this->_get_clean_value($options, "owner_id");
@@ -773,10 +769,15 @@ function get_details($options = array()) {
             $where .= " AND $clients_table.lead_source_id=$source_id";
         }
 
+        $show_own_leads_only_user_id = $this->_get_clean_value($options, "show_own_leads_only_user_id");
+        if ($show_own_leads_only_user_id) {
+            $where .= " AND $clients_table.owner_id=$show_own_leads_only_user_id";
+        }
+
         $sql = "SELECT COUNT($clients_table.id) AS total, $lead_status_table.id AS lead_status_id, $lead_status_table.title, $lead_status_table.color
                 FROM $lead_status_table
                 LEFT JOIN $clients_table ON $lead_status_table.id = $clients_table.lead_status_id
-                    AND $clients_table.deleted=0 AND $clients_table.is_lead=0 AND $clients_table.client_migration_date > '2000-01-01' $where
+                    AND $clients_table.deleted=0 AND $clients_table.is_lead=0 $where
                 GROUP BY $lead_status_table.id
                 ORDER BY $lead_status_table.sort ASC";
 
