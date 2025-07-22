@@ -773,11 +773,11 @@ function get_details($options = array()) {
             $where .= " AND $clients_table.lead_source_id=$source_id";
         }
 
-        $sql = "SELECT COUNT($clients_table.id) AS total, $clients_table.lead_status_id, $lead_status_table.title, $lead_status_table.color
-                FROM $clients_table
-                LEFT JOIN $lead_status_table ON $lead_status_table.id = $clients_table.lead_status_id
-                WHERE $clients_table.deleted=0 AND $clients_table.is_lead=0 AND $clients_table.client_migration_date > '2000-01-01' $where
-                GROUP BY $clients_table.lead_status_id
+        $sql = "SELECT COUNT($clients_table.id) AS total, $lead_status_table.id AS lead_status_id, $lead_status_table.title, $lead_status_table.color
+                FROM $lead_status_table
+                LEFT JOIN $clients_table ON $lead_status_table.id = $clients_table.lead_status_id
+                    AND $clients_table.deleted=0 AND $clients_table.is_lead=0 AND $clients_table.client_migration_date > '2000-01-01' $where
+                GROUP BY $lead_status_table.id
                 ORDER BY $lead_status_table.sort ASC";
 
         return $this->db->query($sql);
