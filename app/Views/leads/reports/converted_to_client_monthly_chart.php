@@ -22,9 +22,9 @@
         </div>
         <div class="row">
             <div class="col-md-12">
-                <div class="mt20"><strong><?php echo app_lang("lead_status"); ?></strong></div>
+                <div class="mt20"><strong><?php echo app_lang("client_status"); ?></strong></div>
                 <div class="mt20 pt10">
-                    <canvas id="leads-status-wise-chart" style="width:100%; height: 300px;"></canvas>
+                    <canvas id="clients-status-wise-chart" style="width:100%; height: 300px;"></canvas>
                 </div>
             </div>
         </div>
@@ -203,14 +203,14 @@
             }
         });
 
-        new Chart(document.getElementById("leads-status-wise-chart"), {
+        new Chart(document.getElementById("clients-status-wise-chart"), {
             type: 'pie',
             data: {
-                labels: <?php echo $lead_status_labels; ?>,
+                labels: <?php echo $client_status_labels; ?>,
                 datasets: [
                     {
-                        data: <?php echo $lead_status_data; ?>,
-                        backgroundColor: <?php echo $lead_status_colors; ?>,
+                        data: <?php echo $client_status_data; ?>,
+                        backgroundColor: <?php echo $client_status_colors; ?>,
                         borderWidth: 0
                     }]
             },

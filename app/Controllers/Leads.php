@@ -1481,24 +1481,30 @@ class Leads extends Security_Controller {
         $view_data["source_wise_data"] = json_encode($source_wise_data['data']);
 
         //prepare lead status wise data for pie chart
-        $lead_status_options = array();
+        $client_status_options = array(
+            "start_date" => $start_date,
+            "end_date" => $this->request->getPost("end_date"),
+            "owner_id" => $this->request->getPost("owner_id"),
+            "source_id" => $this->request->getPost("source_id")
+        );
+
         if (get_array_value($this->login_user->permissions, "lead") == "own" && !$this->login_user->is_admin) {
-            $lead_status_options["show_own_leads_only_user_id"] = $this->login_user->id;
+            $client_status_options["show_own_leads_only_user_id"] = $this->login_user->id;
         }
 
-        $lead_statistics = $this->Clients_model->get_converted_client_status_statistics($lead_status_options)->getResult();
-        $lead_status_labels = array();
-        $lead_status_data = array();
-        $lead_status_colors = array();
-        foreach ($lead_statistics as $status) {
-            $lead_status_labels[] = $status->title;
-            $lead_status_data[] = $status->total * 1;
-            $lead_status_colors[] = $status->color;
+        $client_statistics = $this->Clients_model->get_client_status_statistics($client_status_options)->getResult();
+        $client_status_labels = array();
+        $client_status_data = array();
+        $client_status_colors = array();
+        foreach ($client_statistics as $status) {
+            $client_status_labels[] = $status->title;
+            $client_status_data[] = $status->total * 1;
+            $client_status_colors[] = $status->color;
         }
 
-        $view_data["lead_status_labels"] = json_encode($lead_status_labels);
-        $view_data["lead_status_data"] = json_encode($lead_status_data);
-        $view_data["lead_status_colors"] = json_encode($lead_status_colors);
+        $view_data["client_status_labels"] = json_encode($client_status_labels);
+        $view_data["client_status_data"] = json_encode($client_status_data);
+        $view_data["client_status_colors"] = json_encode($client_status_colors);
 
         return $this->template->view("leads/reports/converted_to_client_monthly_chart", $view_data);
     }

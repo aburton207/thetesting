@@ -1325,6 +1325,7 @@ $lang["lead_status"] = "Lead status";
 $lang["add_lead_status"] = "Add lead status";
 $lang["edit_lead_status"] = "Edit lead status";
 $lang["delete_lead_status"] = "Delete lead status";
+$lang["client_status"] = "Client status";
 $lang["owner"] = "Owner";
 $lang["make_client"] = "Make client";
 $lang["client_contacts"] = "Client contacts";
