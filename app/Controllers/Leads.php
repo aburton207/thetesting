@@ -1489,11 +1489,11 @@ class Leads extends Security_Controller {
             $lead_status_options["show_own_leads_only_user_id"] = $this->login_user->id;
         }
 
-        $lead_statistics = $this->Clients_model->get_lead_statistics($lead_status_options);
+        $lead_statistics = $this->Clients_model->get_converted_client_status_statistics($lead_status_options)->getResult();
         $lead_status_labels = array();
         $lead_status_data = array();
         $lead_status_colors = array();
-        foreach ($lead_statistics->lead_statuses as $status) {
+        foreach ($lead_statistics as $status) {
             $lead_status_labels[] = $status->title;
             $lead_status_data[] = $status->total * 1;
             $lead_status_colors[] = $status->color;
