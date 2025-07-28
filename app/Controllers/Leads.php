@@ -1502,6 +1502,23 @@ class Leads extends Security_Controller {
             $client_status_colors[] = $status->color;
         }
 
+        //prepare close rate data using won and lost statuses
+        $lead_statuses = $this->Lead_status_model->get_details()->getResult();
+        list($won_status_id, $lost_status_id) = $this->_get_won_lost_status_ids($lead_statuses);
+        $won_total = 0;
+        $lost_total = 0;
+        foreach ($client_statistics as $status) {
+            if ($status->lead_status_id == $won_status_id) {
+                $won_total = $status->total * 1;
+            } else if ($status->lead_status_id == $lost_status_id) {
+                $lost_total = $status->total * 1;
+            }
+        }
+
+        $view_data["close_rate_labels"] = json_encode(array("Won", "Lost"));
+        $view_data["close_rate_data"] = json_encode(array($won_total, $lost_total));
+        $view_data["close_rate_colors"] = json_encode(array("#28a745", "#dc3545"));
+
         $view_data["client_status_labels"] = json_encode($client_status_labels);
         $view_data["client_status_data"] = json_encode($client_status_data);
         $view_data["client_status_colors"] = json_encode($client_status_colors);
