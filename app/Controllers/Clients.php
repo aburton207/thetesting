@@ -235,6 +235,8 @@ function list_data() {
             // Date range filter for Estimated Close Date custom field
             "ec_start_date" => $this->request->getPost("estimated_close_start_date"),
             "ec_end_date" => $this->request->getPost("estimated_close_end_date"),
+            "closed_start_date" => $this->request->getPost("closed_start_date"),
+            "closed_end_date" => $this->request->getPost("closed_end_date"),
             "is_lead" => 0 // Explicitly filter for clients only
         );
 
@@ -2044,6 +2046,8 @@ private function _save_a_row_of_excel_data($row_data) {
             "end_date" => $this->request->getPost("end_date"),
             "ec_start_date" => $this->request->getPost("estimated_close_start_date"),
             "ec_end_date" => $this->request->getPost("estimated_close_end_date"),
+            "closed_start_date" => $this->request->getPost("closed_start_date"),
+            "closed_end_date" => $this->request->getPost("closed_end_date"),
             "is_lead" => 0
         );
 

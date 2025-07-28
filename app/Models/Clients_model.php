@@ -104,6 +104,16 @@ function get_details($options = array()) {
         $where .= " AND DATE(cfvt_167.value)<='$ec_end_date'";
     }
 
+    // Range filter for Closed Date custom field (id 272)
+    $closed_start_date = $this->_get_clean_value($options, "closed_start_date");
+    if ($closed_start_date) {
+        $where .= " AND DATE(cfvt_272.value)>='$closed_start_date'";
+    }
+    $closed_end_date = $this->_get_clean_value($options, "closed_end_date");
+    if ($closed_end_date) {
+        $where .= " AND DATE(cfvt_272.value)<='$closed_end_date'";
+    }
+
     $label_id = $this->_get_clean_value($options, "label_id");
     if ($label_id) {
         $where .= " AND (FIND_IN_SET('$label_id', $clients_table.labels)) ";
