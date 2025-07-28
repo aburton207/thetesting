@@ -118,7 +118,7 @@
                     }]
             },
             options: {
-                cutoutPercentage:60,
+                cutoutPercentage: 0,
                 responsive: true,
                 maintainAspectRatio: false,
                 tooltips: {
@@ -215,7 +215,7 @@
                     }]
             },
             options: {
-                cutoutPercentage:60,
+                cutoutPercentage: 0,
                 responsive: true,
                 maintainAspectRatio: false,
                 legend: {

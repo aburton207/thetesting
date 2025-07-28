@@ -48,7 +48,7 @@ foreach ($lead_statuses as $lead_status) {
     var leadStatusColor = <?php echo json_encode($lead_status_color) ?>;
     var leadsOverviewChart = document.getElementById("leads-overview-chart");
     new Chart(leadsOverviewChart, {
-        type: 'doughnut',
+        type: 'pie',
         data: {
             labels: labels,
             datasets: [
@@ -61,7 +61,7 @@ foreach ($lead_statuses as $lead_status) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            cutoutPercentage: 87,
+            cutoutPercentage: 0,
             tooltips: {
                 callbacks: {
                     title: function (tooltipItem, data) {
