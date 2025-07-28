@@ -63,7 +63,7 @@ foreach ($task_statuses as $task_status) {
     var taskStatuscolor = <?php echo json_encode($task_status_color) ?>;
     var allTasksOverviewChart = document.getElementById("all-tasks-overview-chart-<?php echo $type; ?>");
     new Chart(allTasksOverviewChart, {
-        type: 'doughnut',
+        type: 'pie',
         data: {
             labels: labels,
             datasets: [
@@ -76,7 +76,7 @@ foreach ($task_statuses as $task_status) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            cutoutPercentage: 87,
+            cutoutPercentage: 0,
             tooltips: {
                 callbacks: {
                     title: function (tooltipItem, data) {

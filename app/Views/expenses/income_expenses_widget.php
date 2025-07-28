@@ -45,7 +45,7 @@ $current_year = get_array_value($today, 0);
 <?php if ($income || $expenses) { ?>
         var incomeExpenseChart = document.getElementById("income-expense-chart");
         new Chart(incomeExpenseChart, {
-            type: 'doughnut',
+            type: 'pie',
             data: {
                 labels: ["<?php echo app_lang("income"); ?>", "<?php echo app_lang("expenses"); ?>"],
                 datasets: [
@@ -58,7 +58,7 @@ $current_year = get_array_value($today, 0);
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                cutoutPercentage: 87,
+                cutoutPercentage: 0,
                 tooltips: {
                     callbacks: {
                         title: function (tooltipItem, data) {

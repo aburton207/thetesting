@@ -22,7 +22,7 @@ foreach ($task_statuses as $status) {
     var taskStatusChart = document.getElementById("task-status-chart");
 
     new Chart(taskStatusChart, {
-        type: 'doughnut',
+        type: 'pie',
         data: {
             labels: labels,
             datasets: [
@@ -34,6 +34,7 @@ foreach ($task_statuses as $status) {
         },
         options: {
             responsive: true,
+            cutoutPercentage: 0,
             maintainAspectRatio: false,
             tooltips: {
                 callbacks: {

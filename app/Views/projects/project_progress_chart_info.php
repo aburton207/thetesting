@@ -39,7 +39,7 @@
         }
 
         new Chart(projectProgressChart, {
-            type: 'doughnut',
+            type: 'pie',
             data: {
                 datasets: [{
                         label: 'Complete',
@@ -75,7 +75,7 @@
             ],
             options: {
                 maintainAspectRatio: false,
-                cutoutPercentage: 90,
+                cutoutPercentage: 0,
                 rotation: Math.PI / 2,
                 legend: {
                     display: false
