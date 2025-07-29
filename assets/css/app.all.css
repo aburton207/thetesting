@@ -9592,3 +9592,9 @@ file-thumb-area {
 .app-modal-open .hide-under-modal {
   display: none;
 }
+
+/* Limit report graph height */
+#yearly-payment-chart,
+#income-vs-expenses-chart {
+  max-height: 600px;
+}
