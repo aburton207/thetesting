@@ -1614,3 +1614,9 @@ i.online {
 .text-muted {
   color: #898fa9 !important;
 }
+
+/* Limit report graph height */
+#yearly-payment-chart,
+#income-vs-expenses-chart {
+  max-height: 600px;
+}
