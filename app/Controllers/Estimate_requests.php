@@ -170,18 +170,19 @@ private function _make_estimate_request_row($data) {
         }
     }
 
-    // Fetch custom field values for IDs 246, 267, 268, 269, 270 and 271
-    $custom_field_246 = "";
-    $custom_field_267 = "";
-    $custom_field_268 = "";
-    $custom_field_269 = "";
-    $custom_field_270 = "";
-    $custom_field_271 = "";
-    $custom_field_values = $this->Custom_field_values_model->get_details(array(
-        "related_to_type" => "estimate_request",
-        "related_to_id" => $data->id,
-        "custom_field_id" => array(246, 267, 268, 269, 270, 271) // Fetch these IDs
-    ))->getResult();
+        // Fetch custom field values for IDs 246, 267, 268, 269, 270, 271 and 275
+        $custom_field_246 = "";
+        $custom_field_267 = "";
+        $custom_field_268 = "";
+        $custom_field_269 = "";
+        $custom_field_270 = "";
+        $custom_field_271 = "";
+        $custom_field_275 = "";
+        $custom_field_values = $this->Custom_field_values_model->get_details(array(
+            "related_to_type" => "estimate_request",
+            "related_to_id" => $data->id,
+            "custom_field_id" => array(246, 267, 268, 269, 270, 271, 275) // Fetch these IDs
+        ))->getResult();
 
     foreach ($custom_field_values as $field) {
         if ($field->custom_field_id == 246) {
@@ -196,6 +197,8 @@ private function _make_estimate_request_row($data) {
             $custom_field_270 = $this->template->view("custom_fields/output_" . $field->custom_field_type, array("value" => $field->value));
         } elseif ($field->custom_field_id == 271) {
             $custom_field_271 = $this->template->view("custom_fields/output_" . $field->custom_field_type, array("value" => $field->value));
+        } elseif ($field->custom_field_id == 275) {
+            $custom_field_275 = $this->template->view("custom_fields/output_" . $field->custom_field_type, array("value" => $field->value));
         }
     }
 
@@ -235,6 +238,7 @@ private function _make_estimate_request_row($data) {
         $custom_field_269,
         $custom_field_270,
         $custom_field_271,
+        $custom_field_275,
         $assigned_to,
         $data->created_at,
         format_to_datetime($data->created_at),
