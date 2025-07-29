@@ -28,6 +28,7 @@ $print_columns = range(0, $total_columns - 1);
             ],
             columns: <?php echo json_encode($columns) ?>,
             printColumns: <?php echo json_encode($print_columns); ?>,
+            pdfColumns: <?php echo json_encode($print_columns); ?>,
             xlsColumns: <?php echo json_encode($print_columns); ?>
         });
     }
