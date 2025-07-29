@@ -2,6 +2,11 @@
 <div class="leads-monthly-charts">
     <div class="leads-day-wise-chart card-body">
         <h4 class="mb15"><?php echo !empty($owner_name) ? $owner_name . ' - ' : ''; ?><?php echo app_lang("clients"); ?></h4>
+        <div class="text-end mb-3">
+            <button id="download-leads-pdf" class="btn btn-default">
+                <i data-feather="download" class="icon-16"></i> <?php echo app_lang('download_pdf'); ?>
+            </button>
+        </div>
         <canvas id="leads-day-wise-chart" style="width: 100%; height: 350px;"></canvas>
     </div>
 
@@ -137,6 +142,12 @@
                 cutoutPercentage: 0,
                 responsive: true,
                 maintainAspectRatio: false,
+                plugins: {
+                    datalabels: {
+                        color: '#333',
+                        formatter: function(value) { return value; }
+                    }
+                },
                 tooltips: {
                     callbacks: {
 
@@ -234,6 +245,12 @@
                 cutoutPercentage: 0,
                 responsive: true,
                 maintainAspectRatio: false,
+                plugins: {
+                    datalabels: {
+                        color: '#333',
+                        formatter: function(value) { return value; }
+                    }
+                },
                 legend: {
                     display: true,
                     position: 'bottom',
@@ -262,6 +279,12 @@
                 cutoutPercentage: 0,
                 responsive: true,
                 maintainAspectRatio: false,
+                plugins: {
+                    datalabels: {
+                        color: '#333',
+                        formatter: function(value) { return value; }
+                    }
+                },
                 legend: {
                     display: true,
                     position: 'bottom',
@@ -305,5 +328,27 @@
 
 
     });
-</script>    
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@0.7.0"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        Chart.plugins.register(ChartDataLabels);
+
+        $("#download-leads-pdf").on("click", function () {
+            var button = this;
+            button.style.display = 'none';
+            html2canvas(document.querySelector('.leads-monthly-charts')).then(function (canvas) {
+                var imgData = canvas.toDataURL('image/png');
+                var pdf = new jspdf.jsPDF();
+                var width = pdf.internal.pageSize.getWidth();
+                var height = canvas.height * width / canvas.width;
+                pdf.addImage(imgData, 'PNG', 0, 0, width, height);
+                pdf.save('leads-report.pdf');
+                button.style.display = '';
+            });
+        });
+    });
+</script>
 
