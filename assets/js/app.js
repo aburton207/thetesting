@@ -6405,3 +6405,16 @@ showHideAppTableColumn = function (tableInstance, columnIndex, visible) {
         });
     };
 })(jQuery);
+// Export chart to PDF
+window.exportChartToPdf = function(canvasId, fileName){
+    var canvas = document.getElementById(canvasId);
+    if(!canvas){return;}
+    html2canvas(canvas).then(function(canvasObj){
+        var imgData = canvasObj.toDataURL('image/png');
+        var pdf = new jspdf.jsPDF();
+        var width = pdf.internal.pageSize.getWidth();
+        var height = canvasObj.height * width / canvasObj.width;
+        pdf.addImage(imgData, 'PNG', 0, 0, width, height);
+        pdf.save(fileName || 'report.pdf');
+    });
+};

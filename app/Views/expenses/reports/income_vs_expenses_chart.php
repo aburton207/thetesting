@@ -25,6 +25,9 @@
                             ?>
 
                             <div class="inline-block chart-date-range-button" id="yearly-chart-date-range-selector"></div>
+                            <button id="download-report-pdf" class="btn btn-default ms-2">
+                                <i data-feather="download" class="icon-16"></i> <?php echo app_lang('download_pdf'); ?>
+                            </button>
                         </div>
                     </div>
                     <div class="card-body">
@@ -159,6 +162,10 @@
                 data = dateRange;
                 prepareExpensesChart(dateRange);
             }
+        });
+
+        $("#download-report-pdf").on("click", function () {
+            exportChartToPdf('income-vs-expenses-chart', 'report.pdf');
         });
     });
 </script>
