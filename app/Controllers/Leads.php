@@ -1456,13 +1456,21 @@ class Leads extends Security_Controller {
         $this->_validate_leads_report_access();
 
         $start_date = $this->request->getPost("start_date");
+        $owner_id = $this->request->getPost("owner_id");
         $options = array(
             "start_date" => $start_date,
             "end_date" => $this->request->getPost("end_date"),
-            "owner_id" => $this->request->getPost("owner_id"),
+            "owner_id" => $owner_id,
             "source_id" => $this->request->getPost("source_id"),
             "date_range_type" => $this->request->getPost("date_range_type")
         );
+
+        $view_data["owner_name"] = "";
+        if ($owner_id) {
+            $Users_model = model("App\Models\Users_model");
+            $owner = $Users_model->get_one($owner_id);
+            $view_data["owner_name"] = trim($owner->first_name . " " . $owner->last_name);
+        }
 
         $day_wise_data = $this->_converted_to_client_chart_day_wise_data($options);
 

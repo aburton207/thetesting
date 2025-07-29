@@ -1,20 +1,21 @@
+<?php $owner_name = isset($owner_name) ? $owner_name : ""; ?>
 <div class="leads-monthly-charts">
     <div class="leads-day-wise-chart card-body">
-        <h4 class="mb15"><?php echo app_lang("clients"); ?></h4>
+        <h4 class="mb15"><?php echo !empty($owner_name) ? $owner_name . ' - ' : ''; ?><?php echo app_lang("clients"); ?></h4>
         <canvas id="leads-day-wise-chart" style="width: 100%; height: 350px;"></canvas>
     </div>
 
     <div class="card-body source-and-owner-wise-chart mt50 b-t pt40">
         <div class="row mb30">
             <div class="col-md-6 b-r">
-                <div class="mt20"><strong><?php echo app_lang("lead_source"); ?></strong></div>
+                <div class="mt20"><strong><?php echo !empty($owner_name) ? $owner_name . ' - ' : ''; ?><?php echo app_lang("lead_source"); ?></strong></div>
                 <div class="mt20 pt10">
                     <canvas id="leads-source-wise-chart" style="width:100%; height: 300px;"></canvas>
                 </div>
 
             </div>
             <div class="col-md-6">
-                <div class="mt20"><strong><?php echo app_lang("owner"); ?></strong></div>
+                <div class="mt20"><strong><?php echo !empty($owner_name) ? $owner_name . ' - ' : ''; ?><?php echo app_lang("owner"); ?></strong></div>
                 <div class="mt20 pt10">
                     <canvas id="leads-owner-wise-chart" style="width:100%; height: 300px;"></canvas>
                 </div>
@@ -23,13 +24,13 @@
         </div>
         <div class="row">
             <div class="col-md-6">
-                <div class="mt20"><strong><?php echo app_lang("client_status"); ?></strong></div>
+                <div class="mt20"><strong><?php echo !empty($owner_name) ? $owner_name . ' - ' : ''; ?><?php echo app_lang("client_status"); ?></strong></div>
                 <div class="mt20 pt10">
                     <canvas id="clients-status-wise-chart" style="width:100%; height: 300px;"></canvas>
                 </div>
             </div>
             <div class="col-md-6">
-                <div class="mt20"><strong><?php echo app_lang("close_rate"); ?></strong></div>
+                <div class="mt20"><strong><?php echo !empty($owner_name) ? $owner_name . ' - ' : ''; ?><?php echo app_lang("close_rate"); ?></strong></div>
                 <div class="mt20 pt10">
                     <canvas id="clients-close-rate-chart" style="width:100%; height: 300px;"></canvas>
                 </div>
@@ -37,7 +38,7 @@
         </div>
         <div class="row">
             <div class="col-md-12">
-                <div class="mt20"><strong><?php echo app_lang("lead_status"); ?></strong></div>
+                <div class="mt20"><strong><?php echo !empty($owner_name) ? $owner_name . ' - ' : ''; ?><?php echo app_lang("lead_status"); ?></strong></div>
                 <div class="mt20 pt10">
                     <canvas id="lead-status-bar-chart" style="width:100%; height: 300px;"></canvas>
                 </div>
