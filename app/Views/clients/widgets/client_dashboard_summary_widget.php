@@ -7,7 +7,7 @@
                 </div>
                 <div class="widget-details">
                     <h1><?php echo number_format($summary->total_clients); ?></h1>
-                    <span class="bg-transparent-white"><?php echo app_lang('total_clients'); ?></span>
+                    <span class="bg-transparent-white"><?php echo $owner_name ? $owner_name . ' - ' : ''; ?><?php echo app_lang('total_clients'); ?></span>
                     <div class="mt5">
                         <span class="<?php echo $summary->trend->clients_percent >= 0 ? 'text-success' : 'text-danger'; ?>">
                             <i data-feather="<?php echo $summary->trend->clients_percent >= 0 ? 'trending-up' : 'trending-down'; ?>" class="icon-14"></i>
@@ -27,7 +27,7 @@
                 </div>
                 <div class="widget-details">
                     <h1><?php echo number_format($summary->total_volume, 2); ?></h1>
-                    <span class="bg-transparent-white">Total Volume</span>
+                    <span class="bg-transparent-white"><?php echo $owner_name ? $owner_name . ' - ' : ''; ?>Total Volume</span>
                     <div class="mt5">
                         <span class="<?php echo $summary->trend->volume_percent >= 0 ? 'text-success' : 'text-danger'; ?>">
                             <i data-feather="<?php echo $summary->trend->volume_percent >= 0 ? 'trending-up' : 'trending-down'; ?>" class="icon-14"></i>
@@ -47,7 +47,7 @@
                 </div>
                 <div class="widget-details">
                     <h1><?php echo to_currency($summary->potential_margin); ?></h1>
-                    <span class="bg-transparent-white">Potential Margin</span>
+                    <span class="bg-transparent-white"><?php echo $owner_name ? $owner_name . ' - ' : ''; ?>Potential Margin</span>
                     <div class="mt5">
                         <span class="<?php echo $summary->trend->margin_percent >= 0 ? 'text-success' : 'text-danger'; ?>">
                             <i data-feather="<?php echo $summary->trend->margin_percent >= 0 ? 'trending-up' : 'trending-down'; ?>" class="icon-14"></i>
@@ -67,7 +67,7 @@
                 </div>
                 <div class="widget-details">
                     <h1><?php echo to_currency($summary->weighted_forecast); ?></h1>
-                    <span class="bg-transparent-white">Weighted Forecast</span>
+                    <span class="bg-transparent-white"><?php echo $owner_name ? $owner_name . ' - ' : ''; ?>Weighted Forecast</span>
                     <div class="mt5">
                         <span class="<?php echo $summary->trend->forecast_percent >= 0 ? 'text-success' : 'text-danger'; ?>">
                             <i data-feather="<?php echo $summary->trend->forecast_percent >= 0 ? 'trending-up' : 'trending-down'; ?>" class="icon-14"></i>
