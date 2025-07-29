@@ -21,15 +21,13 @@
 
         </div>
         <div class="row">
-            <div class="col-md-12">
+            <div class="col-md-6">
                 <div class="mt20"><strong><?php echo app_lang("client_status"); ?></strong></div>
                 <div class="mt20 pt10">
                     <canvas id="clients-status-wise-chart" style="width:100%; height: 300px;"></canvas>
                 </div>
             </div>
-        </div>
-        <div class="row">
-            <div class="col-md-12">
+            <div class="col-md-6">
                 <div class="mt20"><strong><?php echo app_lang("close_rate"); ?></strong></div>
                 <div class="mt20 pt10">
                     <canvas id="clients-close-rate-chart" style="width:100%; height: 300px;"></canvas>
