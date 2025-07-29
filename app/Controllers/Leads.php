@@ -1534,8 +1534,30 @@ class Leads extends Security_Controller {
         $start_date = get_array_value($options, "start_date");
         $end_date = get_array_value($options, "end_date");
 
-        $options["group_by"] = "created_date";
-        $converted_result = $this->Clients_model->get_client_statistics($options)->getResult();
+        $clients_table = $this->db->prefixTable('clients');
+        $cf_table = $this->db->prefixTable('custom_field_values');
+
+        $where = "";
+        if ($start_date && $end_date) {
+            $where .= " AND DATE(cf.value) BETWEEN '$start_date' AND '$end_date'";
+        }
+
+        $owner_id = get_array_value($options, "owner_id");
+        if ($owner_id) {
+            $where .= " AND c.owner_id=$owner_id";
+        }
+
+        $source_id = get_array_value($options, "source_id");
+        if ($source_id) {
+            $where .= " AND c.lead_source_id=$source_id";
+        }
+
+        $sql = "SELECT DATE(cf.value) AS date, COUNT(c.id) AS total_clients
+                FROM $clients_table AS c
+                LEFT JOIN $cf_table AS cf ON cf.custom_field_id=272 AND cf.related_to_type='clients' AND cf.related_to_id=c.id AND cf.deleted=0
+                WHERE c.is_lead=0 AND c.deleted=0 $where
+                GROUP BY DATE(cf.value)";
+        $converted_result = $this->db->query($sql)->getResult();
 
         $start = strtotime($start_date);
         $end = strtotime($end_date);
