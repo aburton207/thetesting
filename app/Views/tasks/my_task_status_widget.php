@@ -24,7 +24,7 @@ foreach ($task_statuses as $status) {
     var myTaskStatusPie = document.getElementById("my-task-status-pai");
 
     new Chart(myTaskStatusPie, {
-        type: 'doughnut',
+        type: 'pie',
         data: {
             labels: labels,
             datasets: [
@@ -36,6 +36,7 @@ foreach ($task_statuses as $status) {
         },
         options: {
             responsive: true,
+            cutoutPercentage: 0,
             maintainAspectRatio: false,
             tooltips: {
                 callbacks: {

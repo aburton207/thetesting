@@ -1919,6 +1919,7 @@ $lang["select_from_template"] = "Select from template";
 $lang["type_new_item"] = "Type new item";
 
 $lang["conversion_rate"] = "Conversion rate";
+$lang["close_rate"] = "Close rate";
 
 $lang["all_tasks"] = "All tasks";
 $lang["user_roles"] = "User Roles";

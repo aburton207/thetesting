@@ -1502,6 +1502,23 @@ class Leads extends Security_Controller {
             $client_status_colors[] = $status->color;
         }
 
+        //prepare close rate data using won and lost statuses
+        $lead_statuses = $this->Lead_status_model->get_details()->getResult();
+        list($won_status_id, $lost_status_id) = $this->_get_won_lost_status_ids($lead_statuses);
+        $won_total = 0;
+        $lost_total = 0;
+        foreach ($client_statistics as $status) {
+            if ($status->lead_status_id == $won_status_id) {
+                $won_total = $status->total * 1;
+            } else if ($status->lead_status_id == $lost_status_id) {
+                $lost_total = $status->total * 1;
+            }
+        }
+
+        $view_data["close_rate_labels"] = json_encode(array("Won", "Lost"));
+        $view_data["close_rate_data"] = json_encode(array($won_total, $lost_total));
+        $view_data["close_rate_colors"] = json_encode(array("#28a745", "#dc3545"));
+
         $view_data["client_status_labels"] = json_encode($client_status_labels);
         $view_data["client_status_data"] = json_encode($client_status_data);
         $view_data["client_status_colors"] = json_encode($client_status_colors);
@@ -1517,8 +1534,31 @@ class Leads extends Security_Controller {
         $start_date = get_array_value($options, "start_date");
         $end_date = get_array_value($options, "end_date");
 
-        $options["group_by"] = "created_date";
-        $converted_result = $this->Clients_model->get_client_statistics($options)->getResult();
+        $db = db_connect('default');
+        $clients_table = $db->prefixTable('clients');
+        $cf_table = $db->prefixTable('custom_field_values');
+
+        $where = "";
+        if ($start_date && $end_date) {
+            $where .= " AND DATE(cf.value) BETWEEN '$start_date' AND '$end_date'";
+        }
+
+        $owner_id = get_array_value($options, "owner_id");
+        if ($owner_id) {
+            $where .= " AND c.owner_id=$owner_id";
+        }
+
+        $source_id = get_array_value($options, "source_id");
+        if ($source_id) {
+            $where .= " AND c.lead_source_id=$source_id";
+        }
+
+        $sql = "SELECT DATE(cf.value) AS date, COUNT(c.id) AS total_clients
+                FROM $clients_table AS c
+                LEFT JOIN $cf_table AS cf ON cf.custom_field_id=272 AND cf.related_to_type='clients' AND cf.related_to_id=c.id AND cf.deleted=0
+                WHERE c.is_lead=0 AND c.deleted=0 $where
+                GROUP BY DATE(cf.value)";
+        $converted_result = $db->query($sql)->getResult();
 
         $start = strtotime($start_date);
         $end = strtotime($end_date);

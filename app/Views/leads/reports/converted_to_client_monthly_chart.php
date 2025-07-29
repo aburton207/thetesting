@@ -1,5 +1,6 @@
 <div class="leads-monthly-charts">
     <div class="leads-day-wise-chart card-body">
+        <h4 class="mb15"><?php echo app_lang("clients"); ?></h4>
         <canvas id="leads-day-wise-chart" style="width: 100%; height: 350px;"></canvas>
     </div>
 
@@ -21,10 +22,24 @@
 
         </div>
         <div class="row">
-            <div class="col-md-12">
+            <div class="col-md-6">
                 <div class="mt20"><strong><?php echo app_lang("client_status"); ?></strong></div>
                 <div class="mt20 pt10">
                     <canvas id="clients-status-wise-chart" style="width:100%; height: 300px;"></canvas>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mt20"><strong><?php echo app_lang("close_rate"); ?></strong></div>
+                <div class="mt20 pt10">
+                    <canvas id="clients-close-rate-chart" style="width:100%; height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="mt20"><strong><?php echo app_lang("lead_status"); ?></strong></div>
+                <div class="mt20 pt10">
+                    <canvas id="lead-status-bar-chart" style="width:100%; height: 300px;"></canvas>
                 </div>
             </div>
         </div>
@@ -118,7 +133,7 @@
                     }]
             },
             options: {
-                cutoutPercentage:60,
+                cutoutPercentage: 0,
                 responsive: true,
                 maintainAspectRatio: false,
                 tooltips: {
@@ -215,7 +230,7 @@
                     }]
             },
             options: {
-                cutoutPercentage:60,
+                cutoutPercentage: 0,
                 responsive: true,
                 maintainAspectRatio: false,
                 legend: {
@@ -227,6 +242,61 @@
                 },
                 animation: {
                     animateScale: true
+                }
+            }
+        });
+
+        new Chart(document.getElementById("clients-close-rate-chart"), {
+            type: 'pie',
+            data: {
+                labels: <?php echo $close_rate_labels; ?>,
+                datasets: [
+                    {
+                        data: <?php echo $close_rate_data; ?>,
+                        backgroundColor: <?php echo $close_rate_colors; ?>,
+                        borderWidth: 0
+                    }]
+            },
+            options: {
+                cutoutPercentage: 0,
+                responsive: true,
+                maintainAspectRatio: false,
+                legend: {
+                    display: true,
+                    position: 'bottom',
+                    labels: {
+                        fontColor: "#898fa9"
+                    }
+                },
+                animation: {
+                    animateScale: true
+                }
+            }
+        });
+
+        new Chart(document.getElementById("lead-status-bar-chart"), {
+            type: 'bar',
+            data: {
+                labels: <?php echo $client_status_labels; ?>,
+                datasets: [{
+                        label: "<?php echo app_lang('lead_status'); ?>",
+                        data: <?php echo $client_status_data; ?>,
+                        backgroundColor: <?php echo $client_status_colors; ?>,
+                        borderColor: <?php echo $client_status_colors; ?>,
+                        borderWidth: 1
+                    }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                legend: {display: false},
+                scales: {
+                    xAxes: [{
+                            ticks: {autoSkip: false}
+                        }],
+                    yAxes: [{
+                            ticks: {beginAtZero: true}
+                        }]
                 }
             }
         });
