@@ -1534,8 +1534,9 @@ class Leads extends Security_Controller {
         $start_date = get_array_value($options, "start_date");
         $end_date = get_array_value($options, "end_date");
 
-        $clients_table = $this->db->prefixTable('clients');
-        $cf_table = $this->db->prefixTable('custom_field_values');
+        $db = db_connect('default');
+        $clients_table = $db->prefixTable('clients');
+        $cf_table = $db->prefixTable('custom_field_values');
 
         $where = "";
         if ($start_date && $end_date) {
@@ -1557,7 +1558,7 @@ class Leads extends Security_Controller {
                 LEFT JOIN $cf_table AS cf ON cf.custom_field_id=272 AND cf.related_to_type='clients' AND cf.related_to_id=c.id AND cf.deleted=0
                 WHERE c.is_lead=0 AND c.deleted=0 $where
                 GROUP BY DATE(cf.value)";
-        $converted_result = $this->db->query($sql)->getResult();
+        $converted_result = $db->query($sql)->getResult();
 
         $start = strtotime($start_date);
         $end = strtotime($end_date);

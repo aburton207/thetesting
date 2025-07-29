@@ -2348,7 +2348,7 @@ $lang["client_can_access_notes"] = "Opportunity can access notes?";
 $lang["my_tasks_overview"] = "My Objectives Overview";
 
 $lang["leads_overview"] = "Leads Overview";
-$lang["converted_to_client"] = "Converted to opportunity";
+$lang["converted_to_client"] = "Converted to client";
 
 $lang["remember_to_add_this_urls_in_authorized_redirect_uri"] = "Remember to add this urls in Authorized redirect uri";
 
