@@ -34,6 +34,14 @@
                 </div>
             </div>
         </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="mt20"><strong><?php echo app_lang("lead_status"); ?></strong></div>
+                <div class="mt20 pt10">
+                    <canvas id="lead-status-bar-chart" style="width:100%; height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -261,6 +269,33 @@
                 },
                 animation: {
                     animateScale: true
+                }
+            }
+        });
+
+        new Chart(document.getElementById("lead-status-bar-chart"), {
+            type: 'bar',
+            data: {
+                labels: <?php echo $client_status_labels; ?>,
+                datasets: [{
+                        label: "<?php echo app_lang('lead_status'); ?>",
+                        data: <?php echo $client_status_data; ?>,
+                        backgroundColor: <?php echo $client_status_colors; ?>,
+                        borderColor: <?php echo $client_status_colors; ?>,
+                        borderWidth: 1
+                    }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                legend: {display: false},
+                scales: {
+                    xAxes: [{
+                            ticks: {autoSkip: false}
+                        }],
+                    yAxes: [{
+                            ticks: {beginAtZero: true}
+                        }]
                 }
             }
         });
