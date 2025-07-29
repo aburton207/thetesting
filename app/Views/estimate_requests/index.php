@@ -41,7 +41,7 @@
                 {title: "Bank Payment"},
                 {title: "e-Invoice"},
                 {title: "Additional Info"},
-                {title: "Custom 275"},
+                {title: "Branch"},
                 {title: "<?php echo app_lang('assigned_to'); ?>"},
                 {visible: false, searchable: false},
                 {title: '<?php echo app_lang("created_date") ?>', "iDataSort": 15},
