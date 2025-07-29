@@ -1165,7 +1165,15 @@ if (!function_exists('client_dashboard_summary_widget')) {
 
     function client_dashboard_summary_widget($owner_id = 0, $return_as_data = false) {
         $Clients_model = model("App\Models\Clients_model");
+        $Users_model = model("App\Models\Users_model");
+
         $view_data["summary"] = $Clients_model->get_dashboard_summary(array("owner_id" => $owner_id));
+
+        $view_data["owner_name"] = "";
+        if ($owner_id) {
+            $owner = $Users_model->get_one($owner_id);
+            $view_data["owner_name"] = trim($owner->first_name . " " . $owner->last_name);
+        }
 
         $template = new Template();
         return $template->view("clients/widgets/client_dashboard_summary_widget", $view_data, $return_as_data);
