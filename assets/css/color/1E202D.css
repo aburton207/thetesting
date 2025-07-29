@@ -1617,6 +1617,12 @@ i.online {
 
 /* Limit report graph height */
 #yearly-payment-chart,
-#income-vs-expenses-chart {
+#income-vs-expenses-chart,
+#leads-day-wise-chart,
+#leads-source-wise-chart,
+#leads-owner-wise-chart,
+#clients-status-wise-chart,
+#clients-close-rate-chart,
+#lead-status-bar-chart {
   max-height: 600px;
 }
