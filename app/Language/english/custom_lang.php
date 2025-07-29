@@ -1331,7 +1331,10 @@ $lang["client_contacts"] = "Opportunity contacts";
 $lang["lead_contacts"] = "Lead contacts";
 $lang["add_a_lead"] = "Add a lead";
 $lang["source"] = "Region";
-$lang["lead_source"] = "Lead region";
+$lang["lead_source"] = "Region";
+$lang["client_status"] = "Status";
+$lang["close_rate"] = "Close Rate";
+
 $lang["add_lead_source"] = "Add lead region";
 $lang["edit_lead_source"] = "Edit lead region";
 $lang["delete_lead_source"] = "Delete lead region";
