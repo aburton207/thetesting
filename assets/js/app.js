@@ -109,19 +109,6 @@ $(document).ready(function () {
 
                 $("#ajaxModalContent").html(response);
 
-                // Execute inline scripts from the loaded modal content
-                var $modalScripts = $("#ajaxModalContent").find("script");
-                $modalScripts.each(function () {
-                    if (this.src) {
-                        var scriptTag = document.createElement("script");
-                        scriptTag.src = this.src;
-                        document.head.appendChild(scriptTag);
-                    } else {
-                        $.globalEval(this.innerHTML);
-                    }
-                });
-                $modalScripts.remove();
-
                 initAllNotEmptyWYSIWYGEditors(true, $("#ajaxModalContent"));
                 setModalScrollbar();
 
@@ -6405,16 +6392,3 @@ showHideAppTableColumn = function (tableInstance, columnIndex, visible) {
         });
     };
 })(jQuery);
-// Export chart to PDF
-window.exportChartToPdf = function(canvasId, fileName){
-    var canvas = document.getElementById(canvasId);
-    if(!canvas){return;}
-    html2canvas(canvas).then(function(canvasObj){
-        var imgData = canvasObj.toDataURL('image/png');
-        var pdf = new jspdf.jsPDF();
-        var width = pdf.internal.pageSize.getWidth();
-        var height = canvasObj.height * width / canvasObj.width;
-        pdf.addImage(imgData, 'PNG', 0, 0, width, height);
-        pdf.save(fileName || 'report.pdf');
-    });
-};
