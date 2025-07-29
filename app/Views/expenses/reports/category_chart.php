@@ -1,4 +1,7 @@
 <div class="card-body ">
+    <button id="download-category-chart-pdf" class="btn btn-default mb-3">
+        <i data-feather="download" class="icon-16"></i> <?php echo app_lang('download_pdf'); ?>
+    </button>
     <canvas id="expense-category-chart" style="width:100%; height: 350px;"></canvas>
 </div>
 
@@ -75,5 +78,9 @@
 
     $(document).ready(function () {
         initExpenseCategoryChart(<?php echo json_encode($label) ?>, <?php echo json_encode($data) ?>);
+
+        $("#download-category-chart-pdf").on("click", function(){
+            exportChartToPdf('expense-category-chart', 'report.pdf');
+        });
     });
 </script>

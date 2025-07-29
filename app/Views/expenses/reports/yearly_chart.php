@@ -1,6 +1,9 @@
 <div class="border-top-0 rounded-top-0">
     <div class="card-header clearfix border-bottom-0">
         <div id="expense-chart-date-range-selector" class="chart-date-range-button"></div>
+        <button id="download-yearly-expense-pdf" class="btn btn-default ms-2">
+            <i data-feather="download" class="icon-16"></i> <?php echo app_lang('download_pdf'); ?>
+        </button>
     </div>
     <div class="card-body ">
         <canvas id="yearly-expense-chart" style="width:100%; height: 350px;"></canvas>
@@ -92,6 +95,10 @@
             onInit: function(dateRange) {
                 prepareExpensesChart(dateRange);
             }
+        });
+
+        $("#download-yearly-expense-pdf").on("click", function(){
+            exportChartToPdf('yearly-expense-chart', 'report.pdf');
         });
 
     });
