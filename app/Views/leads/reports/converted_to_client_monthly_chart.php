@@ -1,5 +1,6 @@
 <div class="leads-monthly-charts">
     <div class="leads-day-wise-chart card-body">
+        <h4 class="mb15"><?php echo app_lang("clients"); ?></h4>
         <canvas id="leads-day-wise-chart" style="width: 100%; height: 350px;"></canvas>
     </div>
 
