@@ -2,6 +2,10 @@
 
 <div id="page-content" class="page-wrapper clearfix">
     <div id="client-dashboard-summary-container" class="mb20"></div>
+    <div class="bg-white mb20">
+        <div id="clients-report-chart-filters"></div>
+    </div>
+    <div id="clients-report-charts" class="mb20"></div>
     <div class="card clearfix">
         <div class="table-responsive">
             <table id="clients-report-table" class="display" width="100%"></table>
@@ -19,6 +23,16 @@
             {id: "person", text: "<?php echo app_lang('person'); ?>"},
             {id: "organization", text: "<?php echo app_lang('organization'); ?>"}
         ];
+
+        var statusOptions = <?php
+            $status_dropdown = array();
+            if (isset($statuses)) {
+                foreach ($statuses as $s) {
+                    $status_dropdown[] = array("text" => $s->title, "value" => $s->id);
+                }
+            }
+            echo json_encode($status_dropdown);
+        ?>;
 
         var columns = [
             {title: "<?php echo app_lang('id'); ?>", class: "text-center w50 desktop", order_by: "id"},
@@ -66,6 +80,26 @@
         };
 
         var quick_filters_dropdown = <?php echo view("clients/quick_filters_dropdown"); ?>;
+
+        $("#clients-report-chart-filters").appFilters({
+            source: '<?php echo_uri("clients/clients_report_charts_data") ?>',
+            targetSelector: '#clients-report-charts',
+            filterDropdown: [
+                {name: "owner_id", class: "w200", options: <?php echo $team_members_dropdown; ?>},
+                {name: "group_id", class: "w200", options: <?php echo $groups_dropdown; ?>},
+                {name: "account_type", class: "w200", options: type_dropdown},
+                {name: "source_id", class: "w200", options: <?php echo view("leads/lead_sources", array("lead_sources" => $lead_sources)); ?>}
+            ],
+            multiSelect: [
+                {name: "status_id", text: "<?php echo app_lang('status'); ?>", options: statusOptions, class: "w200"}
+            ],
+            rangeDatepicker: [
+                {startDate: {name: "start_date", value: ""}, endDate: {name: "end_date", value: ""}, label: "<?php echo app_lang('created_date'); ?>", showClearButton: true},
+                {startDate: {name: "estimated_close_start_date", value: ""}, endDate: {name: "estimated_close_end_date", value: ""}, label: "Estimated Close", showClearButton: true},
+                {startDate: {name: "closed_start_date", value: ""}, endDate: {name: "closed_end_date", value: ""}, label: "Closed Date", showClearButton: true}
+            ]
+        });
+
         $("#clients-report-table").appTable({
             source: '<?php echo_uri("clients/clients_report_list_data") ?>',
             filterDropdown: [
