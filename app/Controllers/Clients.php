@@ -2132,6 +2132,44 @@ private function _save_a_row_of_excel_data($row_data) {
         return $this->template->view("clients/reports/margin_volume_chart", $view_data);
     }
 
+    function fill_the_funnel_leaderboard() {
+        $this->access_only_allowed_members();
+
+        return $this->template->view("clients/reports/fill_the_funnel_leaderboard");
+    }
+
+    function fill_the_funnel_leaderboard_data() {
+        $this->access_only_allowed_members();
+
+        $options = array(
+            "start_date" => "2025-07-21",
+            "end_date" => "2025-09-30"
+        );
+
+        $list_data = $this->Clients_model->get_fill_the_funnel_leaderboard($options)->getResult();
+
+        $result = array();
+        foreach ($list_data as $data) {
+            $result[] = $this->_make_fill_the_funnel_leaderboard_row($data);
+        }
+
+        echo json_encode(array("data" => $result));
+    }
+
+    private function _make_fill_the_funnel_leaderboard_row($data) {
+        $points = ($data->new_opportunities * 10) + ($data->closed_deals * 50);
+
+        $member = get_team_member_profile_link($data->staff_id, $data->sales_rep_name);
+
+        return array(
+            $member,
+            $data->roc,
+            $data->new_opportunities,
+            $data->closed_deals,
+            $points
+        );
+    }
+
     function load_client_dashboard_summary() {
         $this->access_only_allowed_members();
 
