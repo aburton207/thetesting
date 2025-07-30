@@ -2778,5 +2778,12 @@ $lang["phone_minlength_error"] = "Phone number must be at least 10 digits";
 $lang["enter_valid_email"] = "Please enter a valid email address";
 $lang["company_name_custom"] = "Customer Name";
 
+$lang["fill_the_funnel_leaderboard"] = "Fill the Funnel - Leaderboard";
+$lang["sales_rep_name"] = "Sales Rep Name";
+$lang["roc"] = "ROC";
+$lang["new_opportunities"] = "New Opportunities";
+$lang["closed_deals"] = "Closed Deals";
+$lang["total_points"] = "Total Points";
+
 
 return $lang;
