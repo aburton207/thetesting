@@ -52,9 +52,11 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@0.7.0"></script>
 
 <script type="text/javascript">
     $(document).ready(function () {
+        Chart.plugins.register(ChartDataLabels);
 
         new Chart(document.getElementById("leads-day-wise-chart"), {
             type: 'line',
@@ -329,12 +331,10 @@
 
     });
 </script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@0.7.0"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script type="text/javascript">
     $(document).ready(function () {
-        Chart.plugins.register(ChartDataLabels);
 
         $("#download-leads-pdf").on("click", function () {
             var button = this;
