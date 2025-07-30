@@ -2098,6 +2098,40 @@ private function _save_a_row_of_excel_data($row_data) {
         echo json_encode($result);
     }
 
+    function clients_report_charts_data() {
+        $this->access_only_allowed_members();
+
+        $options = array(
+            "group_id" => $this->request->getPost("group_id"),
+            "account_type" => $this->request->getPost("account_type"),
+            "owner_id" => $this->request->getPost("owner_id"),
+            "source_id" => $this->request->getPost("source_id"),
+            "client_groups" => $this->allowed_client_groups,
+            "start_date" => $this->request->getPost("start_date"),
+            "end_date" => $this->request->getPost("end_date"),
+            "estimated_close_start_date" => $this->request->getPost("estimated_close_start_date"),
+            "estimated_close_end_date" => $this->request->getPost("estimated_close_end_date"),
+            "closed_start_date" => $this->request->getPost("closed_start_date"),
+            "closed_end_date" => $this->request->getPost("closed_end_date"),
+            "status_ids" => $this->request->getPost("status_id")
+        );
+
+        $rows = $this->Clients_model->get_potential_margin_volume_by_stage($options);
+
+        $labels = $margin = $volume = array();
+        foreach ($rows as $row) {
+            $labels[] = $row->status_title;
+            $margin[] = floatval($row->potential_margin);
+            $volume[] = floatval($row->volume);
+        }
+
+        $view_data["labels"] = json_encode($labels);
+        $view_data["margin_data"] = json_encode($margin);
+        $view_data["volume_data"] = json_encode($volume);
+
+        return $this->template->view("clients/reports/margin_volume_chart", $view_data);
+    }
+
     function load_client_dashboard_summary() {
         $this->access_only_allowed_members();
 
