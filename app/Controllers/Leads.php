@@ -1027,6 +1027,8 @@ class Leads extends Security_Controller {
         //prepare company details
         $view_data["lead_info"] = $this->make_lead_modal_form_data($lead_id);
         $view_data["lead_info"]["to_custom_field_type"] = "clients";
+        $view_data["lead_info"]["lead_sources"] = $this->Lead_source_model->get_details()->getResult();
+        $view_data["lead_info"]["sources_dropdown"] = json_encode($this->_get_sources_dropdown());
 
         //prepare contacts info
         $final_contacts = array();
