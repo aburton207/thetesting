@@ -1,5 +1,8 @@
 <?php echo get_reports_topbar(); ?>
 
+<!-- Make sure jQuery is available before executing page scripts -->
+<script src="<?php echo base_url('assets/js/jquery-3.5.1.min.js'); ?>"></script>
+
 <div id="page-content" class="page-wrapper clearfix">
     <div class="card clearfix">
         <div class="table-responsive">
