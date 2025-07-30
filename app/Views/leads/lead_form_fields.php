@@ -325,7 +325,7 @@
 
         $('#owner_id').select2({
             data: <?php echo json_encode($owners_dropdown); ?>
-        });
+        }).val('<?php echo $model_info->owner_id ? $model_info->owner_id : $login_user->id; ?>').trigger('change');
 
         $("#lead_labels").select2({
             multiple: true,
