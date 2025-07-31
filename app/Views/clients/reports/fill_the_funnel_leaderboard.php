@@ -13,6 +13,7 @@
     $(document).ready(function () {
         $("#fill-the-funnel-leaderboard").appTable({
             source: '<?php echo_uri("clients/fill_the_funnel_leaderboard_data") ?>',
+            rangeDatepicker: [{startDate: {name: "start_date", value: ""}, endDate: {name: "end_date", value: ""}, showClearButton: true}],
             columns: [
                 {title: '<?php echo app_lang("sales_rep_name"); ?>', class: "all"},
                 {title: '<?php echo app_lang("roc"); ?>'},

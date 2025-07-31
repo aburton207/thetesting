@@ -2174,8 +2174,8 @@ private function _save_a_row_of_excel_data($row_data) {
         $this->access_only_allowed_members();
 
         $options = array(
-            "start_date" => "2025-07-21",
-            "end_date" => "2025-09-30"
+            "start_date" => $this->request->getPost("start_date"),
+            "end_date" => $this->request->getPost("end_date")
         );
 
         $list_data = $this->Clients_model->get_fill_the_funnel_leaderboard($options)->getResult();
