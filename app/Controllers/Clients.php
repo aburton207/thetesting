@@ -85,6 +85,28 @@ class Clients extends Security_Controller {
         $view_data["view"] = $this->request->getPost('view');
         $view_data["ticket_id"] = $this->request->getPost('ticket_id');
         $view_data['model_info'] = $this->Clients_model->get_one($client_id);
+
+        // Default lead source based on the logged in staff's address when adding
+        // a new client. The address field is checked for specific region names
+        // to determine the lead source id.
+        if (!$client_id && $this->login_user->user_type === "staff" && empty($view_data['model_info']->lead_source_id)) {
+            $address = trim($this->login_user->address);
+            if ($address) {
+                $address_lower = strtolower($address);
+
+                if (strpos($address_lower, 'atlantic') !== false) {
+                    $view_data['model_info']->lead_source_id = 4;
+                } elseif (strpos($address_lower, 'pacific') !== false) {
+                    $view_data['model_info']->lead_source_id = 2;
+                } elseif (strpos($address_lower, 'ontario') !== false) {
+                    $view_data['model_info']->lead_source_id = 6;
+                } elseif (strpos($address_lower, 'prairies') !== false) {
+                    $view_data['model_info']->lead_source_id = 3;
+                } elseif (strpos($address_lower, 'quebec') !== false) {
+                    $view_data['model_info']->lead_source_id = 5;
+                }
+            }
+        }
         $view_data["currency_dropdown"] = $this->_get_currency_dropdown_select2_data();
         $view_data["groups_dropdown"] = $this->_get_groups_dropdown_select2_data();
         $view_data["team_members_dropdown"] = $this->get_team_members_dropdown();
