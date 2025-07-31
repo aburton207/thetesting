@@ -2037,6 +2037,58 @@ private function _save_a_row_of_excel_data($row_data) {
         return $this->template->view("clients/clients_list", $view_data);
     }
 
+    function all_clients_kanban() {
+        $this->access_only_allowed_members();
+
+        $view_data['owners_dropdown'] = $this->_get_owners_dropdown("filter");
+        $view_data['lead_sources'] = $this->Lead_source_model->get_details()->getResult();
+        $view_data['labels_dropdown'] = json_encode($this->make_labels_dropdown("client", "", true));
+        $view_data["custom_field_filters"] = $this->Custom_fields_model->get_custom_field_filters("clients", $this->login_user->is_admin, $this->login_user->user_type);
+
+        return $this->template->rander("clients/kanban/all_clients", $view_data);
+    }
+
+    function all_clients_kanban_data() {
+        $this->access_only_allowed_members();
+
+        $options = array(
+            "status" => $this->request->getPost('status'),
+            "owner_id" => $this->request->getPost('owner_id'),
+            "source" => $this->request->getPost('source'),
+            "search" => $this->request->getPost('search'),
+            "label_id" => $this->request->getPost('label_id'),
+            "custom_field_filter" => $this->prepare_custom_field_filter_values("clients", $this->login_user->is_admin, $this->login_user->user_type)
+        );
+
+        $view_data["clients"] = $this->Clients_model->get_clients_kanban_details($options)->getResult();
+
+        $statuses = $this->Lead_status_model->get_details();
+        $view_data["total_columns"] = $statuses->resultID->num_rows;
+        $view_data["columns"] = $statuses->getResult();
+
+        return $this->template->view('clients/kanban/kanban_view', $view_data);
+    }
+
+    function save_client_sort_and_status() {
+        $this->validate_submitted_data(array(
+            "id" => "required|numeric"
+        ));
+
+        $id = $this->request->getPost('id');
+        $this->_validate_client_manage_access($id);
+
+        $lead_status_id = $this->request->getPost('lead_status_id');
+        $data = array(
+            "sort" => $this->request->getPost('sort')
+        );
+
+        if ($lead_status_id) {
+            $data["lead_status_id"] = $lead_status_id;
+        }
+
+        $this->Clients_model->ci_save($data, $id);
+    }
+
     function clients_report() {
         $this->access_only_allowed_members();
 

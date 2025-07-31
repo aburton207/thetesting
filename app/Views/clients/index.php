@@ -2,7 +2,8 @@
     <div class="clearfix grid-button">
         <ul id="client-tabs" data-bs-toggle="ajax-tab" class="nav nav-tabs bg-white title" role="tablist">
             <li><a role="presentation" data-bs-toggle="tab" href="javascript:;" data-bs-target="#overview"><?php echo app_lang('overview'); ?></a></li>
-            <li><a role="presentation" data-bs-toggle="tab" href="<?php echo_uri("clients/clients_list/"); ?>" data-bs-target="#clients_list"><?php echo app_lang('clients'); ?></a></li>
+            <li class="js-clients-cookie-tab" data-tab="clients_list"><a role="presentation" data-bs-toggle="tab" href="<?php echo_uri("clients/clients_list/"); ?>" data-bs-target="#clients_list"><?php echo app_lang('clients'); ?></a></li>
+            <li class="js-clients-cookie-tab" data-tab="clients_kanban"><a role="presentation" data-bs-toggle="tab" href="<?php echo_uri('clients/all_clients_kanban'); ?>" data-bs-target="#clients_kanban"><?php echo app_lang('kanban'); ?></a></li>
             <li><a role="presentation" data-bs-toggle="tab" href="<?php echo_uri("clients/contacts/"); ?>" data-bs-target="#contacts"><?php echo app_lang('contacts'); ?></a></li>
             <div class="tab-title clearfix no-border">
                 <div class="title-button-group">
@@ -22,6 +23,7 @@
             </div>
 
             <div role="tabpanel" class="tab-pane fade" id="clients_list"></div>
+            <div role="tabpanel" class="tab-pane fade" id="clients_kanban"></div>
             <div role="tabpanel" class="tab-pane fade" id="contacts"></div>
         </div>
     </div>
@@ -29,16 +31,21 @@
 
 <script type="text/javascript">
     $(document).ready(function() {
+        var selectedTab = getCookie("selected_clients_tab_" + "<?php echo $login_user->id; ?>");
         setTimeout(function() {
             var tab = "<?php echo $tab; ?>";
             if (tab === "clients_list" || tab === "clients_list-has_open_projects") {
                 $("[data-bs-target='#clients_list']").trigger("click");
 
                 window.selectedClientQuickFilter = window.location.hash.substring(1);
+            } else if (tab === "clients_kanban") {
+                $("[data-bs-target='#clients_kanban']").trigger("click");
             } else if (tab === "contacts") {
                 $("[data-bs-target='#contacts']").trigger("click");
 
                 window.selectedContactQuickFilter = window.location.hash.substring(1);
+            } else if (selectedTab && selectedTab === "clients_kanban") {
+                window.location.href = "<?php echo_uri('clients/all_clients_kanban'); ?>";
             }
         }, 210);
 
@@ -63,6 +70,13 @@
 
                 importButton.html("<?php echo "<i data-feather='upload' class='icon-16'></i> " . app_lang('import_clients'); ?>");
                 feather.replace();
+            }
+        });
+
+        $(".js-clients-cookie-tab").click(function () {
+            var tab = $(this).attr("data-tab");
+            if (tab) {
+                setCookie("selected_clients_tab_" + "<?php echo $login_user->id; ?>", tab);
             }
         });
     });
