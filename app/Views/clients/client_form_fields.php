@@ -322,7 +322,7 @@
     </div>
 
 <?php } ?>
-<?php if ($login_user->user_type === "staff") { ?>
+<?php if ($login_user->user_type === "staff" && empty($hide_client_labels)) { ?>
     <div class="form-group">
         <div class="row">
             <label for="client_labels" class="<?php echo $label_column; ?>"><?php echo app_lang('labels'); ?></label>
@@ -385,7 +385,7 @@
 
         $('#client_lead_status_id').select2();
 
-        <?php if ($login_user->user_type === "staff") { ?>
+        <?php if ($login_user->user_type === "staff" && empty($hide_client_labels)) { ?>
             $("#client_labels").select2({
                 multiple: true,
                 data: <?php echo json_encode($label_suggestions); ?>

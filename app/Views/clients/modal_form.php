@@ -2,7 +2,13 @@
 <div class="modal-body clearfix">
     <div class="container-fluid">
         <input type="hidden" name="ticket_id" value="<?php echo $ticket_id; ?>" />
-        <?php echo view("clients/client_form_fields"); ?>
+        <?php
+            // Default the country to Canada when adding a new client
+            if (!$model_info->country) {
+                $model_info->country = "Canada";
+            }
+            echo view("clients/client_form_fields", ["hide_client_labels" => true]);
+        ?>
     </div>
 </div>
 
