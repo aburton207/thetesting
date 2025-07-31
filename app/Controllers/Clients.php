@@ -2135,7 +2135,7 @@ private function _save_a_row_of_excel_data($row_data) {
     function fill_the_funnel_leaderboard() {
         $this->access_only_allowed_members();
 
-        return $this->template->view("clients/reports/fill_the_funnel_leaderboard");
+        return $this->template->rander("clients/reports/fill_the_funnel_leaderboard");
     }
 
     function fill_the_funnel_leaderboard_data() {
