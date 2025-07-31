@@ -90,7 +90,16 @@ class Clients extends Security_Controller {
         // a new client. The address field is checked for specific region names
         // to determine the lead source id.
         if (!$client_id && $this->login_user->user_type === "staff" && empty($view_data['model_info']->lead_source_id)) {
-            $address = trim($this->login_user->address);
+            // Fetch the address from the logged-in user's profile. The
+            // login_user object returned from get_access_info() doesn't include
+            // the address field, so retrieve the complete user record when
+            // necessary to avoid undefined property notices.
+            if (property_exists($this->login_user, 'address')) {
+                $address = trim($this->login_user->address);
+            } else {
+                $full_user_info = $this->Users_model->get_one($this->login_user->id);
+                $address = trim($full_user_info->address);
+            }
             if ($address) {
                 $address_lower = strtolower($address);
 
