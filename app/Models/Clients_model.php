@@ -1089,4 +1089,40 @@ function get_details($options = array()) {
 
         return $this->db->query($sql);
     }
+
+    function get_fill_the_funnel_region_leaderboard($options = array()) {
+        $clients_table = $this->db->prefixTable('clients');
+        $users_table = $this->db->prefixTable('users');
+        $cf_table = $this->db->prefixTable('custom_field_values');
+
+        $start_date = $this->_get_clean_value($options, "start_date");
+        $end_date = $this->_get_clean_value($options, "end_date");
+
+        $where = " AND $clients_table.is_lead=0 AND $clients_table.deleted=0";
+        if ($start_date && $end_date) {
+            $where .= " AND DATE($clients_table.created_date) BETWEEN '$start_date' AND '$end_date'";
+        }
+
+        //only include clients which have the custom field value 273
+        $where .= " AND cf_273.value IS NOT NULL";
+
+        $sql = "SELECT
+                    CASE
+                        WHEN LOWER($users_table.address) LIKE '%atlantic%' THEN 'Atlantic'
+                        WHEN LOWER($users_table.address) LIKE '%quebec%' THEN 'Quebec'
+                        WHEN LOWER($users_table.address) LIKE '%ontario%' THEN 'Ontario'
+                        WHEN LOWER($users_table.address) LIKE '%pacific%' THEN 'Pacific'
+                        WHEN LOWER($users_table.address) LIKE '%prairies%' THEN 'Prairies'
+                        ELSE 'Other'
+                    END AS roc,
+                    COUNT($clients_table.id) AS new_opportunities,
+                    SUM(IF($clients_table.lead_status_id=6,1,0)) AS closed_deals
+                FROM $clients_table
+                LEFT JOIN $cf_table AS cf_273 ON cf_273.custom_field_id=273 AND cf_273.related_to_type='clients' AND cf_273.related_to_id=$clients_table.id AND cf_273.deleted=0
+                LEFT JOIN $users_table ON $users_table.id=$clients_table.owner_id
+                WHERE $users_table.deleted=0 AND $users_table.status='active' AND $users_table.user_type='staff' $where
+                GROUP BY roc";
+
+        return $this->db->query($sql);
+    }
 }
