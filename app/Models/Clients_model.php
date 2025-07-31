@@ -1068,7 +1068,7 @@ function get_details($options = array()) {
         $start_date = $this->_get_clean_value($options, "start_date");
         $end_date = $this->_get_clean_value($options, "end_date");
 
-        $where = " AND $clients_table.is_lead=1 AND $clients_table.deleted=0";
+        $where = " AND $clients_table.is_lead=0 AND $clients_table.deleted=0";
         if ($start_date && $end_date) {
             $where .= " AND DATE($clients_table.created_date) BETWEEN '$start_date' AND '$end_date'";
         }
