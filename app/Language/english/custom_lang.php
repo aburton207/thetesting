@@ -2787,4 +2787,7 @@ $lang["new_opportunities"] = "New Opportunities";
 $lang["closed_deals"] = "Closed Deals";
 $lang["total_points"] = "Total Points";
 $lang["fill_the_funnel_region_leaderboard"] = "Fill the Funnel - Region Leaderboard";
+
+$lang["opportunities_graphs"] = "Opportunities Graphs";
+$lang["opportunity_data_reports"] = "Opportunity Data Reports";
 return $lang;
