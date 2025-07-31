@@ -2045,7 +2045,7 @@ private function _save_a_row_of_excel_data($row_data) {
         $view_data['labels_dropdown'] = json_encode($this->make_labels_dropdown("client", "", true));
         $view_data["custom_field_filters"] = $this->Custom_fields_model->get_custom_field_filters("clients", $this->login_user->is_admin, $this->login_user->user_type);
 
-        return $this->template->rander("clients/kanban/all_clients", $view_data);
+        return $this->template->view("clients/kanban/all_clients", $view_data);
     }
 
     function all_clients_kanban_data() {
