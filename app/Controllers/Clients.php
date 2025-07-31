@@ -122,7 +122,8 @@ class Clients extends Security_Controller {
             "website" => $this->request->getPost('website'),
             "vat_number" => $this->request->getPost('vat_number'),
             "gst_number" => $this->request->getPost('gst_number'),
-            "lead_source_id" => $this->request->getPost('lead_source_id')
+            "lead_source_id" => $this->request->getPost('lead_source_id'),
+            "lead_status_id" => $this->request->getPost('lead_status_id') ? $this->request->getPost('lead_status_id') : 1
         );
 
     if ($this->login_user->user_type === "staff") {
