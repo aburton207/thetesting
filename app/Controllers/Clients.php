@@ -2034,7 +2034,13 @@ private function _save_a_row_of_excel_data($row_data) {
         // Pass the custom field id for Estimated Close Date to the view
         $view_data['estimated_close_cf_id'] = 167; // see general_helper mapping
 
-        return $this->template->view("clients/clients_list", $view_data);
+        if ($this->request->isAJAX()) {
+            return $this->template->view("clients/clients_list", $view_data);
+        }
+
+        $view_data['tab'] = "clients_list";
+        $view_data['page_type'] = "full";
+        return $this->template->rander("clients/index", $view_data);
     }
 
     function all_clients_kanban() {
