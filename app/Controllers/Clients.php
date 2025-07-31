@@ -2202,6 +2202,35 @@ private function _save_a_row_of_excel_data($row_data) {
         );
     }
 
+    function fill_the_funnel_region_leaderboard_data() {
+        $this->access_only_allowed_members();
+
+        $options = array(
+            "start_date" => $this->request->getPost("start_date"),
+            "end_date" => $this->request->getPost("end_date")
+        );
+
+        $list_data = $this->Clients_model->get_fill_the_funnel_region_leaderboard($options)->getResult();
+
+        $result = array();
+        foreach ($list_data as $data) {
+            $result[] = $this->_make_fill_the_funnel_region_leaderboard_row($data);
+        }
+
+        echo json_encode(array("data" => $result));
+    }
+
+    private function _make_fill_the_funnel_region_leaderboard_row($data) {
+        $points = ($data->new_opportunities * 10) + ($data->closed_deals * 50);
+
+        return array(
+            $data->roc,
+            $data->new_opportunities,
+            $data->closed_deals,
+            $points
+        );
+    }
+
     function load_client_dashboard_summary() {
         $this->access_only_allowed_members();
 
