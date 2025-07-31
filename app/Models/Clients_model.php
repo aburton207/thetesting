@@ -294,7 +294,7 @@ function get_details($options = array()) {
         $users_table = $this->db->prefixTable('users');
         $client_id = $this->_get_clean_value($client_id);
 
-        $sql = "SELECT $users_table.id, $users_table.first_name, $users_table.last_name
+        $sql = "SELECT $users_table.id, $users_table.first_name, $users_table.last_name, $users_table.phone, $users_table.email
         FROM $users_table
         WHERE $users_table.deleted=0 AND $users_table.client_id=$client_id AND $users_table.is_primary_contact=1";
         $result = $this->db->query($sql);
