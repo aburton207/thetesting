@@ -1114,10 +1114,12 @@ class Leads extends Security_Controller {
                 "vat_number" => $this->request->getPost('vat_number'),
                 "gst_number" => $this->request->getPost('gst_number'),
                 "group_ids" => $this->request->getPost('group_ids') ? $this->request->getPost('group_ids') : "",
+                "lead_source_id" => $this->request->getPost('lead_source_id'),
+                "lead_status_id" => $this->request->getPost('lead_status_id') ? $this->request->getPost('lead_status_id') : 1,
                 "is_lead" => 0,
                 "client_migration_date" => get_current_utc_time(),
                 "last_lead_status" => $client_info->lead_status_title,
-                "created_by" => $this->request->getPost('created_by') ? $this->request->getPost('created_by') : $client_info->owner_id
+                "owner_id" => $this->request->getPost('owner_id') ? $this->request->getPost('owner_id') : $client_info->owner_id
             );
 
             if ($this->login_user->is_admin) {
