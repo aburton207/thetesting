@@ -154,8 +154,14 @@ class Clients extends Security_Controller {
             "vat_number" => $this->request->getPost('vat_number'),
             "gst_number" => $this->request->getPost('gst_number'),
             "lead_source_id" => $this->request->getPost('lead_source_id'),
-            "lead_status_id" => $this->request->getPost('lead_status_id') ? $this->request->getPost('lead_status_id') : 1
         );
+
+    $lead_status_id = $this->request->getPost('lead_status_id');
+    if ($lead_status_id) {
+        $data["lead_status_id"] = $lead_status_id;
+    } else if (!$client_id) {
+        $data["lead_status_id"] = 1; //default to 'contact' only when creating new client
+    }
 
     if ($this->login_user->user_type === "staff") {
         $group_ids = $this->request->getPost('group_ids');
@@ -1111,6 +1117,7 @@ function view($client_id = 0, $tab = "", $folder_id = 0) {
             $view_data['label_suggestions'] = $this->make_labels_dropdown("client", $view_data['model_info']->labels);
             $view_data['lead_sources'] = $this->Lead_source_model->get_details()->getResult();
             $view_data['sources_dropdown'] = json_encode($this->_get_sources_dropdown());
+            $view_data['statuses'] = $this->Lead_status_model->get_details()->getResult();
 
             return $this->template->view('clients/contacts/company_info_tab', $view_data);
         }
