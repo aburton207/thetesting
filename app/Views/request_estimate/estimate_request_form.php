@@ -358,7 +358,7 @@ table.dataTable tbody td:first-child {
     $(document).ready(function() {
         // Initialize appTable
         $("#estimate-form-table").appTable({
-            source: '<?php echo_uri("request_estimate/estimate_form_filed_list_data/" . $model_info->id) ?>',
+            source: '<?php echo_uri("request_estimate/estimate_form_filed_list_data/" . $model_info->id . "/" . $all_fields) ?>',
             order: [[1, "asc"]],
             hideTools: true,
             displayLength: 100,
