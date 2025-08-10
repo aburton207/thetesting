@@ -2023,13 +2023,16 @@ private function _save_a_row_of_excel_data($row_data) {
     function clients_list() {
         $this->access_only_allowed_members();
 
-        $view_data["custom_field_filters"] = $this->Custom_fields_model->get_custom_field_filters("clients", $this->login_user->is_admin, $this->login_user->user_type);
+        // Set up access-related flags similar to the main index view so the
+        // overview widgets receive all required variables.
+        $view_data = $this->make_access_permissions_view_data();
+        $view_data["show_project_info"] = $this->can_manage_all_projects() && !$this->has_all_projects_restricted_role();
+        $view_data["show_own_clients_only_user_id"] = $this->show_own_clients_only_user_id();
+        $view_data["allowed_client_groups"] = $this->allowed_client_groups;
 
-        $access_info = $this->get_access_info("invoice");
-        $view_data["show_invoice_info"] = (get_setting("module_invoice") && $access_info->access_type == "all") ? true : false;
-        
+        $view_data["custom_field_filters"] = $this->Custom_fields_model->get_custom_field_filters("clients", $this->login_user->is_admin, $this->login_user->user_type);
         $view_data["custom_field_headers"] = $this->Custom_fields_model->get_custom_field_headers_for_table("clients", $this->login_user->is_admin, $this->login_user->user_type);
-    $view_data['statuses'] = $this->Lead_status_model->get_details()->getResult(); // Add statuses
+        $view_data['statuses'] = $this->Lead_status_model->get_details()->getResult(); // Add statuses
         $view_data['groups_dropdown'] = json_encode($this->_get_groups_dropdown_select2_data(true));
         $view_data['can_edit_clients'] = $this->can_edit_clients();
         $view_data["team_members_dropdown"] = $this->get_team_members_dropdown(true);
