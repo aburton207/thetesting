@@ -22,7 +22,7 @@ class Request_estimate extends App_Controller {
         return $this->template->rander("request_estimate/index", $view_data);
     }
 
-    function form($id = 0, $embedded = 0) {
+    function form($id = 0, $embedded = 0, $all_fields = 0) {
         if (!get_setting("module_estimate_request")) {
             show_404();
         }
@@ -42,6 +42,7 @@ class Request_estimate extends App_Controller {
         $view_data['left_menu'] = false;
 
         $view_data['embedded'] = clean_data($embedded);
+        $view_data['all_fields'] = clean_data($all_fields);
 
         $model_info = $this->Estimate_forms_model->get_one_where(array("id" => $id, "public" => "1", "status" => "active", "deleted" => 0));
 
@@ -230,10 +231,13 @@ function save_estimate_request() {
 }
 
     //prepare data for datatable for estimate form's field list
-    function estimate_form_filed_list_data($id = 0) {
+    function estimate_form_filed_list_data($id = 0, $all_fields = 0) {
         validate_numeric_value($id);
 
         $options = array("related_to" => "estimate_form-" . $id);
+        if (!$all_fields) {
+            $options["show_in_embedded_form"] = true;
+        }
         $list_data = $this->Custom_fields_model->get_details($options)->getResult();
         $result = array();
         foreach ($list_data as $data) {

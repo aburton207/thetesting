@@ -422,6 +422,7 @@ private function _make_estimate_request_row($data) {
         $public = "";
         if ($data->public) {
             $public = anchor("request_estimate/form/" . $data->id, app_lang("yes") . "<i data-feather='external-link' class='icon-16 ml10'></i>", array("target" => "_blank", "class" => ""));
+            $public .= " | " . anchor("request_estimate/form/" . $data->id . "/0/1", app_lang("full_form") . "<i data-feather='external-link' class='icon-16 ml10'></i>", array("target" => "_blank", "class" => ""));
         } else {
             $public = app_lang("no");
         }
@@ -581,6 +582,7 @@ private function _make_estimate_request_row($data) {
             "placeholder" => $this->request->getPost('placeholder'),
             "placeholder_language_key" => $this->request->getPost('placeholder_language_key'),
             "required" => $this->request->getPost('required') ? 1 : 0,
+            "show_in_embedded_form" => $this->request->getPost('show_in_embedded_form') ? 1 : 0,
             "related_to" => $related_to,
             "options" => $this->request->getPost('options') ? $this->request->getPost('options') : ""
         );
