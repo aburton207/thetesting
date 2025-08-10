@@ -762,7 +762,7 @@ $lang["estimate_request"] = "Submitted Form";
 $lang["estimate_requests"] = "Submitted Form";
 $lang["estimate_list"] = "Quote List";
 $lang["estimate_forms"] = "Quote Forms";
-$lang["estimate_request_forms"] = "Quote Request Forms";
+$lang["estimate_request_forms"] = "Customer Forms";
 
 $lang["add_form"] = "Add form";
 $lang["edit_form"] = "Edit form";
