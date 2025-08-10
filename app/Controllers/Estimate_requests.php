@@ -46,6 +46,14 @@ class Estimate_requests extends Security_Controller {
 
         $view_data['forms_dropdown'] = json_encode($forms_dropdown);
 
+        //prepare Threaten to leave filter list (custom field 287)
+        $threaten_dropdown = array(
+            array("id" => "", "text" => "- Threaten leave -"),
+            array("id" => "Yes", "text" => "Yes"),
+            array("id" => "No", "text" => "No")
+        );
+        $view_data['threaten_dropdown'] = json_encode($threaten_dropdown);
+
         return $this->template->rander('estimate_requests/index', $view_data);
     }
 
@@ -108,7 +116,8 @@ class Estimate_requests extends Security_Controller {
             "status" => $this->request->getPost("status"),
             "estimate_form_id" => $this->request->getPost("form_id"),
             "start_date" => $this->request->getPost("start_date"),
-            "end_date" => $this->request->getPost("end_date")
+            "end_date" => $this->request->getPost("end_date"),
+            "custom_field_filter_287" => $this->request->getPost("custom_field_filter_287")
         );
         $list_data = $this->Estimate_requests_model->get_details($options)->getResult();
         $result = array();
@@ -170,7 +179,7 @@ private function _make_estimate_request_row($data) {
         }
     }
 
-        // Fetch custom field values for IDs 246, 267, 268, 269, 270, 271 and 275
+        // Fetch custom field values for IDs 246, 267, 268, 269, 270, 271, 275 and 281-287
         $custom_field_246 = "";
         $custom_field_267 = "";
         $custom_field_268 = "";
@@ -178,10 +187,17 @@ private function _make_estimate_request_row($data) {
         $custom_field_270 = "";
         $custom_field_271 = "";
         $custom_field_275 = "";
+        $custom_field_281 = "";
+        $custom_field_282 = "";
+        $custom_field_283 = "";
+        $custom_field_284 = "";
+        $custom_field_285 = "";
+        $custom_field_286 = "";
+        $custom_field_287 = "";
         $custom_field_values = $this->Custom_field_values_model->get_details(array(
             "related_to_type" => "estimate_request",
             "related_to_id" => $data->id,
-            "custom_field_id" => array(246, 267, 268, 269, 270, 271, 275) // Fetch these IDs
+            "custom_field_id" => array(246, 267, 268, 269, 270, 271, 275, 281, 282, 283, 284, 285, 286, 287)
         ))->getResult();
 
     foreach ($custom_field_values as $field) {
@@ -199,6 +215,20 @@ private function _make_estimate_request_row($data) {
             $custom_field_271 = $this->template->view("custom_fields/output_" . $field->custom_field_type, array("value" => $field->value));
         } elseif ($field->custom_field_id == 275) {
             $custom_field_275 = $this->template->view("custom_fields/output_" . $field->custom_field_type, array("value" => $field->value));
+        } elseif ($field->custom_field_id == 281) {
+            $custom_field_281 = $this->template->view("custom_fields/output_" . $field->custom_field_type, array("value" => $field->value));
+        } elseif ($field->custom_field_id == 282) {
+            $custom_field_282 = $this->template->view("custom_fields/output_" . $field->custom_field_type, array("value" => $field->value));
+        } elseif ($field->custom_field_id == 283) {
+            $custom_field_283 = $this->template->view("custom_fields/output_" . $field->custom_field_type, array("value" => $field->value));
+        } elseif ($field->custom_field_id == 284) {
+            $custom_field_284 = $this->template->view("custom_fields/output_" . $field->custom_field_type, array("value" => $field->value));
+        } elseif ($field->custom_field_id == 285) {
+            $custom_field_285 = $this->template->view("custom_fields/output_" . $field->custom_field_type, array("value" => $field->value));
+        } elseif ($field->custom_field_id == 286) {
+            $custom_field_286 = $this->template->view("custom_fields/output_" . $field->custom_field_type, array("value" => $field->value));
+        } elseif ($field->custom_field_id == 287) {
+            $custom_field_287 = $this->template->view("custom_fields/output_" . $field->custom_field_type, array("value" => $field->value));
         }
     }
 
@@ -240,6 +270,13 @@ private function _make_estimate_request_row($data) {
         $custom_field_271,
         $custom_field_275,
         $assigned_to,
+        $custom_field_281,
+        $custom_field_282,
+        $custom_field_283,
+        $custom_field_284,
+        $custom_field_285,
+        $custom_field_286,
+        $custom_field_287,
         $data->created_at,
         format_to_datetime($data->created_at),
         $status,

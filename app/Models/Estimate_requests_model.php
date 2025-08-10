@@ -57,6 +57,12 @@ class Estimate_requests_model extends Crud_model {
             $where .= " AND DATE($estimate_requests_table.created_at) <= '$end_date'";
         }
 
+        $custom_field_filter_287 = $this->_get_clean_value($options, "custom_field_filter_287");
+        if ($custom_field_filter_287) {
+            $cf_table = $this->db->prefixTable('custom_field_values');
+            $where .= " AND $estimate_requests_table.id IN (SELECT $cf_table.related_to_id FROM $cf_table WHERE $cf_table.related_to_type='estimate_request' AND $cf_table.custom_field_id=287 AND $cf_table.deleted=0 AND $cf_table.value='$custom_field_filter_287')";
+        }
+
         $clients_only = $this->_get_clean_value($options, "clients_only");
         if ($clients_only) {
             $where .= " AND $estimate_requests_table.client_id IN(SELECT $clients_table.id FROM $clients_table WHERE $clients_table.deleted=0 AND $clients_table.is_lead=0)";
