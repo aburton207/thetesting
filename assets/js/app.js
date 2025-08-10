@@ -1108,7 +1108,7 @@ function getContextFilters(settings) {
 }
 
 
-class DefaultFilters {
+window.DefaultFilters = window.DefaultFilters || class DefaultFilters {
     constructor(settings) {
         this.settings = settings;
         this.init();
@@ -1306,10 +1306,10 @@ class DefaultFilters {
         this.settings = settings;
     }
 
-}
+};
 
-var prepareDefaultFilters = function (settings) {
-    var filters = new DefaultFilters(settings);
+window.prepareDefaultFilters = window.prepareDefaultFilters || function (settings) {
+    var filters = new window.DefaultFilters(settings);
     return filters;
 };
 
