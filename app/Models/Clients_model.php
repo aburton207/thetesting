@@ -1133,23 +1133,18 @@ function get_details($options = array()) {
         $users_table = $this->db->prefixTable('users');
         $cf_table = $this->db->prefixTable('custom_field_values');
 
-        $where = " AND $clients_table.is_lead=0 AND $clients_table.deleted=0";
-
-        //only include clients which have the custom field value 273
-        $where .= " AND cf_273.value IS NOT NULL";
-
         $july_21 = date('Y') . "-07-21";
 
         $sql = "SELECT $users_table.id AS staff_id,
                         CONCAT($users_table.first_name, ' ', $users_table.last_name) AS sales_rep_name,
                         $users_table.address AS roc,
-                        SUM(IF(DATE($clients_table.created_date) >= '$july_21',1,0)) AS new_opportunities,
-                        SUM(IF(DATE(cf_272.value) >= '$july_21',1,0)) AS closed_deals
-                FROM $clients_table
+                        SUM(IF(cf_273.value IS NOT NULL AND DATE($clients_table.created_date) >= '$july_21',1,0)) AS new_opportunities,
+                        SUM(IF(cf_273.value IS NOT NULL AND DATE(cf_272.value) >= '$july_21',1,0)) AS closed_deals
+                FROM $users_table
+                LEFT JOIN $clients_table ON $clients_table.owner_id=$users_table.id AND $clients_table.deleted=0 AND $clients_table.is_lead=0 AND $clients_table.type='organization'
                 LEFT JOIN $cf_table AS cf_273 ON cf_273.custom_field_id=273 AND cf_273.related_to_type='clients' AND cf_273.related_to_id=$clients_table.id AND cf_273.deleted=0
                 LEFT JOIN $cf_table AS cf_272 ON cf_272.custom_field_id=272 AND cf_272.related_to_type='clients' AND cf_272.related_to_id=$clients_table.id AND cf_272.deleted=0
-                LEFT JOIN $users_table ON $users_table.id=$clients_table.owner_id
-                WHERE $users_table.deleted=0 AND $users_table.status='active' AND $users_table.user_type='staff' $where
+                WHERE $users_table.deleted=0 AND $users_table.status='active' AND $users_table.user_type='staff' AND $users_table.role_id=1
                 GROUP BY $users_table.id";
 
         return $this->db->query($sql);
@@ -1159,11 +1154,6 @@ function get_details($options = array()) {
         $clients_table = $this->db->prefixTable('clients');
         $users_table = $this->db->prefixTable('users');
         $cf_table = $this->db->prefixTable('custom_field_values');
-
-        $where = " AND $clients_table.is_lead=0 AND $clients_table.deleted=0";
-
-        //only include clients which have the custom field value 273
-        $where .= " AND cf_273.value IS NOT NULL";
 
         $july_21 = date('Y') . "-07-21";
 
@@ -1176,13 +1166,13 @@ function get_details($options = array()) {
                         WHEN LOWER($users_table.address) LIKE '%prairies%' THEN 'Prairies'
                         ELSE 'Other'
                     END AS roc,
-                    SUM(IF(DATE($clients_table.created_date) >= '$july_21',1,0)) AS new_opportunities,
-                    SUM(IF(DATE(cf_272.value) >= '$july_21',1,0)) AS closed_deals
-                FROM $clients_table
+                    SUM(IF(cf_273.value IS NOT NULL AND DATE($clients_table.created_date) >= '$july_21',1,0)) AS new_opportunities,
+                    SUM(IF(cf_273.value IS NOT NULL AND DATE(cf_272.value) >= '$july_21',1,0)) AS closed_deals
+                FROM $users_table
+                LEFT JOIN $clients_table ON $clients_table.owner_id=$users_table.id AND $clients_table.deleted=0 AND $clients_table.is_lead=0 AND $clients_table.type='organization'
                 LEFT JOIN $cf_table AS cf_273 ON cf_273.custom_field_id=273 AND cf_273.related_to_type='clients' AND cf_273.related_to_id=$clients_table.id AND cf_273.deleted=0
                 LEFT JOIN $cf_table AS cf_272 ON cf_272.custom_field_id=272 AND cf_272.related_to_type='clients' AND cf_272.related_to_id=$clients_table.id AND cf_272.deleted=0
-                LEFT JOIN $users_table ON $users_table.id=$clients_table.owner_id
-                WHERE $users_table.deleted=0 AND $users_table.status='active' AND $users_table.user_type='staff' $where
+                WHERE $users_table.deleted=0 AND $users_table.status='active' AND $users_table.user_type='staff' AND $users_table.role_id=1
                 GROUP BY roc";
 
         return $this->db->query($sql);
