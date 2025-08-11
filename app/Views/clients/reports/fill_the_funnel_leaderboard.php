@@ -25,6 +25,7 @@
                 {title: '<?php echo app_lang("closed_deals"); ?>', class: "text-center"},
                 {title: '<?php echo app_lang("total_points"); ?>', class: "text-center"}
             ],
+            order: [[4, "desc"]],
             printColumns: [0, 1, 2, 3, 4],
             xlsColumns: [0, 1, 2, 3, 4]
         });
@@ -38,6 +39,7 @@
                 {title: '<?php echo app_lang("closed_deals"); ?>', class: "text-center"},
                 {title: '<?php echo app_lang("total_points"); ?>', class: "text-center"}
             ],
+            order: [[3, "desc"]],
             printColumns: [0, 1, 2, 3],
             xlsColumns: [0, 1, 2, 3]
         });
