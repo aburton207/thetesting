@@ -24,7 +24,8 @@
             filterDropdown: [
                 {name: "assigned_to", class: "w150", options: <?php echo $assigned_to_dropdown; ?>},
                 {name: "status", class: "w150", options: <?php echo $statuses_dropdown; ?>},
-                {name: "form_id", class: "w150", options: <?php echo $forms_dropdown; ?>}
+                {name: "form_id", class: "w150", options: <?php echo $forms_dropdown; ?>},
+                {name: "custom_field_filter_287", class: "w150", options: <?php echo $threaten_dropdown; ?>}
             ],
             rangeDatepicker: [{startDate: {name: "start_date", value: ""}, endDate: {name: "end_date", value: ""}, label: "<?php echo app_lang('created_date'); ?>", showClearButton: true}],
             columns: [
@@ -43,13 +44,20 @@
                 {title: "Additional Info"},
                 {title: "Branch"},
                 {title: "<?php echo app_lang('assigned_to'); ?>"},
+                {title: "Tank size"},
+                {title: "Annual L"},
+                {title: "Fixed price"},
+                {title: "Last yr price"},
+                {title: "# del last yr"},
+                {title: "Buyers group"},
+                {title: "Threaten leave"},
                 {visible: false, searchable: false},
-                {title: '<?php echo app_lang("created_date") ?>', "iDataSort": 15},
+                {title: '<?php echo app_lang("created_date") ?>', "iDataSort": 22},
                 {title: "<?php echo app_lang('status'); ?>"},
                 {title: "<i data-feather='menu' class='icon-16'></i>", "class": "text-center dropdown-option w50"}
             ],
-            printColumns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 17],
-            xlsColumns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 17]
+            printColumns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24],
+            xlsColumns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24]
         });
     });
 </script>

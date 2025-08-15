@@ -6,6 +6,19 @@
 
         <?php echo view("custom_fields/form/input_fields"); ?>
 
+        <div class="form-group">
+            <div class="row">
+                <label for="show_in_embedded_form" class=" col-md-3"><?php echo app_lang('show_in_public_form'); ?></label>
+                <div class="col-md-9">
+                    <?php
+                    echo form_checkbox(
+                            "show_in_embedded_form", "1", $model_info->show_in_embedded_form, "id='show_in_embedded_form' class='form-check-input'"
+                    );
+                    ?>
+                </div>
+            </div>
+        </div>
+
         <div class="row">
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-bs-dismiss="modal"><span data-feather="x" class="icon-16"></span> <?php echo app_lang('close'); ?></button>

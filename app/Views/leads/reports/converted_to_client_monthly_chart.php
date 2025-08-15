@@ -43,7 +43,7 @@
         </div>
         <div class="row">
             <div class="col-md-12">
-                <div class="mt20"><strong><?php echo !empty($owner_name) ? $owner_name . ' - ' : ''; ?><?php echo app_lang("lead_status"); ?></strong></div>
+                <div class="mt20"><strong><?php echo !empty($owner_name) ? $owner_name . ' - ' : ''; ?><?php echo app_lang("opportunity_status"); ?></strong></div>
                 <div class="mt20 pt10">
                     <canvas id="lead-status-bar-chart" style="width:100%; height: 300px;"></canvas>
                 </div>

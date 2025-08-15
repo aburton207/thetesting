@@ -98,6 +98,22 @@
 
 <div class="form-group">
     <div class="row">
+        <label for="client_lead_status_id" class="<?php echo $label_column; ?>"><?php echo app_lang('status'); ?></label>
+        <div class="<?php echo $field_column; ?>">
+            <?php
+            $lead_status_dropdown = array();
+            foreach ($statuses as $status) {
+                $lead_status_dropdown[$status->id] = $status->title;
+            }
+            $selected_status = $model_info->lead_status_id ? $model_info->lead_status_id : 1;
+            echo form_dropdown("lead_status_id", $lead_status_dropdown, array($selected_status), "class='select2' id='client_lead_status_id'");
+            ?>
+        </div>
+    </div>
+</div>
+
+<div class="form-group">
+    <div class="row">
         <label for="client_lead_source_id" class="<?php echo $label_column; ?>"><?php echo app_lang('source'); ?></label>
         <div class="<?php echo $field_column; ?>">
             <?php echo view('partials/lead_source_select', ['sources_dropdown' => $sources_dropdown, 'selected' => $model_info->lead_source_id, 'id' => 'client_lead_source_id']); ?>
@@ -306,7 +322,7 @@
     </div>
 
 <?php } ?>
-<?php if ($login_user->user_type === "staff") { ?>
+<?php if ($login_user->user_type === "staff" && empty($hide_client_labels)) { ?>
     <div class="form-group">
         <div class="row">
             <label for="client_labels" class="<?php echo $label_column; ?>"><?php echo app_lang('labels'); ?></label>
@@ -367,7 +383,9 @@
             });
         <?php } ?>
 
-        <?php if ($login_user->user_type === "staff") { ?>
+        $('#client_lead_status_id').select2();
+
+        <?php if ($login_user->user_type === "staff" && empty($hide_client_labels)) { ?>
             $("#client_labels").select2({
                 multiple: true,
                 data: <?php echo json_encode($label_suggestions); ?>

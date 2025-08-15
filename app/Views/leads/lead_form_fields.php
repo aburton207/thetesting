@@ -91,13 +91,16 @@
         </label>
         <div class="<?php echo $field_column; ?>">
             <?php
-            echo form_input(array(
-                "id" => "owner_id",
-                "name" => "owner_id",
-                "value" => $model_info->owner_id ? $model_info->owner_id : $login_user->id,
-                "class" => "form-control",
-                "placeholder" => app_lang('owner')
-            ));
+            $owners_select = array();
+            foreach ($owners_dropdown as $owner_option) {
+                $owners_select[$owner_option["id"]] = $owner_option["text"];
+            }
+            echo form_dropdown(
+                    "owner_id",
+                    $owners_select,
+                    $model_info->owner_id ? $model_info->owner_id : $login_user->id,
+                    "class='form-control select2' id='owner_id'"
+            );
             ?>
         </div>
     </div>
@@ -323,9 +326,7 @@
             }
         <?php } ?>
 
-        $('#owner_id').select2({
-            data: <?php echo json_encode($owners_dropdown); ?>
-        });
+        $('#owner_id').select2();
 
         $("#lead_labels").select2({
             multiple: true,

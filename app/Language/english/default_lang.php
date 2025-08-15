@@ -1325,7 +1325,6 @@ $lang["lead_status"] = "Lead status";
 $lang["add_lead_status"] = "Add lead status";
 $lang["edit_lead_status"] = "Edit lead status";
 $lang["delete_lead_status"] = "Delete lead status";
-$lang["client_status"] = "Client status";
 $lang["owner"] = "Owner";
 $lang["make_client"] = "Make client";
 $lang["client_contacts"] = "Client contacts";
@@ -1919,7 +1918,6 @@ $lang["select_from_template"] = "Select from template";
 $lang["type_new_item"] = "Type new item";
 
 $lang["conversion_rate"] = "Conversion rate";
-$lang["close_rate"] = "Close rate";
 
 $lang["all_tasks"] = "All tasks";
 $lang["user_roles"] = "User Roles";
@@ -2242,8 +2240,8 @@ $lang["internal_project"] = "Internal Project";
 
 $lang["contact_info"] = "Contact info";
 $lang["type"] = "Type";
-$lang["organization"] = "Organization";
-$lang["person"] = "Person";
+$lang["organization"] = "Commercial";
+$lang["person"] = "Residential";
 
 $lang["last_announcement"] = "Last announcement";
 $lang["no_announcement_yet"] = "No announcement yet!";

@@ -165,7 +165,48 @@ class Leads extends Security_Controller {
             save_custom_fields("leads", $save_id, $this->login_user->is_admin, $this->login_user->user_type);
 
             if (!$client_id) {
-                log_notification("lead_created", array("lead_id" => $save_id), $this->login_user->id);
+                //prepare standard form data
+                $form_data = array(
+                    "company_name" => $this->request->getPost('company_name'),
+                    "type" => $this->request->getPost('account_type'),
+                    "address" => $this->request->getPost('address'),
+                    "city" => $this->request->getPost('city'),
+                    "state" => $this->request->getPost('state'),
+                    "zip" => $this->request->getPost('zip'),
+                    "country" => $this->request->getPost('country'),
+                    "phone" => $this->request->getPost('phone'),
+                    "website" => $this->request->getPost('website'),
+                    "vat_number" => $this->request->getPost('vat_number'),
+                    "gst_number" => $this->request->getPost('gst_number')
+                );
+
+                //prepare custom field data
+                $custom_field_values = array();
+                $form_fields = $this->Custom_fields_model->get_details(array("related_to" => "leads"))->getResult();
+                foreach ($form_fields as $field) {
+                    $value = $this->request->getPost("custom_field_" . $field->id);
+                    if ($value !== null && $value !== "") {
+                        $field_title = $field->title_language_key ? app_lang($field->title_language_key) : $field->title;
+                        $custom_field_values[] = array(
+                            "title" => $field_title,
+                            "value" => $value
+                        );
+                    }
+                }
+
+                $notification_data = array(
+                    "lead_id" => $save_id,
+                    "user_id" => $this->login_user->id,
+                    "form_data" => $form_data,
+                    "custom_field_values" => $custom_field_values,
+                    "files_data" => array()
+                );
+
+                log_notification("lead_created", array(
+                    "lead_id" => $save_id,
+                    "user_id" => $this->login_user->id,
+                    "description" => json_encode($notification_data)
+                ));
             }
 
             echo json_encode(array("success" => true, "data" => $this->_row_data($save_id), 'id' => $save_id, 'view' => $this->request->getPost('view'), 'message' => app_lang('record_saved')));
@@ -1027,6 +1068,8 @@ class Leads extends Security_Controller {
         //prepare company details
         $view_data["lead_info"] = $this->make_lead_modal_form_data($lead_id);
         $view_data["lead_info"]["to_custom_field_type"] = "clients";
+        $view_data["lead_info"]["lead_sources"] = $this->Lead_source_model->get_details()->getResult();
+        $view_data["lead_info"]["sources_dropdown"] = json_encode($this->_get_sources_dropdown());
 
         //prepare contacts info
         $final_contacts = array();
@@ -1112,10 +1155,12 @@ class Leads extends Security_Controller {
                 "vat_number" => $this->request->getPost('vat_number'),
                 "gst_number" => $this->request->getPost('gst_number'),
                 "group_ids" => $this->request->getPost('group_ids') ? $this->request->getPost('group_ids') : "",
+                "lead_source_id" => $this->request->getPost('lead_source_id'),
+                "lead_status_id" => $this->request->getPost('lead_status_id') ? $this->request->getPost('lead_status_id') : 1,
                 "is_lead" => 0,
                 "client_migration_date" => get_current_utc_time(),
                 "last_lead_status" => $client_info->lead_status_title,
-                "created_by" => $this->request->getPost('created_by') ? $this->request->getPost('created_by') : $client_info->owner_id
+                "owner_id" => $this->request->getPost('owner_id') ? $this->request->getPost('owner_id') : $client_info->owner_id
             );
 
             if ($this->login_user->is_admin) {

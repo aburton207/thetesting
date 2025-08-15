@@ -85,6 +85,37 @@ class Clients extends Security_Controller {
         $view_data["view"] = $this->request->getPost('view');
         $view_data["ticket_id"] = $this->request->getPost('ticket_id');
         $view_data['model_info'] = $this->Clients_model->get_one($client_id);
+
+        // Default lead source based on the logged in staff's address when adding
+        // a new client. The address field is checked for specific region names
+        // to determine the lead source id.
+        if (!$client_id && $this->login_user->user_type === "staff" && empty($view_data['model_info']->lead_source_id)) {
+            // Fetch the address from the logged-in user's profile. The
+            // login_user object returned from get_access_info() doesn't include
+            // the address field, so retrieve the complete user record when
+            // necessary to avoid undefined property notices.
+            if (property_exists($this->login_user, 'address')) {
+                $address = trim($this->login_user->address);
+            } else {
+                $full_user_info = $this->Users_model->get_one($this->login_user->id);
+                $address = trim($full_user_info->address);
+            }
+            if ($address) {
+                $address_lower = strtolower($address);
+
+                if (strpos($address_lower, 'atlantic') !== false) {
+                    $view_data['model_info']->lead_source_id = 4;
+                } elseif (strpos($address_lower, 'pacific') !== false) {
+                    $view_data['model_info']->lead_source_id = 2;
+                } elseif (strpos($address_lower, 'ontario') !== false) {
+                    $view_data['model_info']->lead_source_id = 6;
+                } elseif (strpos($address_lower, 'prairies') !== false) {
+                    $view_data['model_info']->lead_source_id = 3;
+                } elseif (strpos($address_lower, 'quebec') !== false) {
+                    $view_data['model_info']->lead_source_id = 5;
+                }
+            }
+        }
         $view_data["currency_dropdown"] = $this->_get_currency_dropdown_select2_data();
         $view_data["groups_dropdown"] = $this->_get_groups_dropdown_select2_data();
         $view_data["team_members_dropdown"] = $this->get_team_members_dropdown();
@@ -122,8 +153,15 @@ class Clients extends Security_Controller {
             "website" => $this->request->getPost('website'),
             "vat_number" => $this->request->getPost('vat_number'),
             "gst_number" => $this->request->getPost('gst_number'),
-            "lead_source_id" => $this->request->getPost('lead_source_id')
+            "lead_source_id" => $this->request->getPost('lead_source_id'),
         );
+
+    $lead_status_id = $this->request->getPost('lead_status_id');
+    if ($lead_status_id) {
+        $data["lead_status_id"] = $lead_status_id;
+    } else if (!$client_id) {
+        $data["lead_status_id"] = 1; //default to 'contact' only when creating new client
+    }
 
     if ($this->login_user->user_type === "staff") {
         $group_ids = $this->request->getPost('group_ids');
@@ -343,13 +381,21 @@ private function _make_row($data, $custom_fields) {
 
     // Format created_date to show only the date (YYYY-MM-DD)
     $created_date = $data->created_date ? date('Y-m-d', strtotime($data->created_date)) : "-";
-
+    // Map account types to user friendly labels
+    $account_type = strtolower($data->account_type);
+    if ($account_type === "person") {
+        $account_type_label = "Residential";
+    } elseif ($account_type === "organization") {
+        $account_type_label = "Commercial";
+    } else {
+        $account_type_label = ucfirst($account_type);
+    }
         $row_data = array(
         $data->id,
         anchor(get_uri("clients/view/" . $data->id), $data->company_name),
         $data->primary_contact ? $primary_contact : "",
         $data->phone,
-        ucfirst($data->account_type),
+        $account_type_label,
         $created_date, // Add created_date here
         $group_list,
         $owner_name, // This now reflects the owner_id
@@ -1079,6 +1125,7 @@ function view($client_id = 0, $tab = "", $folder_id = 0) {
             $view_data['label_suggestions'] = $this->make_labels_dropdown("client", $view_data['model_info']->labels);
             $view_data['lead_sources'] = $this->Lead_source_model->get_details()->getResult();
             $view_data['sources_dropdown'] = json_encode($this->_get_sources_dropdown());
+            $view_data['statuses'] = $this->Lead_status_model->get_details()->getResult();
 
             return $this->template->view('clients/contacts/company_info_tab', $view_data);
         }
@@ -2002,7 +2049,66 @@ private function _save_a_row_of_excel_data($row_data) {
         // Pass the custom field id for Estimated Close Date to the view
         $view_data['estimated_close_cf_id'] = 167; // see general_helper mapping
 
-        return $this->template->view("clients/clients_list", $view_data);
+        if ($this->request->isAJAX()) {
+            return $this->template->view("clients/clients_list", $view_data);
+        }
+
+        $view_data['tab'] = "clients_list";
+        $view_data['page_type'] = "full";
+        return $this->template->rander("clients/index", $view_data);
+    }
+
+    function all_clients_kanban() {
+        $this->access_only_allowed_members();
+
+        $view_data['owners_dropdown'] = $this->_get_owners_dropdown("filter");
+        $view_data['lead_sources'] = $this->Lead_source_model->get_details()->getResult();
+        $view_data['labels_dropdown'] = json_encode($this->make_labels_dropdown("client", "", true));
+        $view_data["custom_field_filters"] = $this->Custom_fields_model->get_custom_field_filters("clients", $this->login_user->is_admin, $this->login_user->user_type);
+        $view_data['can_edit_clients'] = $this->can_edit_clients();
+
+        return $this->template->rander("clients/kanban/all_clients", $view_data);
+    }
+
+    function all_clients_kanban_data() {
+        $this->access_only_allowed_members();
+
+        $options = array(
+            "status" => $this->request->getPost('status'),
+            "owner_id" => $this->request->getPost('owner_id'),
+            "source" => $this->request->getPost('source'),
+            "search" => $this->request->getPost('search'),
+            "label_id" => $this->request->getPost('label_id'),
+            "custom_field_filter" => $this->prepare_custom_field_filter_values("clients", $this->login_user->is_admin, $this->login_user->user_type)
+        );
+
+        $view_data["clients"] = $this->Clients_model->get_clients_kanban_details($options)->getResult();
+
+        $statuses = $this->Lead_status_model->get_details();
+        $view_data["total_columns"] = $statuses->resultID->num_rows;
+        $view_data["columns"] = $statuses->getResult();
+
+        return $this->template->view('clients/kanban/kanban_view', $view_data);
+    }
+
+    function save_client_sort_and_status() {
+        $this->validate_submitted_data(array(
+            "id" => "required|numeric"
+        ));
+
+        $id = $this->request->getPost('id');
+        $this->_validate_client_manage_access($id);
+
+        $lead_status_id = $this->request->getPost('lead_status_id');
+        $data = array(
+            "sort" => $this->request->getPost('sort')
+        );
+
+        if ($lead_status_id) {
+            $data["lead_status_id"] = $lead_status_id;
+        }
+
+        $this->Clients_model->ci_save($data, $id);
     }
 
     function clients_report() {
@@ -2130,6 +2236,73 @@ private function _save_a_row_of_excel_data($row_data) {
         $view_data["volume_data"] = json_encode($volume);
 
         return $this->template->view("clients/reports/margin_volume_chart", $view_data);
+    }
+
+    function fill_the_funnel_leaderboard() {
+        $this->access_only_allowed_members();
+
+        return $this->template->rander("clients/reports/fill_the_funnel_leaderboard");
+    }
+
+    function fill_the_funnel_leaderboard_data() {
+        $this->access_only_allowed_members();
+
+        $options = array(
+            "start_date" => $this->request->getPost("start_date"),
+            "end_date" => $this->request->getPost("end_date")
+        );
+
+        $list_data = $this->Clients_model->get_fill_the_funnel_leaderboard($options)->getResult();
+
+        $result = array();
+        foreach ($list_data as $data) {
+            $result[] = $this->_make_fill_the_funnel_leaderboard_row($data);
+        }
+
+        echo json_encode(array("data" => $result));
+    }
+
+    private function _make_fill_the_funnel_leaderboard_row($data) {
+        $points = ($data->new_opportunities * 10) + ($data->closed_deals * 50);
+
+        $member = get_team_member_profile_link($data->staff_id, $data->sales_rep_name);
+
+        return array(
+            $member,
+            $data->roc,
+            $data->new_opportunities,
+            $data->closed_deals,
+            $points
+        );
+    }
+
+    function fill_the_funnel_region_leaderboard_data() {
+        $this->access_only_allowed_members();
+
+        $options = array(
+            "start_date" => $this->request->getPost("start_date"),
+            "end_date" => $this->request->getPost("end_date")
+        );
+
+        $list_data = $this->Clients_model->get_fill_the_funnel_region_leaderboard($options)->getResult();
+
+        $result = array();
+        foreach ($list_data as $data) {
+            $result[] = $this->_make_fill_the_funnel_region_leaderboard_row($data);
+        }
+
+        echo json_encode(array("data" => $result));
+    }
+
+    private function _make_fill_the_funnel_region_leaderboard_row($data) {
+        $points = ($data->new_opportunities * 10) + ($data->closed_deals * 50);
+
+        return array(
+            $data->roc,
+            $data->new_opportunities,
+            $data->closed_deals,
+            $points
+        );
     }
 
     function load_client_dashboard_summary() {

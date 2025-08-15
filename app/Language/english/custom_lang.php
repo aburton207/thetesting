@@ -762,7 +762,7 @@ $lang["estimate_request"] = "Submitted Form";
 $lang["estimate_requests"] = "Submitted Form";
 $lang["estimate_list"] = "Quote List";
 $lang["estimate_forms"] = "Quote Forms";
-$lang["estimate_request_forms"] = "Quote Request Forms";
+$lang["estimate_request_forms"] = "Customer Forms";
 
 $lang["add_form"] = "Add form";
 $lang["edit_form"] = "Edit form";
@@ -2777,6 +2777,20 @@ $lang["value"] = "Value";
 $lang["phone_minlength_error"] = "Phone number must be at least 10 digits";
 $lang["enter_valid_email"] = "Please enter a valid email address";
 $lang["company_name_custom"] = "Customer Name";
+$lang["potential_margin"] = "Potential Margin";
+$lang["volume"] = "Volume";
 
+$lang["fill_the_funnel_leaderboard"] = "Fill the Funnel - Leaderboard";
+$lang["sales_rep_name"] = "Sales Rep Name";
+$lang["roc"] = "ROC";
+$lang["new_opportunities"] = "New Opportunities";
+$lang["closed_deals"] = "Closed Deals";
+$lang["total_points"] = "Total Points";
+$lang["fill_the_funnel_region_leaderboard"] = "Fill the Funnel - Region Leaderboard";
 
+$lang["opportunities_graphs"] = "Opportunities Graphs";
+$lang["opportunity_data_reports"] = "Opportunity Data Reports";
+$lang["opportunity_status"] = "Status";
+$lang['show_in_public_form'] = 'Show in public form';
+$lang['full_form'] = 'Full form';
 return $lang;

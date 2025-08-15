@@ -63,6 +63,27 @@ class Email_templates extends Security_Controller {
             );
         }
 
+        if (get_setting("module_lead")) {
+            $templates_array["lead"] = array(
+                "lead_created" => array(
+                    "LEAD_ID",
+                    "CONTACT_FIRST_NAME",
+                    "CONTACT_LAST_NAME",
+                    "SIGNATURE",
+                    "LEAD_URL",
+                    "LOGO_URL",
+                    "RECIPIENTS_EMAIL_ADDRESS",
+                    "FORM_DATA",
+                    "CUSTOM_FIELD_VALUES",
+                    "FILES_DATA",
+                    "NO_FORM_DATA",
+                    "NO_CUSTOM_FIELDS",
+                    "NO_FILES",
+                    "SITE_URL"
+                )
+            );
+        }
+
         if (get_setting("module_invoice")) {
             $templates_array["invoice"] = array(
                 "send_invoice" => array("INVOICE_ID", "CONTACT_FIRST_NAME", "CONTACT_LAST_NAME", "PROJECT_TITLE", "BALANCE_DUE", "DUE_DATE", "SIGNATURE", "INVOICE_URL", "LOGO_URL", "PUBLIC_PAY_INVOICE_URL", "INVOICE_FULL_ID", "RECIPIENTS_EMAIL_ADDRESS"),
