@@ -116,8 +116,48 @@ class Collect_leads extends App_Controller {
             }
         }
 
-    // Log the notification as usual
-log_notification("lead_created", array("lead_id" => $lead_id), "0");
+        //prepare standard form data for notification
+        $form_data = array(
+            "company_name" => $company_name,
+            "first_name" => $first_name,
+            "last_name" => $last_name,
+            "email" => $email,
+            "address" => $this->request->getPost('address'),
+            "city" => $this->request->getPost('city'),
+            "state" => $this->request->getPost('state'),
+            "zip" => $this->request->getPost('zip'),
+            "country" => $this->request->getPost('country'),
+            "phone" => $this->request->getPost('phone')
+        );
+
+        //collect custom field values
+        $custom_field_values = array();
+        $form_fields = $this->Custom_fields_model->get_details(array("related_to" => "leads"))->getResult();
+        foreach ($form_fields as $field) {
+            $value = $this->request->getPost("custom_field_" . $field->id);
+            if ($value !== null && $value !== "") {
+                $field_title = $field->title_language_key ? app_lang($field->title_language_key) : $field->title;
+                $custom_field_values[] = array(
+                    "title" => $field_title,
+                    "value" => $value
+                );
+            }
+        }
+
+        $notification_data = array(
+            "lead_id" => $lead_id,
+            "user_id" => 0,
+            "form_data" => $form_data,
+            "custom_field_values" => $custom_field_values,
+            "files_data" => array()
+        );
+
+        // Log the notification with details
+        log_notification("lead_created", array(
+            "lead_id" => $lead_id,
+            "user_id" => 0,
+            "description" => json_encode($notification_data)
+        ));
 
 $after_submit_action_of_public_lead_form = get_setting("after_submit_action_of_public_lead_form");
 $after_submit_action_of_public_lead_form_redirect_url = get_setting("after_submit_action_of_public_lead_form_redirect_url");
