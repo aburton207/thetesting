@@ -42,7 +42,20 @@ class Notifications_model extends Crud_model {
 
         $notification_settings = $this->db->query("SELECT * FROM $notification_settings_table WHERE  $notification_settings_table.event='$event' AND ($notification_settings_table.enable_email OR $notification_settings_table.enable_web OR $notification_settings_table.enable_slack)")->getRow();
         if (!$notification_settings) {
-            return false; //no notification settings found
+            if ($event === "lead_created") {
+                $notification_settings = (object) [
+                    "event" => "lead_created",
+                    "category" => "lead",
+                    "enable_email" => 1,
+                    "enable_web" => 1,
+                    "enable_slack" => 0,
+                    "notify_to_terms" => "owner,team_members,team",
+                    "notify_to_team_members" => "",
+                    "notify_to_team" => ""
+                ];
+            } else {
+                return false; //no notification settings found
+            }
         }
 
         $where = "";

@@ -146,18 +146,20 @@ class Collect_leads extends App_Controller {
 
         $notification_data = array(
             "lead_id" => $lead_id,
-            "user_id" => 0,
             "form_data" => $form_data,
             "custom_field_values" => $custom_field_values,
             "files_data" => array()
         );
 
         // Log the notification with details
-        log_notification("lead_created", array(
-            "lead_id" => $lead_id,
-            "user_id" => 0,
-            "description" => json_encode($notification_data)
-        ));
+        log_notification(
+            "lead_created",
+            array(
+                "lead_id" => $lead_id,
+                "description" => json_encode($notification_data)
+            ),
+            "0"
+        );
 
 $after_submit_action_of_public_lead_form = get_setting("after_submit_action_of_public_lead_form");
 $after_submit_action_of_public_lead_form_redirect_url = get_setting("after_submit_action_of_public_lead_form_redirect_url");
