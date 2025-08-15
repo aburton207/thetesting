@@ -24,8 +24,8 @@ class Collect_leads extends App_Controller {
 
         $view_data["currency_dropdown"] = $this->_get_currency_dropdown_select2_data();
 
-        //get custom fields
-        $view_data["custom_fields"] = $this->Custom_fields_model->get_details(array("show_in_embedded_form" => true))->getResult();
+        //get lead-specific custom fields only
+        $view_data["custom_fields"] = $this->Custom_fields_model->get_details(array("show_in_embedded_form" => true, "related_to" => "leads"))->getResult();
         $view_data["lead_source_id"] = $source_id;
         $view_data["lead_owner_id"] = $ownder_id;
 
@@ -132,7 +132,7 @@ class Collect_leads extends App_Controller {
 
         //collect custom field values
         $custom_field_values = array();
-        $form_fields = $this->Custom_fields_model->get_details(array("related_to" => "leads"))->getResult();
+        $form_fields = $this->Custom_fields_model->get_details(array("related_to" => "leads", "show_in_embedded_form" => true))->getResult();
         foreach ($form_fields as $field) {
             $value = $this->request->getPost("custom_field_" . $field->id);
             if ($value !== null && $value !== "") {
