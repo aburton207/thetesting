@@ -834,6 +834,30 @@ if (!function_exists('send_notification_emails')) {
             $order_data = get_order_making_data($notification->order_id);
             $attachement_url = prepare_order_pdf($order_data, "send_email");
             $email_options["attachments"] = array(array("file_path" => $attachement_url));
+        } else if ($notification->event == "lead_created") {
+            $template_name = "lead_created";
+
+            $primary_contact = $ci->Clients_model->get_primary_contact($notification->lead_id, true);
+            $parser_data["CONTACT_FIRST_NAME"] = isset($primary_contact->first_name) ? $primary_contact->first_name : "";
+            $parser_data["CONTACT_LAST_NAME"] = isset($primary_contact->last_name) ? $primary_contact->last_name : "";
+
+            $parser_data["LEAD_ID"] = $notification->lead_id;
+            $parser_data["LEAD_URL"] = $url;
+
+            if ($notification->description) {
+                $extra_data = json_decode($notification->description, true);
+
+                if (!$extra_data && json_last_error() !== JSON_ERROR_NONE) {
+                    $extra_data = json_decode(stripslashes($notification->description), true);
+                }
+
+                if (is_array($extra_data)) {
+                    $parser_data['FORM_DATA'] = get_array_value($extra_data, 'form_data');
+                    $parser_data['CUSTOM_FIELD_VALUES'] = get_array_value($extra_data, 'custom_field_values');
+                    $parser_data['FILES_DATA'] = get_array_value($extra_data, 'files_data');
+                    $parser_data['SITE_URL'] = get_uri();
+                }
+            }
         } else if ($notification->event == "project_completed") {
             $template_name = "project_completed";
 
