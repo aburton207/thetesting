@@ -24,8 +24,8 @@ class Collect_leads extends App_Controller {
 
         $view_data["currency_dropdown"] = $this->_get_currency_dropdown_select2_data();
 
-        //get custom fields
-        $view_data["custom_fields"] = $this->Custom_fields_model->get_details(array("show_in_embedded_form" => true))->getResult();
+        //get lead-specific custom fields only
+        $view_data["custom_fields"] = $this->Custom_fields_model->get_details(array("show_in_embedded_form" => true, "related_to" => "leads"))->getResult();
         $view_data["lead_source_id"] = $source_id;
         $view_data["lead_owner_id"] = $ownder_id;
 
@@ -132,7 +132,7 @@ class Collect_leads extends App_Controller {
 
         //collect custom field values
         $custom_field_values = array();
-        $form_fields = $this->Custom_fields_model->get_details(array("related_to" => "leads"))->getResult();
+        $form_fields = $this->Custom_fields_model->get_details(array("related_to" => "leads", "show_in_embedded_form" => true))->getResult();
         foreach ($form_fields as $field) {
             $value = $this->request->getPost("custom_field_" . $field->id);
             if ($value !== null && $value !== "") {
@@ -146,18 +146,20 @@ class Collect_leads extends App_Controller {
 
         $notification_data = array(
             "lead_id" => $lead_id,
-            "user_id" => 0,
             "form_data" => $form_data,
             "custom_field_values" => $custom_field_values,
             "files_data" => array()
         );
 
         // Log the notification with details
-        log_notification("lead_created", array(
-            "lead_id" => $lead_id,
-            "user_id" => 0,
-            "description" => json_encode($notification_data)
-        ));
+        log_notification(
+            "lead_created",
+            array(
+                "lead_id" => $lead_id,
+                "description" => json_encode($notification_data)
+            ),
+            "0"
+        );
 
 $after_submit_action_of_public_lead_form = get_setting("after_submit_action_of_public_lead_form");
 $after_submit_action_of_public_lead_form_redirect_url = get_setting("after_submit_action_of_public_lead_form_redirect_url");

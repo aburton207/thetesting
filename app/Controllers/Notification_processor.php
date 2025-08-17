@@ -72,32 +72,55 @@ class Notification_processor extends App_Controller {
         );
 
         // Fetch custom fields for estimate request notifications
-       if (($event === "estimate_request_submitted" || $event === "estimate_request_received")
-    && $options["estimate_request_id"]) {
+        if (($event === "estimate_request_submitted" || $event === "estimate_request_received")
+            && $options["estimate_request_id"]) {
 
-    // Pull every custom field for this request in one shot
-    $cf_rows = $this->Custom_field_values_model->get_details([
-        "related_to_type" => "estimate_request",
-        "related_to_id"   => $options["estimate_request_id"],
-    ])->getResult();
+            // Pull every custom field for this request in one shot
+            $cf_rows = $this->Custom_field_values_model->get_details([
+                "related_to_type" => "estimate_request",
+                "related_to_id"   => $options["estimate_request_id"],
+            ])->getResult();
 
-    foreach ($cf_rows as $row) {
-        $id    = $row->custom_field_id;          // e.g. 246
-        $key   = "CUSTOM_FIELD_$id";             // placeholder for value
-        $label = "CUSTOM_FIELD_{$id}_LABEL";     // placeholder for label
+            foreach ($cf_rows as $row) {
+                $id    = $row->custom_field_id;          // e.g. 246
+                $key   = "CUSTOM_FIELD_$id";             // placeholder for value
+                $label = "CUSTOM_FIELD_{$id}_LABEL";     // placeholder for label
 
-        // Render the value exactly the way RISE does in grids
-        $options[$key] = $this->template->view(
-                            "custom_fields/output_" . $row->custom_field_type,
-                            ["value" => $row->value],
-                            true           // return HTML string
-                        );
+                // Render the value exactly the way RISE does in grids
+                $options[$key] = $this->template->view(
+                    "custom_fields/output_" . $row->custom_field_type,
+                    ["value" => $row->value],
+                    true           // return HTML string
+                );
 
-        // Grab the field’s title once for its label
-        $field_info         = $this->Custom_fields_model->get_one($id);
-        $options[$label]    = $field_info->title;   // plain text
-    }
-}
+                // Grab the field’s title once for its label
+                $field_info      = $this->Custom_fields_model->get_one($id);
+                $options[$label] = $field_info->title;   // plain text
+            }
+        }
+
+        // Fetch custom fields for lead notifications
+        if ($event === "lead_created" && $options["lead_id"]) {
+            $cf_rows = $this->Custom_field_values_model->get_details([
+                "related_to_type" => "leads",
+                "related_to_id"   => $options["lead_id"],
+            ])->getResult();
+
+            foreach ($cf_rows as $row) {
+                $id    = $row->custom_field_id;
+                $key   = "CUSTOM_FIELD_$id";
+                $label = "CUSTOM_FIELD_{$id}_LABEL";
+
+                $options[$key] = $this->template->view(
+                    "custom_fields/output_" . $row->custom_field_type,
+                    ["value" => $row->value],
+                    true
+                );
+
+                $field_info      = $this->Custom_fields_model->get_one($id);
+                $options[$label] = $field_info->title;
+            }
+        }
 
         //get data from plugin by parsing 'plugin_'
         foreach ($data as $key => $value) {
