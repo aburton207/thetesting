@@ -979,13 +979,21 @@ if (!function_exists('send_notification_emails')) {
 
         $email_template = $ci->Email_templates_model->get_final_template($template_name, true);
 
+        $message_template = get_array_value($email_template, "message_default");
+        $subject_template = get_array_value($email_template, "subject_default");
+
+        if (!$message_template || !$subject_template) {
+            log_message('error', "Email template '$template_name' is missing required content.");
+            return false;
+        }
+
         $parser_data["SIGNATURE"] = get_array_value($email_template, "signature_default");
         $parser_data["LOGO_URL"] = get_logo_url();
         $parser = \Config\Services::parser();
-        $message = $parser->setData($parser_data)->renderString(get_array_value($email_template, "message_default"));
+        $message = $parser->setData($parser_data)->renderString($message_template);
 
         $parser_data["EVENT_TITLE"] = $notification->user_name . " " . sprintf(app_lang("notification_" . $notification->event), $notification->to_user_name);
-        $subject = $parser->setData($parser_data)->renderString(get_array_value($email_template, "subject_default"));
+        $subject = $parser->setData($parser_data)->renderString($subject_template);
 
         // error_log("event: " . $notification->event . PHP_EOL, 3, "notification.txt");
         // error_log("subject: " . $subject . PHP_EOL, 3, "notification.txt");
