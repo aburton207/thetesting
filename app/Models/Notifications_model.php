@@ -498,8 +498,10 @@ class Notifications_model extends Crud_model {
                     continue; //skip next lines for this loop
                 }
 
-                //check client/lead permission for team mebers before preparing the notifcation 
-                if ($client_info && !$this->notify_to_this_user_for_this_client($client_info, $user)) {
+                //check client/lead permission for team members before preparing the notification
+                //But allow notifications for newly created leads regardless of the recipient's lead permissions
+                //so that manually selected team members can always be notified about incoming leads
+                if ($client_info && $event !== "lead_created" && !$this->notify_to_this_user_for_this_client($client_info, $user)) {
                     continue; //skip next lines for this loop
                 }
 
