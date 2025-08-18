@@ -7,11 +7,6 @@
 
 <script type="text/javascript">
     loadClientsTable = function (selector) {
-        var showInvoiceInfo = true;
-        if (!"<?php echo $show_invoice_info; ?>") {
-            showInvoiceInfo = false;
-        }
-
         var showOptions = true;
         if (!"<?php echo $can_edit_clients; ?>") {
             showOptions = false;
@@ -43,9 +38,6 @@
             {title: "<?php echo app_lang('client_groups') ?>", order_by: "client_groups"},
             {title: "<?php echo app_lang('owner') ?>", order_by: "client_owner"},
             {title: "<?php echo app_lang('source') ?>", order_by: "lead_source_title"},
-            {visible: showInvoiceInfo, searchable: showInvoiceInfo, title: "<?php echo app_lang('total_invoiced') ?>", "class": "text-right"},
-            {visible: showInvoiceInfo, searchable: showInvoiceInfo, title: "<?php echo app_lang('payment_received') ?>", "class": "text-right"},
-            {visible: showInvoiceInfo, searchable: showInvoiceInfo, title: "<?php echo app_lang('due') ?>", "class": "text-right"},
             {title: "<?php echo app_lang('status') ?>", "class": "text-center w100", order_by: "status"},
             {title: "Probability %", "class": "text-center w100"},
             {title: "Potential Margin", "class": "text-right w100"},
@@ -87,8 +79,8 @@
                 {startDate: {name: "closed_start_date", value: ""}, endDate: {name: "closed_end_date", value: ""}, label: "Closed Date", showClearButton: true}
             ],
             columns: columns,
-            printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], '<?php echo $custom_field_headers; ?>'),
-            xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], '<?php echo $custom_field_headers; ?>'),
+            printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], '<?php echo $custom_field_headers; ?>'),
+            xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], '<?php echo $custom_field_headers; ?>'),
             ajax: {
                 dataSrc: function (data) {
                     console.log('Table Data:', data);

@@ -16,7 +16,6 @@
 
 <script type="text/javascript">
     $(document).ready(function () {
-        var showInvoiceInfo = <?php echo json_encode($show_invoice_info); ?>;
         var showOptions = <?php echo json_encode($can_edit_clients); ?>;
         var type_dropdown = [
             {id: "", text: "- <?php echo app_lang('type'); ?> -"},
@@ -42,9 +41,6 @@
             {title: "<?php echo app_lang('client_groups'); ?>", order_by: "client_groups"},
             {title: "<?php echo app_lang('owner'); ?>", order_by: "client_owner"},
             {title: "<?php echo app_lang('source'); ?>", order_by: "lead_source_title"},
-            {visible: showInvoiceInfo, searchable: showInvoiceInfo, title: "<?php echo app_lang('total_invoiced'); ?>", class: "text-right"},
-            {visible: showInvoiceInfo, searchable: showInvoiceInfo, title: "<?php echo app_lang('payment_received'); ?>", class: "text-right"},
-            {visible: showInvoiceInfo, searchable: showInvoiceInfo, title: "<?php echo app_lang('due'); ?>", class: "text-right"},
             {title: "<?php echo app_lang('status'); ?>", class: "text-center w100", order_by: "status"},
             {title: "Probability %", class: "text-center w100"},
             {title: "Potential Margin", class: "text-right w100"},
@@ -62,11 +58,11 @@
 
         //prepare summation options to show totals row and export summary
         var summation = [
-            {column: 11, fieldName: "avg_probability", dataType: 'number'},
-            {column: 12, fieldName: "sum_potential_margin", dataType: 'currency', dynamicSymbol: true},
-            {column: 13, fieldName: "sum_weighted_forecast", dataType: 'currency', dynamicSymbol: true},
-            {column: 14, fieldName: "sum_volume", dataType: 'number'},
-            {column: 15, fieldName: "avg_margin_above_rack", dataType: 'number'}
+            {column: 8, fieldName: "avg_probability", dataType: 'number'},
+            {column: 9, fieldName: "sum_potential_margin", dataType: 'currency', dynamicSymbol: true},
+            {column: 10, fieldName: "sum_weighted_forecast", dataType: 'currency', dynamicSymbol: true},
+            {column: 11, fieldName: "sum_volume", dataType: 'number'},
+            {column: 12, fieldName: "avg_margin_above_rack", dataType: 'number'}
         ];
 
         var updateSummary = function (info) {
@@ -119,9 +115,9 @@
                 {startDate: {name: "closed_start_date", value: ""}, endDate: {name: "closed_end_date", value: ""}, label: "Closed Date", showClearButton: true}
             ],
             columns: columns,
-            printColumns: combineCustomFieldsColumns([0,1,2,3,4,5,6,7,8,9,10,11,12,13], '<?php echo $custom_field_headers; ?>'),
-            pdfColumns: combineCustomFieldsColumns([0,1,2,3,4,5,6,7,8,9,10,11,12,13], '<?php echo $custom_field_headers; ?>'),
-            xlsColumns: combineCustomFieldsColumns([0,1,2,3,4,5,6,7,8,9,10,11,12,13], '<?php echo $custom_field_headers; ?>'),
+            printColumns: combineCustomFieldsColumns([0,1,2,3,4,5,6,7,8,9,10], '<?php echo $custom_field_headers; ?>'),
+            pdfColumns: combineCustomFieldsColumns([0,1,2,3,4,5,6,7,8,9,10], '<?php echo $custom_field_headers; ?>'),
+            xlsColumns: combineCustomFieldsColumns([0,1,2,3,4,5,6,7,8,9,10], '<?php echo $custom_field_headers; ?>'),
             summation: summation,
             onInitComplete: function (instance) {
                 var info = null;
@@ -148,24 +144,24 @@
                 var dt = api;
 
                 //calculate page average for probability column
-                var probData = api.column(11, {page: 'current'}).data();
+                var probData = api.column(8, {page: 'current'}).data();
                 var probSum = 0;
                 probData.each(function(value) {
                     var n = parseFloat(value);
                     if (!isNaN(n)) { probSum += n; }
                 });
                 var avgProb = probData.length ? probSum / probData.length : 0;
-                $(dt.table().footer()).find('[data-current-page="11"]').html(avgProb.toFixed(2) + "%");
+                $(dt.table().footer()).find('[data-current-page="8"]').html(avgProb.toFixed(2) + "%");
 
                 //calculate page average for margin above rack column
-                var marData = api.column(15, {page: 'current'}).data();
+                var marData = api.column(12, {page: 'current'}).data();
                 var marSum = 0;
                 marData.each(function(value) {
                     var n = parseFloat(value);
                     if (!isNaN(n)) { marSum += n; }
                 });
                 var avgMar = marData.length ? marSum / marData.length : 0;
-                $(dt.table().footer()).find('[data-current-page="15"]').html(avgMar.toFixed(2));
+                $(dt.table().footer()).find('[data-current-page="12"]').html(avgMar.toFixed(2));
 
                 updateSummary(dt.settings()[0].oInit.summationInfo);
             }

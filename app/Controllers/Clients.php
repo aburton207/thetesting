@@ -334,11 +334,6 @@ private function _make_row($data, $custom_fields) {
         $group_list = "<ul class='pl15'>" . $group_list . "</ul>";
     }
 
-    $due = 0;
-    if ($data->invoice_value) {
-        $due = ignor_minor_value($data->invoice_value - $data->payment_received);
-    }
-
     $client_labels = make_labels_view_data($data->labels_list, true);
 
     // Change this line to use owner_id instead of created_by
@@ -390,7 +385,7 @@ private function _make_row($data, $custom_fields) {
     } else {
         $account_type_label = ucfirst($account_type);
     }
-        $row_data = array(
+    $row_data = array(
         $data->id,
         anchor(get_uri("clients/view/" . $data->id), $data->company_name),
         $data->primary_contact ? $primary_contact : "",
@@ -400,9 +395,6 @@ private function _make_row($data, $custom_fields) {
         $group_list,
         $owner_name, // This now reflects the owner_id
         $data->lead_source_title ? $data->lead_source_title : "-",
-        to_currency($data->invoice_value, $data->currency_symbol),
-        to_currency($data->payment_received, $data->currency_symbol),
-        to_currency($due, $data->currency_symbol),
         js_anchor($status_title, array(
             "style" => "background-color: $status_color; cursor: pointer;",
             "class" => "badge",
@@ -445,11 +437,6 @@ private function _make_row($data, $custom_fields) {
             $group_list = "<ul class='pl15'>" . $group_list . "</ul>";
         }
 
-        $due = 0;
-        if ($data->invoice_value) {
-            $due = ignor_minor_value($data->invoice_value - $data->payment_received);
-        }
-
         $owner = $this->Users_model->get_one($data->owner_id);
         $owner_name = $owner->id ? $owner->first_name . " " . $owner->last_name : "-";
 
@@ -484,9 +471,6 @@ private function _make_row($data, $custom_fields) {
             $group_list,
             $owner_name,
             $data->lead_source_title ? $data->lead_source_title : "-",
-            to_currency($data->invoice_value, $data->currency_symbol),
-            to_currency($data->payment_received, $data->currency_symbol),
-            to_currency($due, $data->currency_symbol),
             js_anchor($status_title, array(
                 "style" => "background-color: $status_color; cursor: pointer;",
                 "class" => "badge",
