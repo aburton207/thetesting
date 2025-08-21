@@ -50,6 +50,7 @@
             </div>
         </div>
     </div>
+    <?php echo view("clients/reports/volume_by_status_chart", array("labels" => $volume_by_status_labels, "volume_data" => $volume_by_status_data)); ?>
     <?php echo view("clients/reports/volume_by_source_chart", array("labels" => $volume_by_source_labels, "volume_data" => $volume_by_source_data)); ?>
 </div>
 
@@ -57,7 +58,9 @@
 
 <script type="text/javascript">
     $(document).ready(function () {
-        Chart.plugins.register(ChartDataLabels);
+        if (window.ChartDataLabels && Chart && Chart.plugins) {
+            Chart.plugins.register(ChartDataLabels);
+        }
 
         new Chart(document.getElementById("leads-day-wise-chart"), {
             type: 'line',
