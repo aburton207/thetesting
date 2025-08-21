@@ -2220,9 +2220,8 @@ private function _save_a_row_of_excel_data($row_data) {
         $view_data["volume_data"] = json_encode($volume);
 
         $margin_volume_view = $this->template->view("clients/reports/margin_volume_chart", $view_data);
-        $volume_by_source_view = $this->clients_volume_by_source_chart();
 
-        return $margin_volume_view . $volume_by_source_view;
+        return $margin_volume_view;
     }
 
     function clients_volume_by_source_chart() {

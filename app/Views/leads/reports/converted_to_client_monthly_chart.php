@@ -50,6 +50,7 @@
             </div>
         </div>
     </div>
+    <?php echo view("clients/reports/volume_by_source_chart", array("labels" => $volume_by_source_labels, "volume_data" => $volume_by_source_data)); ?>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@0.7.0"></script>
