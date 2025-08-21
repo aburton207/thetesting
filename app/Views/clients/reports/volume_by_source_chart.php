@@ -4,7 +4,7 @@
             <i data-feather="download" class="icon-16"></i> <?php echo app_lang('download_pdf'); ?>
         </button>
     </div>
-
+       #volume-by-source-chart{height:550px!important;}
     <div class="col-md-12">
         <div class="card">
             <div class="card-body">
