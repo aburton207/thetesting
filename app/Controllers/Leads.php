@@ -1533,7 +1533,7 @@ class Leads extends Security_Controller {
         $view_data["source_wise_labels"] = json_encode($source_wise_data['labels']);
         $view_data["source_wise_data"] = json_encode($source_wise_data['data']);
 
-        //prepare volume by source data
+        //prepare volume data options
         $volume_options = array(
             "start_date" => $start_date,
             "end_date" => $this->request->getPost("end_date"),
@@ -1542,6 +1542,20 @@ class Leads extends Security_Controller {
             "client_groups" => $this->allowed_client_groups
         );
 
+        //volume by status
+        $volume_status_rows = $this->Clients_model->get_volume_by_status($volume_options);
+
+        $volume_by_status_labels = array();
+        $volume_by_status_data = array();
+        foreach ($volume_status_rows as $row) {
+            $volume_by_status_labels[] = $row->status_title ? $row->status_title : app_lang('unknown');
+            $volume_by_status_data[] = $row->volume * 1;
+        }
+
+        $view_data["volume_by_status_labels"] = json_encode($volume_by_status_labels);
+        $view_data["volume_by_status_data"] = json_encode($volume_by_status_data);
+
+        //volume by source
         $volume_rows = $this->Clients_model->get_volume_by_source($volume_options);
 
         $volume_by_source_labels = array();
