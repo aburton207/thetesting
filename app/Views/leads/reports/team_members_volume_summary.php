@@ -8,10 +8,18 @@ $columns = array(array("title" => app_lang("owner"), "class" => "all"));
 foreach ($lead_statuses as $status) {
     $columns[] = array("title" => $status->title, "class" => "text-right");
 }
+
+$columns[] = array("title" => app_lang("total"), "class" => "text-right");
 $columns[] = array("title" => "Won %", "class" => "text-right all");
 
 $total_columns = count($columns);
 $print_columns = range(0, $total_columns - 1);
+
+$summation = array();
+for ($i = 1; $i <= count($lead_statuses); $i++) {
+    $summation[] = array("column" => $i, "dataType" => "number");
+}
+$summation[] = array("column" => count($lead_statuses) + 1, "dataType" => "number");
 ?>
 
 <script type="text/javascript">
@@ -29,7 +37,8 @@ $print_columns = range(0, $total_columns - 1);
             columns: <?php echo json_encode($columns) ?>,
             printColumns: <?php echo json_encode($print_columns); ?>,
             pdfColumns: <?php echo json_encode($print_columns); ?>,
-            xlsColumns: <?php echo json_encode($print_columns); ?>
+            xlsColumns: <?php echo json_encode($print_columns); ?>,
+            summation: <?php echo json_encode($summation); ?>
         });
     }
     );
