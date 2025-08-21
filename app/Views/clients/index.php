@@ -4,23 +4,23 @@
             <li><a role="presentation" data-bs-toggle="tab" href="javascript:;" data-bs-target="#overview"><?php echo app_lang('overview'); ?></a></li>
             <li><a role="presentation" data-bs-toggle="tab" href="<?php echo_uri("clients/clients_list/"); ?>" data-bs-target="#clients_list"><?php echo app_lang('clients'); ?></a></li>
             <li><a role="presentation" data-bs-toggle="tab" href="<?php echo_uri("clients/contacts/"); ?>" data-bs-target="#contacts"><?php echo app_lang('contacts'); ?></a></li>
-            <div class="tab-title clearfix no-border">
-                <div class="title-button-group">
-                    <?php
-                    if ($can_edit_clients) {
-                        echo modal_anchor(get_uri("labels/modal_form"), "<i data-feather='tag' class='icon-16'></i> " . app_lang('manage_labels'), array("class" => "btn btn-default", "title" => app_lang('manage_labels'), "data-post-type" => "client"));
-                    }
-
-                    echo anchor(get_uri("clients/show_expanded_view"), "<i data-feather='grid' class='icon-16'></i> " . app_lang('show_expanded_view'), array("class" => "btn btn-default", "title" => app_lang('show_expanded_view')));
-
-                    if ($can_edit_clients) {
-                        echo modal_anchor(get_uri("clients/import_modal_form"), "<i data-feather='upload' class='icon-16'></i> " . app_lang('import_clients'), array("class" => "btn btn-default", "title" => app_lang('import_clients'), "id" => "import-btn"));
-                        echo modal_anchor(get_uri("clients/modal_form"), "<i data-feather='plus-circle' class='icon-16'></i> " . app_lang('add_client'), array("class" => "btn btn-default", "title" => app_lang('add_client')));
-                    }
-                    ?>
-                </div>
-            </div>
         </ul>
+        <div class="tab-title clearfix no-border">
+            <div class="title-button-group">
+                <?php
+                if ($can_edit_clients) {
+                    echo modal_anchor(get_uri("labels/modal_form"), "<i data-feather='tag' class='icon-16'></i> " . app_lang('manage_labels'), array("class" => "btn btn-default", "title" => app_lang('manage_labels'), "data-post-type" => "client"));
+                }
+
+                echo anchor(get_uri("clients/show_expanded_view"), "<i data-feather='grid' class='icon-16'></i> " . app_lang('show_expanded_view'), array("class" => "btn btn-default", "title" => app_lang('show_expanded_view')));
+
+                if ($can_edit_clients) {
+                    echo modal_anchor(get_uri("clients/import_modal_form"), "<i data-feather='upload' class='icon-16'></i> " . app_lang('import_clients'), array("class" => "btn btn-default", "title" => app_lang('import_clients'), "id" => "import-btn"));
+                    echo modal_anchor(get_uri("clients/modal_form"), "<i data-feather='plus-circle' class='icon-16'></i> " . app_lang('add_client'), array("class" => "btn btn-default", "title" => app_lang('add_client')));
+                }
+                ?>
+            </div>
+        </div>
         <div class="tab-content">
             <div role="tabpanel" class="tab-pane fade" id="overview">
                 <?php echo view("clients/overview/index"); ?>

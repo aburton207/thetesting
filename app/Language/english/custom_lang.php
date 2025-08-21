@@ -2792,6 +2792,7 @@ $lang["fill_the_funnel_region_leaderboard"] = "Fill the Funnel - Region Leaderbo
 $lang["opportunities_graphs"] = "Opportunities Graphs";
 $lang["opportunity_data_reports"] = "Opportunity Data Reports";
 $lang["show_expanded_view"] = "Show Expanded View";
+$lang["show_normal_view"] = "Show Normal View";
 $lang["opportunity_status"] = "Status";
 $lang['show_in_public_form'] = 'Show in public form';
 $lang['full_form'] = 'Full form';
