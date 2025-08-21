@@ -1128,6 +1128,84 @@ function get_details($options = array()) {
         return $this->db->query($sql)->getResult();
     }
 
+    //get total volume grouped by lead source
+    function get_volume_by_source($options = array()) {
+        $clients_table = $this->db->prefixTable('clients');
+        $cf_table = $this->db->prefixTable('custom_field_values');
+        $lead_source_table = $this->db->prefixTable('lead_source');
+
+        $where = "";
+
+        $owner_id = $this->_get_clean_value($options, "owner_id");
+        if ($owner_id) {
+            $where .= " AND $clients_table.owner_id=$owner_id";
+        }
+
+        $group_id = $this->_get_clean_value($options, "group_id");
+        if ($group_id) {
+            $where .= " AND FIND_IN_SET('$group_id', $clients_table.group_ids)";
+        }
+
+        $account_type = $this->_get_clean_value($options, "account_type");
+        if ($account_type) {
+            $where .= " AND $clients_table.type='$account_type'";
+        }
+
+        $source_id = $this->_get_clean_value($options, "source_id");
+        if ($source_id) {
+            $where .= " AND $clients_table.lead_source_id='$source_id'";
+        }
+
+        $status_ids = get_array_value($options, "status_ids");
+        if ($status_ids && is_array($status_ids)) {
+            $status_ids = array_map('intval', $status_ids);
+            $where .= " AND $clients_table.lead_status_id IN(" . implode(',', $status_ids) . ")";
+        }
+
+        $start_date = $this->_get_clean_value($options, "start_date");
+        if ($start_date) {
+            $where .= " AND DATE($clients_table.created_date)>='$start_date'";
+        }
+        $end_date = $this->_get_clean_value($options, "end_date");
+        if ($end_date) {
+            $where .= " AND DATE($clients_table.created_date)<='$end_date'";
+        }
+
+        $ec_start_date = $this->_get_clean_value($options, "estimated_close_start_date");
+        if ($ec_start_date) {
+            $where .= " AND DATE(ec.value)>='$ec_start_date'";
+        }
+        $ec_end_date = $this->_get_clean_value($options, "estimated_close_end_date");
+        if ($ec_end_date) {
+            $where .= " AND DATE(ec.value)<='$ec_end_date'";
+        }
+
+        $closed_start_date = $this->_get_clean_value($options, "closed_start_date");
+        if ($closed_start_date) {
+            $where .= " AND DATE(cd.value)>='$closed_start_date'";
+        }
+        $closed_end_date = $this->_get_clean_value($options, "closed_end_date");
+        if ($closed_end_date) {
+            $where .= " AND DATE(cd.value)<='$closed_end_date'";
+        }
+
+        $client_groups = $this->_get_clean_value($options, "client_groups");
+        $where .= $this->prepare_allowed_client_groups_query($clients_table, $client_groups);
+
+        $sql = "SELECT $clients_table.lead_source_id, $lead_source_table.title AS source_title,
+                       SUM(IFNULL(volume.value,0)) AS volume
+                FROM $clients_table
+                LEFT JOIN $cf_table AS volume ON volume.custom_field_id=273 AND volume.related_to_type='clients' AND volume.related_to_id=$clients_table.id AND volume.deleted=0
+                LEFT JOIN $cf_table AS ec ON ec.custom_field_id=167 AND ec.related_to_type='clients' AND ec.related_to_id=$clients_table.id AND ec.deleted=0
+                LEFT JOIN $cf_table AS cd ON cd.custom_field_id=272 AND cd.related_to_type='clients' AND cd.related_to_id=$clients_table.id AND cd.deleted=0
+                LEFT JOIN $lead_source_table ON $lead_source_table.id=$clients_table.lead_source_id
+                WHERE $clients_table.deleted=0 AND $clients_table.is_lead=0 $where
+                GROUP BY $clients_table.lead_source_id
+                ORDER BY $lead_source_table.title ASC";
+
+        return $this->db->query($sql)->getResult();
+    }
+
     function get_fill_the_funnel_leaderboard($options = array()) {
         $clients_table = $this->db->prefixTable('clients');
         $users_table = $this->db->prefixTable('users');
