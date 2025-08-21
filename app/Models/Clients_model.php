@@ -767,6 +767,56 @@ function get_details($options = array()) {
         return $this->db->query($sql);
     }
 
+    function get_leads_team_members_volume_summary($options = array()) {
+        $clients_table = $this->db->prefixTable('clients');
+        $users_table = $this->db->prefixTable('users');
+        $cf_table = $this->db->prefixTable('custom_field_values');
+
+        $clients_where = "";
+        $is_lead = $this->_get_clean_value($options, "is_lead");
+        if ($is_lead === "" || $is_lead === null) {
+            $is_lead = 1;
+        }
+        $created_date_from = $this->_get_clean_value($options, "created_date_from");
+        $created_date_to = $this->_get_clean_value($options, "created_date_to");
+        if ($created_date_from && $created_date_to) {
+            $clients_where .= " AND ($clients_table.created_date BETWEEN '$created_date_from' AND '$created_date_to') ";
+        }
+
+        $source_id = $this->_get_clean_value($options, "source_id");
+        if ($source_id) {
+            $clients_where .= " AND $clients_table.lead_source_id='$source_id'";
+        }
+
+        $label_id = $this->_get_clean_value($options, "label_id");
+        if ($label_id) {
+            $clients_where .= " AND (FIND_IN_SET('$label_id', $clients_table.labels)) ";
+        }
+
+        $sql = "SELECT $users_table.id AS team_member_id, CONCAT($users_table.first_name, ' ',$users_table.last_name) AS team_member_name, $users_table.image, leads_details.status_total_meta";
+        if ($is_lead) {
+            $sql .= ", leads_migrated.converted_to_client";
+        }
+
+        $sql .= "
+                FROM $users_table
+                INNER JOIN(
+                    SELECT leads_group_table.owner_id, GROUP_CONCAT(CONCAT(leads_group_table.lead_status_id,'_',leads_group_table.total_volume)) AS status_total_meta
+                    FROM (SELECT $clients_table.owner_id, $clients_table.lead_status_id, SUM(IFNULL(volume.value,0)) AS total_volume FROM $clients_table LEFT JOIN $cf_table AS volume ON volume.custom_field_id=273 AND volume.related_to_type='clients' AND volume.related_to_id=$clients_table.id AND volume.deleted=0 WHERE $clients_table.is_lead=$is_lead AND $clients_table.deleted=0 $clients_where GROUP BY $clients_table.owner_id, $clients_table.lead_status_id) AS leads_group_table
+                    GROUP BY leads_group_table.owner_id
+                ) AS leads_details ON leads_details.owner_id = $users_table.id";
+
+        if ($is_lead) {
+            $sql .= "
+                LEFT JOIN (SELECT $clients_table.owner_id, COUNT(1) AS converted_to_client FROM $clients_table WHERE $clients_table.is_lead=0 AND $clients_table.deleted=0 AND $clients_table.client_migration_date > '2000-01-01' $clients_where GROUP BY $clients_table.owner_id) as leads_migrated ON leads_migrated.owner_id = $users_table.id";
+        }
+
+        $sql .= "
+                WHERE $users_table.deleted=0 AND $users_table.status='active' AND $users_table.user_type='staff'
+                GROUP BY $users_table.id";
+        return $this->db->query($sql);
+    }
+
     function get_converted_to_client_statistics($options = array()) {
         $clients_table = $this->db->prefixTable('clients');
         $users_table = $this->db->prefixTable('users');
