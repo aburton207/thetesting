@@ -1,5 +1,3 @@
-<?php echo get_reports_topbar(); ?>
-
 <div id="page-content" class="page-wrapper clearfix">
     <div class="page-title clearfix">
         <div class="title-button-group">
