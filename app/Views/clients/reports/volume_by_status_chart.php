@@ -25,7 +25,9 @@
                 datasets: [{
                     label: '<?php echo app_lang('volume'); ?>',
                     data: <?php echo $volume_data; ?>,
-                    backgroundColor: '#3B81F6'
+                    backgroundColor: <?php echo $status_colors; ?>,
+                    borderColor: <?php echo $status_colors; ?>,
+                    borderWidth: 1
                 }]
             },
             options: {

@@ -1321,6 +1321,7 @@ function get_details($options = array()) {
         $where .= $this->prepare_allowed_client_groups_query($clients_table, $client_groups);
 
         $sql = "SELECT $clients_table.lead_status_id, $lead_status_table.title AS status_title,
+                       $lead_status_table.color AS status_color,
                        SUM(IFNULL(volume.value,0)) AS volume
                 FROM $clients_table
                 LEFT JOIN $cf_table AS volume ON volume.custom_field_id=273 AND volume.related_to_type='clients' AND volume.related_to_id=$clients_table.id AND volume.deleted=0
