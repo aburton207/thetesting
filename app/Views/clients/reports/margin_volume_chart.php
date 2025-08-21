@@ -4,7 +4,9 @@
             <i data-feather="download" class="icon-16"></i> <?php echo app_lang('download_pdf'); ?>
         </button>
     </div>
-
+   <style>
+        #potential-margin-chart,#volume-chart{height:550px!important;}
+    </style>
     <div class="col-md-6">
         <div class="card">
             <div class="card-body">
