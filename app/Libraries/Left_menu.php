@@ -199,23 +199,26 @@ class Left_menu {
                 $show_expenses_menu = true;
             }
 
-            $sidebar_menu["reports"] = array(
-                "name" => "reports",
-                "url" => "reports/index",
-                "class" => "pie-chart",
-                "sub_pages" => array(
-                    "invoices/invoices_summary",
-                    "orders/orders_summary",
-                    "projects/all_timesheets",
-                    "expenses/income_vs_expenses",
-                    "invoice_payments/payments_summary",
-                    "expenses/summary",
-                    "projects/team_members_summary",
-                    "leads/converted_to_client_report",
-                    "clients/clients_report",
-                    "tickets/tickets_chart_report"
-                )
-            );
+            $reports_menu = get_reports_topbar(true);
+            if (!empty($reports_menu)) {
+                $sidebar_menu["reports"] = array(
+                    "name" => "reports",
+                    "url" => "reports/index",
+                    "class" => "pie-chart",
+                    "sub_pages" => array(
+                        "invoices/invoices_summary",
+                        "orders/orders_summary",
+                        "projects/all_timesheets",
+                        "expenses/income_vs_expenses",
+                        "invoice_payments/payments_summary",
+                        "expenses/summary",
+                        "projects/team_members_summary",
+                        "leads/converted_to_client_report",
+                        "clients/clients_report",
+                        "tickets/tickets_chart_report"
+                    )
+                );
+            }
 
 
             $access_file_manager = true;

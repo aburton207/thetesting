@@ -14,6 +14,7 @@ if (!function_exists('get_reports_topbar')) {
     function get_reports_topbar($return_array = false) {
         $ci = new Security_Controller(false);
         $permissions = $ci->login_user->permissions;
+        $reports_menu = array();
 
         $access_invoice = get_array_value($permissions, "invoice");
         $access_expense = get_array_value($permissions, "expense");
