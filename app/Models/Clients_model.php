@@ -152,7 +152,11 @@ function get_details($options = array()) {
         "owner_name" => "owner_details.owner_name",
         "primary_contact" => "primary_contact",
         "client_groups" => "client_groups",
-        "lead_source_title" => "lead_source_title"
+        "lead_source_title" => "lead_source_title",
+        "address" => $clients_table . ".address",
+        "city" => $clients_table . ".city",
+        "state" => $clients_table . ".state",
+        "zip" => $clients_table . ".zip"
     );
 
     $order_by = get_array_value($available_order_by_list, $this->_get_clean_value($options, "order_by"));

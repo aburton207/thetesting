@@ -494,6 +494,97 @@ private function _make_row($data, $custom_fields) {
         return $row_data;
     }
 
+    private function _make_expanded_row($data, $custom_fields) {
+        $contact_name = trim($data->primary_contact);
+        $contact_name = $contact_name !== "" ? $contact_name : "-";
+        $primary_contact = get_client_contact_profile_link($data->primary_contact_id, $contact_name);
+
+        $group_list = "";
+        if ($data->client_groups) {
+            $groups = explode(",", $data->client_groups);
+            foreach ($groups as $group) {
+                if ($group) {
+                    $group_list .= "<li>" . $group . "</li>";
+                }
+            }
+        }
+
+        if ($group_list) {
+            $group_list = "<ul class='pl15'>" . $group_list . "</ul>";
+        }
+
+        $owner = $this->Users_model->get_one($data->owner_id);
+        $owner_name = $owner->id ? $owner->first_name . " " . $owner->last_name : "-";
+
+        $probability = 0;
+        $probability_mappings = [1 => 15, 2 => 40, 3 => 50, 10 => 70, 6 => 100, 8 => 0, 9 => 0];
+        if (isset($probability_mappings[$data->lead_status_id])) {
+            $probability = $probability_mappings[$data->lead_status_id];
+        }
+
+        $margin_above_rack = isset($data->cfv_241) ? floatval($data->cfv_241) : 0;
+        $volume = isset($data->cfv_273) ? floatval($data->cfv_273) : 0;
+        $potential_margin = "-";
+        if ($margin_above_rack > 0 && $volume > 0) {
+            $potential_margin = to_currency($margin_above_rack * $volume, $data->currency_symbol);
+        }
+
+        $weighted_forecast = "-";
+        if ($margin_above_rack > 0 && $volume > 0) {
+            $weighted_forecast = to_currency(($margin_above_rack * $volume) * ($probability / 100), $data->currency_symbol);
+        }
+
+        $status_title = $data->lead_status_title ?: "-";
+        $status_color = $data->lead_status_color ?: "#666666";
+
+        $created_date = $data->created_date ? date('Y-m-d', strtotime($data->created_date)) : "-";
+
+        $account_type = strtolower($data->account_type);
+        if ($account_type === "person") {
+            $account_type_label = "Residential";
+        } elseif ($account_type === "organization") {
+            $account_type_label = "Commercial";
+        } else {
+            $account_type_label = ucfirst($account_type);
+        }
+
+        $row_data = array(
+            $data->id,
+            anchor(get_uri("clients/view/" . $data->id), $data->company_name),
+            $data->primary_contact ? $primary_contact : "",
+            $data->address,
+            $data->city,
+            $data->state,
+            $data->zip,
+            $data->phone,
+            $account_type_label,
+            $created_date,
+            $group_list,
+            $owner_name,
+            $data->lead_source_title ? $data->lead_source_title : "-",
+            js_anchor($status_title, array(
+                "style" => "background-color: $status_color; cursor: pointer;",
+                "class" => "badge",
+                "data-id" => $data->id,
+                "data-value" => $data->lead_status_id,
+                "data-act" => "update-lead-status"
+            )),
+            $probability . "%",
+            $potential_margin,
+            $weighted_forecast
+        );
+
+        foreach ($custom_fields as $field) {
+            $cf_id = "cfv_" . $field->id;
+            $row_data[] = $this->template->view("custom_fields/output_" . $field->field_type, array("value" => $data->$cf_id));
+        }
+
+        $row_data[] = modal_anchor(get_uri("clients/modal_form"), "<i data-feather='edit' class='icon-16'></i>", array("class" => "edit", "title" => app_lang('edit_client'), "data-post-id" => $data->id))
+            . js_anchor("<i data-feather='x' class='icon-16'></i>", array('title' => app_lang('delete_client'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("clients/delete"), "data-action" => "delete-confirmation"));
+
+        return $row_data;
+    }
+
     /* load client details view */
 
 function view($client_id = 0, $tab = "", $folder_id = 0) {
@@ -2254,6 +2345,69 @@ private function _save_a_row_of_excel_data($row_data) {
         $view_data["volume_data"] = json_encode($volume);
 
         return $this->template->view("clients/reports/volume_by_source_chart", $view_data);
+    }
+
+    function show_expanded_view() {
+        $this->access_only_allowed_members();
+
+        $view_data["custom_field_filters"] = $this->Custom_fields_model->get_custom_field_filters("clients", $this->login_user->is_admin, $this->login_user->user_type);
+        $view_data["custom_field_headers"] = $this->Custom_fields_model->get_custom_field_headers_for_table("clients", $this->login_user->is_admin, $this->login_user->user_type);
+        $view_data['statuses'] = $this->Lead_status_model->get_details()->getResult();
+        $view_data['groups_dropdown'] = json_encode($this->_get_groups_dropdown_select2_data(true));
+        $view_data['can_edit_clients'] = $this->can_edit_clients();
+        $view_data["team_members_dropdown"] = $this->get_team_members_dropdown(true);
+        $view_data['lead_sources'] = $this->Lead_source_model->get_details()->getResult();
+        $view_data['sources_dropdown'] = json_encode($this->_get_sources_dropdown());
+
+        return $this->template->rander("clients/reports/show_expanded_view", $view_data);
+    }
+
+    function show_expanded_view_list_data() {
+        $this->access_only_allowed_members();
+
+        $custom_fields = $this->Custom_fields_model->get_available_fields_for_table("clients", $this->login_user->is_admin, $this->login_user->user_type);
+
+        $show_own_clients_only_user_id = $this->show_own_clients_only_user_id();
+
+        $options = array(
+            "custom_fields" => $custom_fields,
+            "custom_field_filter" => $this->prepare_custom_field_filter_values("clients", $this->login_user->is_admin, $this->login_user->user_type),
+            "group_id" => $this->request->getPost("group_id"),
+            "account_type" => $this->request->getPost("account_type"),
+            "status" => $this->request->getPost("status"),
+            "quick_filter" => $this->request->getPost("quick_filter"),
+            "owner_id" => $show_own_clients_only_user_id ? $show_own_clients_only_user_id : $this->request->getPost("owner_id"),
+            "source" => $this->request->getPost("source_id"),
+            "client_groups" => $this->allowed_client_groups,
+            "label_id" => $this->request->getPost('label_id'),
+            "start_date" => $this->request->getPost("start_date"),
+            "end_date" => $this->request->getPost("end_date"),
+            "ec_start_date" => $this->request->getPost("estimated_close_start_date"),
+            "ec_end_date" => $this->request->getPost("estimated_close_end_date"),
+            "closed_start_date" => $this->request->getPost("closed_start_date"),
+            "closed_end_date" => $this->request->getPost("closed_end_date"),
+            "is_lead" => 0
+        );
+
+        $all_options = append_server_side_filtering_commmon_params($options);
+
+        $result = $this->Clients_model->get_details($all_options);
+
+        if (get_array_value($all_options, "server_side")) {
+            $list_data = get_array_value($result, "data");
+        } else {
+            $list_data = $result->getResult();
+            $result = array();
+        }
+
+        $result_data = array();
+        foreach ($list_data as $data) {
+            $result_data[] = $this->_make_expanded_row($data, $custom_fields);
+        }
+
+        $result["data"] = $result_data;
+
+        echo json_encode($result);
     }
 
     function fill_the_funnel_leaderboard() {
