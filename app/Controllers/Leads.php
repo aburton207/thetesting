@@ -1699,6 +1699,40 @@ class Leads extends Security_Controller {
         echo json_encode($result);
     }
 
+    function team_members_volume_summary() {
+        $this->_validate_leads_report_access();
+
+        $view_data["lead_statuses"] = $this->Lead_status_model->get_details()->getResult();
+        $view_data['sources_dropdown'] = json_encode($this->_get_sources_dropdown());
+        $view_data['labels_dropdown'] = json_encode($this->make_labels_dropdown("client", "", true));
+
+        return $this->template->view("leads/reports/team_members_volume_summary", $view_data);
+    }
+
+    function team_members_volume_summary_data() {
+        $this->_validate_leads_report_access();
+
+        $options = array(
+            "created_date_from" => $this->request->getPost("created_date_from"),
+            "created_date_to" => $this->request->getPost("created_date_to"),
+            "source_id" => $this->request->getPost("source_id"),
+            "label_id" => $this->request->getPost("label_id"),
+            "is_lead" => 0
+        );
+
+        $list_data = $this->Clients_model->get_leads_team_members_volume_summary($options)->getResult();
+
+        $lead_statuses = $this->Lead_status_model->get_details()->getResult();
+        $result_data = array();
+        foreach ($list_data as $data) {
+            $result_data[] = $this->_make_team_members_volume_summary_row($data, $lead_statuses);
+        }
+
+        $result["data"] = $result_data;
+
+        echo json_encode($result);
+    }
+
     private function _make_team_members_summary_row($data, $lead_statuses) {
         
         list($won_status_id, $lost_status_id) = $this->_get_won_lost_status_ids($lead_statuses);
@@ -1724,6 +1758,46 @@ class Leads extends Security_Controller {
         foreach ($lead_statuses as $status) {
             $total = get_array_value($status_total_array, $status->id);
             $row_data[] = $total ? $total : 0;
+
+            if ($status->id == $won_status_id) {
+                $won = $total ? $total : 0;
+            } else if ($status->id == $lost_status_id) {
+                $lost = $total ? $total : 0;
+            }
+        }
+
+        $percent = ($won + $lost) ? round(($won / ($won + $lost)) * 100, 2) : 0;
+        $row_data[] = $percent;
+
+        return $row_data;
+    }
+
+    private function _make_team_members_volume_summary_row($data, $lead_statuses) {
+
+        list($won_status_id, $lost_status_id) = $this->_get_won_lost_status_ids($lead_statuses);
+
+        $image_url = get_avatar($data->image);
+        $member = "<span class='avatar avatar-xs mr10'><img src='$image_url' alt=''></span> $data->team_member_name";
+
+        $row_data = array(
+            get_team_member_profile_link($data->team_member_id, $member),
+        );
+
+        $status_total_meta = $data->status_total_meta ? $data->status_total_meta : "";
+        $statuses_meta = explode(",", $status_total_meta);
+        $status_total_array = array();
+        foreach ($statuses_meta as $meta) {
+            $status_total = explode("_", $meta);
+            $status_total_array[get_array_value($status_total, 0)] = get_array_value($status_total, 1);
+        }
+
+        $won = 0;
+        $lost = 0;
+
+        foreach ($lead_statuses as $status) {
+            $total = get_array_value($status_total_array, $status->id);
+            $total = $total ? $total : 0;
+            $row_data[] = $total ? to_decimal_format($total) : 0;
 
             if ($status->id == $won_status_id) {
                 $won = $total ? $total : 0;

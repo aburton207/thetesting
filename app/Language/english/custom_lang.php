@@ -2502,6 +2502,7 @@ $lang["open_tasks"] = "Open Objectives";
 $lang["completed_tasks"] = "Completed Objectives";
 
 $lang["team_members_summary"] = "Team members summary";
+$lang["team_members_volume_summary"] = "Team members volume summary";
 $lang["created_date_wise"] = "Created date wise";
 $lang["conversion_date_wise"] = "Conversion date wise";
 

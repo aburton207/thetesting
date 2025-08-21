@@ -6,6 +6,7 @@
             <li class="title-tab"><h4 class="pl15 pt10 pr15"><?php echo app_lang("clients"); ?></h4></li>
             <li><a id="converted-to-client-button" role="presentation" data-bs-toggle="tab"  href="javascript:;" data-bs-target="#converted-to-client-tab"><?php echo app_lang("clients"); ?></a></li>
             <li><a role="presentation" data-bs-toggle="tab" href="<?php echo_uri("leads/team_members_summary"); ?>" data-bs-target="#team-members-summary-tab"><?php echo app_lang('team_members_summary'); ?></a></li>
+            <li><a role="presentation" data-bs-toggle="tab" href="<?php echo_uri("leads/team_members_volume_summary"); ?>" data-bs-target="#team-members-volume-summary-tab"><?php echo app_lang('team_members_volume_summary'); ?></a></li>
 
         </ul>
 
@@ -21,6 +22,7 @@
 
             </div>
             <div role="tabpanel" class="tab-pane fade" id="team-members-summary-tab"></div>
+            <div role="tabpanel" class="tab-pane fade" id="team-members-volume-summary-tab"></div>
         </div>
     </div>
 </div>
