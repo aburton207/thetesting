@@ -1,6 +1,11 @@
 <?php echo get_reports_topbar(); ?>
 
 <div id="page-content" class="page-wrapper clearfix">
+    <div class="page-title clearfix">
+        <div class="title-button-group">
+            <?php echo anchor(get_uri("clients"), "<i data-feather='list' class='icon-16'></i> " . app_lang('show_normal_view'), array("class" => "btn btn-default", "title" => app_lang('show_normal_view'))); ?>
+        </div>
+    </div>
     <div class="card border-top-0 rounded-top-0">
         <div class="table-responsive">
             <table id="clients-expanded-table" class="display" width="100%"></table>
