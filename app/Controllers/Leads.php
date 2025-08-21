@@ -1547,13 +1547,16 @@ class Leads extends Security_Controller {
 
         $volume_by_status_labels = array();
         $volume_by_status_data = array();
+        $volume_by_status_colors = array();
         foreach ($volume_status_rows as $row) {
             $volume_by_status_labels[] = $row->status_title ? $row->status_title : app_lang('unknown');
             $volume_by_status_data[] = $row->volume * 1;
+            $volume_by_status_colors[] = $row->status_color ? $row->status_color : '#808080';
         }
 
         $view_data["volume_by_status_labels"] = json_encode($volume_by_status_labels);
         $view_data["volume_by_status_data"] = json_encode($volume_by_status_data);
+        $view_data["volume_by_status_colors"] = json_encode($volume_by_status_colors);
 
         //volume by source
         $volume_rows = $this->Clients_model->get_volume_by_source($volume_options);
