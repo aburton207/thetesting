@@ -8,7 +8,7 @@
     <div class="col-md-12">
         <div class="card">
             <div class="card-body">
-                <h4 class="mb15"><?php echo app_lang('volume'); ?> by <?php echo app_lang('lead_status'); ?></h4>
+                <h4 class="mb15"><?php echo app_lang('volume_by_opportunity_status'); ?> </h4>
                 <canvas id="volume-by-status-chart" style="width:100%; height:350px;"></canvas>
             </div>
         </div>

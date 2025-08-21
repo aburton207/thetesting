@@ -2794,4 +2794,6 @@ $lang["opportunity_data_reports"] = "Opportunity Data Reports";
 $lang["opportunity_status"] = "Status";
 $lang['show_in_public_form'] = 'Show in public form';
 $lang['full_form'] = 'Full form';
+$lang['volume_by_opportunity_status'] = 'Volume by Opportunity Status';
+
 return $lang;
