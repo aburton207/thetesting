@@ -1533,6 +1533,27 @@ class Leads extends Security_Controller {
         $view_data["source_wise_labels"] = json_encode($source_wise_data['labels']);
         $view_data["source_wise_data"] = json_encode($source_wise_data['data']);
 
+        //prepare volume by source data
+        $volume_options = array(
+            "start_date" => $start_date,
+            "end_date" => $this->request->getPost("end_date"),
+            "owner_id" => $this->request->getPost("owner_id"),
+            "source_id" => $this->request->getPost("source_id"),
+            "client_groups" => $this->allowed_client_groups
+        );
+
+        $volume_rows = $this->Clients_model->get_volume_by_source($volume_options);
+
+        $volume_by_source_labels = array();
+        $volume_by_source_data = array();
+        foreach ($volume_rows as $row) {
+            $volume_by_source_labels[] = $row->source_title ? $row->source_title : app_lang('unknown');
+            $volume_by_source_data[] = $row->volume * 1;
+        }
+
+        $view_data["volume_by_source_labels"] = json_encode($volume_by_source_labels);
+        $view_data["volume_by_source_data"] = json_encode($volume_by_source_data);
+
         //prepare lead status wise data for pie chart
         $client_status_options = array(
             "start_date" => $start_date,
