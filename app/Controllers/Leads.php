@@ -1815,10 +1815,13 @@ class Leads extends Security_Controller {
         $won = 0;
         $lost = 0;
 
+        $row_total = 0;
+
         foreach ($lead_statuses as $status) {
             $total = get_array_value($status_total_array, $status->id);
             $total = $total ? $total : 0;
             $row_data[] = $total ? to_decimal_format($total) : 0;
+            $row_total += $total;
 
             if ($status->id == $won_status_id) {
                 $won = $total ? $total : 0;
@@ -1826,6 +1829,8 @@ class Leads extends Security_Controller {
                 $lost = $total ? $total : 0;
             }
         }
+
+        $row_data[] = $row_total ? to_decimal_format($row_total) : 0;
 
         $percent = ($won + $lost) ? round(($won / ($won + $lost)) * 100, 2) : 0;
         $row_data[] = $percent;
