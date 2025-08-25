@@ -7,7 +7,14 @@ if (!$googleMapsApiKey) {
 
 if ($googleMapsApiKey) {
     ?>
-    <script src="https://maps.googleapis.com/maps/api/js?key=<?php echo $googleMapsApiKey; ?>&libraries=places"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=<?= $googleMapsApiKey ?>&libraries=places&callback=googleMapsReady"></script>
+    <script>
+        function googleMapsReady() {
+            if (window.initAddressAutocomplete) {
+                window.initAddressAutocomplete(document);
+            }
+        }
+    </script>
     <?php
 }
 ?>
