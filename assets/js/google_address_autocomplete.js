@@ -56,8 +56,8 @@
                     $form.find('#' + field).attr('autocomplete', 'new-password');
                 });
 
-                autocomplete.addEventListener('place_changed', function () {
-                    var place = autocomplete.place;
+                autocomplete.addEventListener('gmp-placeselect', function (event) {
+                    var place = (event.detail && event.detail.place) ? event.detail.place : event.target.value;
                     if (!place || !place.address_components) {
                         return;
                     }
