@@ -44,12 +44,10 @@
                 }
                 $address.data('gplaces-init', true);
 
-                var autocomplete = new google.maps.places.PlaceAutocompleteElement();
-                autocomplete.id = $address.attr('id');
-                autocomplete.name = $address.attr('name');
-                autocomplete.className = $address.attr('class');
-                autocomplete.setAttribute('placeholder', $address.attr('placeholder') || '');
-                $address.replaceWith(autocomplete);
+                var autocomplete = new google.maps.places.PlaceAutocompleteElement({
+                    inputElement: $address[0]
+                });
+                $(autocomplete).insertAfter($address);
 
                 var fields = ['address', 'city', 'state', 'zip', 'country'];
                 fields.forEach(function (field) {
