@@ -352,8 +352,15 @@ table.dataTable tbody td:first-child {
 </div>
 <?php $googleMapsApiKey = get_setting('google_maps_api_key'); ?>
 <?php if ($googleMapsApiKey) { ?>
-<!-- Google Maps API Script -->
-<script src="https://maps.googleapis.com/maps/api/js?key=<?php echo $googleMapsApiKey; ?>&libraries=places&callback=initAutocomplete&loading=async" async defer></script>
+    <script src="<?php echo base_url('assets/js/google_address_autocomplete.js'); ?>"></script>
+    <script>
+        function googleMapsReady() {
+            if (window.initAddressAutocomplete) {
+                window.initAddressAutocomplete(document);
+            }
+        }
+    </script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=<?php echo $googleMapsApiKey; ?>&libraries=places&callback=googleMapsReady&loading=async"></script>
 <?php } ?>
 
 <script type="text/javascript">

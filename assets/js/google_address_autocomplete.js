@@ -119,3 +119,10 @@ $(document).on('shown.bs.modal', '#lead-modal, #client-modal', function () {
     initAddressAutocomplete(this);
 });
 
+// Ensure existing address fields are enhanced once the page is fully loaded
+window.addEventListener('load', function () {
+    if (window.initAddressAutocomplete) {
+        window.initAddressAutocomplete(document);
+    }
+});
+
