@@ -83,10 +83,10 @@
     }
 
     function startObserver() {
-        var target = document.body;
+        var target = document.body || document.documentElement;
 
         // Ensure a valid DOM node is available before observing
-        if (!target || typeof target !== "object" || !target.nodeType) {
+        if (!(target instanceof Node)) {
             return;
         }
 
