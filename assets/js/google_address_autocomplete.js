@@ -1,8 +1,24 @@
-// Initialize Google Places Autocomplete for address fields
+// Initialize Google Places Autocomplete for address fields.
+// Retries automatically if the Google Places library is not yet available
+// to avoid silent failures when the API loads slowly.
 (function (window) {
-    window.initAddressAutocomplete = function (form) {
+    window.initAddressAutocomplete = function (form, attempt) {
         var $forms = $(form);
-        if (!$forms.length || typeof google === "undefined" || !google.maps || !google.maps.places) {
+        if (!$forms.length) {
+            return;
+        }
+
+        var retries = typeof attempt === 'number' ? attempt : 0;
+        var maxRetries = 10;
+        if (typeof google === "undefined" || !google.maps || !google.maps.places) {
+            // Retry with incremental backoff until Google Places becomes available
+            if (retries < maxRetries) {
+                setTimeout(function () {
+                    window.initAddressAutocomplete(form, retries + 1);
+                }, 500);
+            } else {
+                console.warn("Google Places API not loaded after", maxRetries, "attempts");
+            }
             return;
         }
 
