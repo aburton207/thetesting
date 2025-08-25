@@ -73,4 +73,8 @@
             $(this).trigger("submit");
         });
     });
-</script>    
+</script>
+<script src="<?php echo base_url('assets/js/google_address_autocomplete.js'); ?>"></script>
+<script>
+    initAddressAutocomplete('#client-form');
+</script>
