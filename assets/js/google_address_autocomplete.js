@@ -71,3 +71,37 @@
     };
 })(window);
 
+// Monitor DOM changes safely and re-initialize address autocompletion
+(function () {
+    var lastHref = window.location.href;
+
+    function initForms() {
+        if (typeof window.initAddressAutocomplete === "function") {
+            window.initAddressAutocomplete("#lead-form");
+            window.initAddressAutocomplete("#client-form");
+        }
+    }
+
+    function startObserver() {
+        var observer = new MutationObserver(function () {
+            if (window.location.href !== lastHref) {
+                lastHref = window.location.href;
+                initForms();
+            }
+        });
+
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+    }
+
+    if (document.body) {
+        startObserver();
+    } else {
+        window.addEventListener("DOMContentLoaded", startObserver);
+    }
+
+    initForms();
+})();
+
