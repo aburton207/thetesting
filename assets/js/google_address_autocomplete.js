@@ -112,8 +112,14 @@
     }
 
     function startObserver() {
-        var target = document.body || document.documentElement;
-        if (!target || typeof target.nodeType !== "number") {
+        var target = document.body;
+        if (!(target instanceof Node)) {
+            target = document.documentElement;
+        }
+        if (!(target instanceof Node)) {
+            target = document;
+        }
+        if (!(target instanceof Node)) {
             return;
         }
 
