@@ -84,11 +84,18 @@
 
     function startObserver() {
         var target = document.body;
-        if (!target || !(target instanceof Node)) {
+
+        // Ensure a valid DOM node is available before observing
+        if (!target || typeof target !== "object" || !target.nodeType) {
             return;
         }
 
-        var observer = new MutationObserver(function () {
+        var MutationObs = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
+        if (!MutationObs) {
+            return;
+        }
+
+        var observer = new MutationObs(function () {
             if (window.location.href !== lastHref) {
                 lastHref = window.location.href;
                 initForms();
