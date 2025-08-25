@@ -1,3 +1,16 @@
+// Safely initialize select2 to avoid errors when the target element doesn't exist
+(function ($) {
+    if ($.fn && $.fn.select2) {
+        var _select2 = $.fn.select2;
+        $.fn.select2 = function () {
+            if (!this.length) {
+                return this;
+            }
+            return _select2.apply(this, arguments);
+        };
+    }
+})(jQuery);
+
 $(document).ready(function () {
     $.ajaxSetup({ cache: false });
 
