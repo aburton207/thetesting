@@ -417,70 +417,7 @@ table.dataTable tbody td:first-child {
         }
     });
 
-    // Google Places Autocomplete Initialization
-    function initAutocomplete() {
-        var addressInput = document.getElementById('address');
-        var autocomplete = new google.maps.places.PlaceAutocompleteElement();
-        autocomplete.id = addressInput.id;
-        autocomplete.name = addressInput.name;
-        autocomplete.className = addressInput.className;
-        autocomplete.setAttribute('placeholder', addressInput.placeholder || '');
-        addressInput.parentNode.replaceChild(autocomplete, addressInput);
-
-        autocomplete.addEventListener('gmp-placeselect', function(event) {
-            var place = (event.detail && event.detail.place) ? event.detail.place : event.target.value;
-            if (!place || !place.address_components) {
-                return;
-            }
-            var addressComponents = place.address_components;
-
-            autocomplete.value = '';
-            $('#city').val('');
-            $('#state').val('');
-            $('#zip').val('');
-            $('#country').val('');
-
-            var streetNumber = '';
-            var route = '';
-            var city = '';
-            var province = '';
-            var postalCode = '';
-            var country = '';
-
-            for (var i = 0; i < addressComponents.length; i++) {
-                var component = addressComponents[i];
-                var types = component.types;
-
-                if (types.includes('street_number')) {
-                    streetNumber = component.short_name;
-                }
-                if (types.includes('route')) {
-                    route = component.long_name;
-                }
-                if (types.includes('locality')) {
-                    city = component.long_name;
-                }
-                if (types.includes('administrative_area_level_1')) {
-                    province = component.long_name;
-                }
-                if (types.includes('postal_code')) {
-                    postalCode = component.short_name;
-                }
-                if (types.includes('country')) {
-                    country = component.long_name;
-                }
-            }
-
-            var fullAddress = streetNumber && route ? streetNumber + ' ' + route : route;
-            autocomplete.value = fullAddress;
-            $('#city').val(city);
-            $('#state').val(province).trigger('change');
-            $('#zip').val(postalCode);
-            $('#country').val(country);
-
-            updateLeadSource();
-        });
-    }
+    // Google Places Autocomplete handled by assets/js/google_address_autocomplete.js
 </script>
 
 
