@@ -1145,10 +1145,13 @@ the specific language governing permissions and limitations under the Apache Lic
             observer = window.MutationObserver || window.WebKitMutationObserver|| window.MozMutationObserver;
             if (observer !== undefined) {
                 if (this.propertyObserver) { delete this.propertyObserver; this.propertyObserver = null; }
-                this.propertyObserver = new observer(function (mutations) {
-                    $.each(mutations, self._sync);
-                });
-                this.propertyObserver.observe(el.get(0), { attributes:true, subtree:false });
+                var target = el.get(0);
+                if (target && target.nodeType) {
+                    this.propertyObserver = new observer(function (mutations) {
+                        $.each(mutations, self._sync);
+                    });
+                    this.propertyObserver.observe(target, { attributes:true, subtree:false });
+                }
             }
         },
 
