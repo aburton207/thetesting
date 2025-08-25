@@ -26,9 +26,13 @@
                 }
             }
         });
-        setTimeout(function () {
+        var $modal = $("#lead-form").closest(".modal");
+        $modal.on("shown.bs.modal", function () {
             $("#company_name").focus();
-        }, 200);
+        });
+        if ($modal.hasClass("show")) {
+            $("#company_name").focus();
+        }
     });
     </script>
 
