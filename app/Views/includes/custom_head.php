@@ -1,6 +1,16 @@
+<?php
+// Load Google Maps API key from settings, fallback to environment variable
+$googleMapsApiKey = get_setting('google_maps_api_key');
+if (!$googleMapsApiKey) {
+    $googleMapsApiKey = getenv('GOOGLE_MAPS_API_KEY');
+}
 
-<?php $googleMapsApiKey = getenv('GOOGLE_MAPS_API_KEY'); ?>
-<script src="https://maps.googleapis.com/maps/api/js?key=<?php echo $googleMapsApiKey; ?>&libraries=places"></script>
+if ($googleMapsApiKey) {
+    ?>
+    <script src="https://maps.googleapis.com/maps/api/js?key=<?php echo $googleMapsApiKey; ?>&libraries=places"></script>
+    <?php
+}
+?>
 
 <script>
 window.addAppTableDisplayOption = 10000;

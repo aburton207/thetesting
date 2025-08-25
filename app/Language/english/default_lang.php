@@ -1236,6 +1236,7 @@ $lang["google_drive_client_secret"] = "Client secret";
 $lang["get_your_app_credentials_from_here"] = "Get your app credentials from here:";
 $lang["remember_to_add_this_url_in_authorized_redirect_uri"] = "Remember to add this url in Authorized redirect uri";
 $lang["save_and_authorize"] = "Save & authorize";
+$lang["google_maps_api_key"] = "Google Maps API key";
 
 $lang["preview_next_key"] = "Next (Right arrow key)";
 $lang["preview_previous_key"] = "Previous (Left arrow key)";

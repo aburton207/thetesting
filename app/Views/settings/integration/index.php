@@ -16,6 +16,7 @@
                     </li>
                     <li><a role="presentation" data-bs-toggle="tab" href="<?php echo_uri("settings/re_captcha/"); ?>" data-bs-target="#integration-re-captcha">reCAPTCHA</a></li>
                     <li><a role="presentation" data-bs-toggle="tab" id="google_drive" href="<?php echo_uri("settings/google_drive/"); ?>" data-bs-target="#integration-google-drive">Google Drive</a></li>
+                    <li><a role="presentation" data-bs-toggle="tab" id="google_maps" href="<?php echo_uri("settings/google_maps/"); ?>" data-bs-target="#integration-google-maps">Google Maps</a></li>
                     <li><a role="presentation" data-bs-toggle="tab" class="" href="<?php echo_uri("settings/push_notification/"); ?>" data-bs-target="#integration-push-notification"><?php echo app_lang("pusher"); ?></a></li>
                     <li><a role="presentation" data-bs-toggle="tab" class="" href="<?php echo_uri("settings/slack/"); ?>" data-bs-target="#integration-slack">Slack</a></li>
                     <li><a role="presentation" data-bs-toggle="tab" class="" href="<?php echo_uri("settings/bitbucket/"); ?>" data-bs-target="#integration-bitbucket">Bitbucket</a></li>
@@ -37,6 +38,7 @@
                 <div class="tab-content">
                     <div role="tabpanel" class="tab-pane fade" id="integration-re-captcha"></div>
                     <div role="tabpanel" class="tab-pane fade" id="integration-google-drive"></div>
+                    <div role="tabpanel" class="tab-pane fade" id="integration-google-maps"></div>
                     <div role="tabpanel" class="tab-pane fade" id="integration-push-notification"></div>
                     <div role="tabpanel" class="tab-pane fade" id="integration-slack"></div>
                     <div role="tabpanel" class="tab-pane fade" id="integration-bitbucket"></div>
@@ -61,6 +63,8 @@
             var tab = "<?php echo $tab; ?>";
             if (tab === "google_drive") {
                 $("[data-bs-target='#integration-google-drive']").trigger("click");
+            } else if (tab === "google_maps") {
+                $("[data-bs-target='#integration-google-maps']").trigger("click");
             } else if (tab === "push_notification") {
                 $("[data-bs-target='#integration-push-notification']").trigger("click");
             } else if (tab === "slack") {

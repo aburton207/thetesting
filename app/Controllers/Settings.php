@@ -815,6 +815,32 @@ class Settings extends Security_Controller {
         echo json_encode(array("success" => true, 'message' => app_lang('settings_updated')));
     }
 
+    /* show the google maps settings tab */
+
+    function google_maps() {
+        return $this->template->view("settings/integration/google_maps");
+    }
+
+    /* save google maps settings */
+
+    function save_google_maps_settings() {
+        $settings = array("google_maps_api_key");
+
+        foreach ($settings as $setting) {
+            $value = $this->request->getPost($setting);
+
+            if (!is_null($value)) {
+                $value = remove_quotations($value);
+            } else {
+                $value = "";
+            }
+
+            $this->Settings_model->save_setting($setting, $value);
+        }
+
+        echo json_encode(array("success" => true, 'message' => app_lang('settings_updated')));
+    }
+
     //authorize imap
     function authorize_imap() {
         if (get_setting("enable_email_piping")) {

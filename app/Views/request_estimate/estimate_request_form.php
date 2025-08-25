@@ -350,9 +350,11 @@ table.dataTable tbody td:first-child {
         ?>
     </div>
 </div>
-
+<?php $googleMapsApiKey = get_setting('google_maps_api_key'); ?>
+<?php if ($googleMapsApiKey) { ?>
 <!-- Google Maps API Script -->
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCN7FS848BKLuWUjFlV6c7NKxDlcebCL_g&libraries=places&callback=initAutocomplete" async defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=<?php echo $googleMapsApiKey; ?>&libraries=places&callback=initAutocomplete" async defer></script>
+<?php } ?>
 
 <script type="text/javascript">
     $(document).ready(function() {
