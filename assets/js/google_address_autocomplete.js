@@ -117,6 +117,10 @@
     } else {
         startObserver();
     }
+    // Re-initialize autocomplete when Bootstrap modals are shown
+    if (typeof $ === 'function' && $.fn && $.fn.modal) {
+        $(document).on('shown.bs.modal', initForms);
+    }
 
     initForms();
 })();

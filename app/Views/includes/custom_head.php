@@ -12,6 +12,8 @@ if ($googleMapsApiKey) {
 }
 ?>
 
+<script src="<?php echo base_url('assets/js/google_address_autocomplete.js'); ?>"></script>
+
 <script>
 window.addAppTableDisplayOption = 10000;
 </script>
