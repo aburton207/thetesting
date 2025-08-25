@@ -7,7 +7,7 @@ if (!$googleMapsApiKey) {
 
 if ($googleMapsApiKey) {
     ?>
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=<?= $googleMapsApiKey ?>&libraries=places&callback=googleMapsReady"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=<?= $googleMapsApiKey ?>&libraries=places&callback=googleMapsReady&loading=async"></script>
     <script>
         function googleMapsReady() {
             if (window.initAddressAutocomplete) {
