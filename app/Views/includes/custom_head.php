@@ -1,4 +1,7 @@
 
+<?php $googleMapsApiKey = getenv('GOOGLE_MAPS_API_KEY'); ?>
+<script src="https://maps.googleapis.com/maps/api/js?key=<?php echo $googleMapsApiKey; ?>&libraries=places"></script>
+
 <script>
 window.addAppTableDisplayOption = 10000;
 </script>
