@@ -47,7 +47,8 @@
                 var autocomplete = new google.maps.places.PlaceAutocompleteElement({
                     inputElement: $address[0]
                 });
-                $(autocomplete).insertAfter($address);
+                // Hide the additional search box since we use the existing input
+                $(autocomplete).insertAfter($address).addClass('d-none');
 
                 var fields = ['address', 'city', 'state', 'zip', 'country'];
                 fields.forEach(function (field) {
@@ -91,19 +92,19 @@
                     });
 
                     if (address) {
-                        autocomplete.value = address;
+                        $address.val(address).trigger('change');
                     }
                     if (city) {
-                        $form.find('#city').val(city);
+                        $form.find('#city').val(city).trigger('change');
                     }
                     if (state) {
-                        $form.find('#state').val(state);
+                        $form.find('#state').val(state).trigger('change');
                     }
                     if (zip) {
-                        $form.find('#zip').val(zip);
+                        $form.find('#zip').val(zip).trigger('change');
                     }
                     if (country) {
-                        $form.find('#country').val(country);
+                        $form.find('#country').val(country).trigger('change');
                     }
                 });
             });
