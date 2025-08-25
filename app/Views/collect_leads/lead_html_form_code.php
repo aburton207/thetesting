@@ -4,7 +4,7 @@
     <input type="text" name="first_name" id="first_name" placeholder="<?php echo app_lang('first_name'); ?>" >
     <input type="text" name="last_name" id="last_name" placeholder="<?php echo app_lang('last_name'); ?>" required="required">
     <input type="email" name="email" id="email" placeholder="<?php echo app_lang('email'); ?>" autocomplete="off">
-    <textarea name="address" cols="40" rows="10" id="address" placeholder="<?php echo app_lang('address'); ?>"></textarea>
+    <input type="text" name="address" id="address" placeholder="<?php echo app_lang('address'); ?>">
     <input type="text" name="city" id="city" placeholder="<?php echo app_lang('city'); ?>">
     <input type="text" name="state" id="state" placeholder="<?php echo app_lang('state'); ?>">
     <input type="text" name="zip" id="zip" placeholder="<?php echo app_lang('zip'); ?>">
