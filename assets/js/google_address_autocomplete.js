@@ -83,6 +83,11 @@
     }
 
     function startObserver() {
+        var target = document.body;
+        if (!target || !(target instanceof Node)) {
+            return;
+        }
+
         var observer = new MutationObserver(function () {
             if (window.location.href !== lastHref) {
                 lastHref = window.location.href;
@@ -90,16 +95,20 @@
             }
         });
 
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true
-        });
+        try {
+            observer.observe(target, {
+                childList: true,
+                subtree: true
+            });
+        } catch (e) {
+            console.error("MutationObserver failed", e);
+        }
     }
 
-    if (document.body) {
-        startObserver();
-    } else {
+    if (document.readyState === "loading") {
         window.addEventListener("DOMContentLoaded", startObserver);
+    } else {
+        startObserver();
     }
 
     initForms();
