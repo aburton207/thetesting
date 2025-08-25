@@ -97,7 +97,8 @@
         var target = document.body || document.documentElement;
 
         // Ensure a valid DOM node is available before observing
-        if (!(target instanceof Node)) {
+        var nodeCtor = window.Node;
+        if (!nodeCtor || !(target instanceof nodeCtor)) {
             return;
         }
 
