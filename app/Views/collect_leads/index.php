@@ -413,17 +413,18 @@ table.dataTable tbody td:first-child {
     // Google Places Autocomplete Initialization
     function initAutocomplete() {
         var addressInput = document.getElementById('address');
-        var autocomplete = new google.maps.places.Autocomplete(addressInput, {
-            types: ['address'],
-            componentRestrictions: { country: ['ca'] },
-            fields: ['address_components', 'geometry', 'formatted_address']
-        });
+        var autocomplete = new google.maps.places.PlaceAutocompleteElement();
+        autocomplete.id = addressInput.id;
+        autocomplete.name = addressInput.name;
+        autocomplete.className = addressInput.className;
+        autocomplete.setAttribute('placeholder', addressInput.placeholder || '');
+        addressInput.parentNode.replaceChild(autocomplete, addressInput);
 
-        autocomplete.addListener('place_changed', function() {
-            var place = autocomplete.getPlace();
+        autocomplete.addEventListener('place_changed', function() {
+            var place = autocomplete.place;
             var addressComponents = place.address_components;
 
-            $('#address').val('');
+            autocomplete.value = '';
             $('#city').val('');
             $('#state').val('');
             $('#zip').val('');
@@ -461,7 +462,7 @@ table.dataTable tbody td:first-child {
             }
 
             var fullAddress = streetNumber && route ? streetNumber + ' ' + route : route;
-            $('#address').val(fullAddress);
+            autocomplete.value = fullAddress;
             $('#city').val(city);
             $('#state').val(province).trigger('change');
             $('#zip').val(postalCode);

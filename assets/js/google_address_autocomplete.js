@@ -44,7 +44,12 @@
                 }
                 $address.data('gplaces-init', true);
 
-                var autocomplete = new google.maps.places.Autocomplete($address[0], { types: ['address'] });
+                var autocomplete = new google.maps.places.PlaceAutocompleteElement();
+                autocomplete.id = $address.attr('id');
+                autocomplete.name = $address.attr('name');
+                autocomplete.className = $address.attr('class');
+                autocomplete.setAttribute('placeholder', $address.attr('placeholder') || '');
+                $address.replaceWith(autocomplete);
 
                 var fields = ['address', 'city', 'state', 'zip', 'country'];
                 fields.forEach(function (field) {
@@ -53,9 +58,9 @@
                     $form.find('#' + field).attr('autocomplete', 'new-password');
                 });
 
-                autocomplete.addListener('place_changed', function () {
-                    var place = autocomplete.getPlace();
-                    if (!place.address_components) {
+                autocomplete.addEventListener('place_changed', function () {
+                    var place = autocomplete.place;
+                    if (!place || !place.address_components) {
                         return;
                     }
 
@@ -88,7 +93,7 @@
                     });
 
                     if (address) {
-                        $form.find('#address').val(address);
+                        autocomplete.value = address;
                     }
                     if (city) {
                         $form.find('#city').val(city);
