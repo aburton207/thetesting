@@ -122,8 +122,28 @@
             return;
         }
 
-        var observer = new MutationObs(function () {
-            if (window.location.href !== lastHref) {
+        var observer = new MutationObs(function (mutations) {
+            var formAdded = false;
+
+            mutations.forEach(function (mutation) {
+                if (formAdded || !mutation.addedNodes) {
+                    return;
+                }
+
+                mutation.addedNodes.forEach(function (node) {
+                    if (formAdded || !node || node.nodeType !== 1) {
+                        return;
+                    }
+
+                    var $node = $(node);
+                    if ($node.is('#lead-form, #client-form') || $node.find('#lead-form, #client-form').length) {
+                        formAdded = true;
+                        initForms(node);
+                    }
+                });
+            });
+
+            if (!formAdded && window.location.href !== lastHref) {
                 lastHref = window.location.href;
                 initForms();
             }
