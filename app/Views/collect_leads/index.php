@@ -427,8 +427,11 @@ table.dataTable tbody td:first-child {
         autocomplete.setAttribute('placeholder', addressInput.placeholder || '');
         addressInput.parentNode.replaceChild(autocomplete, addressInput);
 
-        autocomplete.addEventListener('place_changed', function() {
-            var place = autocomplete.place;
+        autocomplete.addEventListener('gmp-placeselect', function(event) {
+            var place = (event.detail && event.detail.place) ? event.detail.place : event.target.value;
+            if (!place || !place.address_components) {
+                return;
+            }
             var addressComponents = place.address_components;
 
             autocomplete.value = '';
@@ -479,6 +482,7 @@ table.dataTable tbody td:first-child {
         });
     }
 </script>
+
 
 <!-- Listen for messages from the parent -->
 <script>
