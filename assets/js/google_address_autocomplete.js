@@ -35,7 +35,9 @@
 
                 var fields = ['address', 'city', 'state', 'zip', 'country'];
                 fields.forEach(function (field) {
-                    $form.find('#' + field).attr('autocomplete', 'off');
+                    // Use a nonstandard autocomplete value to suppress Chrome's
+                    // native suggestions so Google Places results remain visible.
+                    $form.find('#' + field).attr('autocomplete', 'new-password');
                 });
 
                 autocomplete.addListener('place_changed', function () {
