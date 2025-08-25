@@ -43,7 +43,6 @@
                     "value" => $model_info->company_name,
                     "class" => "form-control company_name_input_section",
                     "placeholder" => app_lang('company_name'),
-                    "autofocus" => true,
                     "data-rule-required" => true,
                     "data-msg-required" => app_lang("field_required"),
                 ));
@@ -63,7 +62,6 @@
                     "value" => $model_info->company_name,
                     "class" => "form-control company_name_input_section",
                     "placeholder" => app_lang('company_name'),
-                    "autofocus" => true,
                     "data-rule-required" => true,
                     "data-msg-required" => app_lang("field_required"),
                 ));

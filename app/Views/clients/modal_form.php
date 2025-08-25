@@ -61,9 +61,13 @@
                 }
             }
         });
-        setTimeout(function () {
+        var $modal = $("#client-form").closest(".modal");
+        $modal.on("shown.bs.modal", function () {
             $("#company_name").focus();
-        }, 200);
+        });
+        if ($modal.hasClass("show")) {
+            $("#company_name").focus();
+        }
 
         //save and open add new contact member modal
         window.showAddNewModal = false;
