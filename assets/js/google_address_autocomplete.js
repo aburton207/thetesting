@@ -1,24 +1,32 @@
 // Initialize Google Places Autocomplete for address fields.
-// Retries automatically if the Google Places library is not yet available
-// to avoid silent failures when the API loads slowly.
+// This script intentionally avoids using a MutationObserver; instead,
+// delegated event handlers initialize autocomplete on demand when users
+// focus an address field or when related modals are displayed.
 (function (window) {
-    window.initAddressAutocomplete = function (form, attempt) {
-        var $forms = $(form);
+    window.initAddressAutocomplete = function (context) {
+        var $root;
+        if (context && context.target) {
+            $root = $(context.target);
+        } else {
+            $root = $(context);
+        }
+
+        var $forms = $();
+        if ($root && $root.length) {
+            if ($root.is('#lead-form, #client-form')) {
+                $forms = $root;
+            } else {
+                $forms = $root.closest('#lead-form, #client-form')
+                    .add($root.find('#lead-form, #client-form'));
+            }
+        }
+
         if (!$forms.length) {
             return;
         }
 
-        var retries = typeof attempt === 'number' ? attempt : 0;
-        var maxRetries = 10;
-        if (typeof google === "undefined" || !google.maps || !google.maps.places) {
-            // Retry with incremental backoff until Google Places becomes available
-            if (retries < maxRetries) {
-                setTimeout(function () {
-                    window.initAddressAutocomplete(form, retries + 1);
-                }, 500);
-            } else {
-                console.warn("Google Places API not loaded after", maxRetries, "attempts");
-            }
+        if (typeof google === 'undefined' || !google.maps || !google.maps.places) {
+            console.warn('Google Places API is not available.');
             return;
         }
 
@@ -31,6 +39,11 @@
 
             $addresses.each(function () {
                 var $address = $(this);
+                if ($address.data('gplaces-init')) {
+                    return;
+                }
+                $address.data('gplaces-init', true);
+
                 var autocomplete = new google.maps.places.Autocomplete($address[0], { types: ['address'] });
 
                 var fields = ['address', 'city', 'state', 'zip', 'country'];
@@ -95,88 +108,9 @@
     };
 })(window);
 
-// Monitor DOM changes safely and re-initialize address autocompletion
-(function () {
-    var lastHref = window.location.href;
-
-    function initForms(root) {
-        if (typeof window.initAddressAutocomplete !== "function") {
-            return;
-        }
-        var $root = root ? $(root) : $(document);
-        $root.find('#lead-form, #client-form')
-            .add($root.filter('#lead-form, #client-form'))
-            .each(function () {
-                window.initAddressAutocomplete(this);
-            });
-    }
-
-    function startObserver() {
-        var target = document.body;
-        if (!(target instanceof Node)) {
-            target = document.documentElement;
-        }
-        if (!(target instanceof Node)) {
-            target = document;
-        }
-        if (!(target instanceof Node)) {
-            return;
-        }
-
-        var MutationObs = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
-        if (!MutationObs) {
-            return;
-        }
-
-        var observer = new MutationObs(function (mutations) {
-            var formAdded = false;
-
-            mutations.forEach(function (mutation) {
-                if (formAdded || !mutation.addedNodes) {
-                    return;
-                }
-
-                mutation.addedNodes.forEach(function (node) {
-                    if (formAdded || !node || node.nodeType !== 1) {
-                        return;
-                    }
-
-                    var $node = $(node);
-                    if ($node.is('#lead-form, #client-form') || $node.find('#lead-form, #client-form').length) {
-                        formAdded = true;
-                        initForms(node);
-                    }
-                });
-            });
-
-            if (!formAdded && window.location.href !== lastHref) {
-                lastHref = window.location.href;
-                initForms();
-            }
-        });
-
-        try {
-            observer.observe(target, {
-                childList: true,
-                subtree: true
-            });
-        } catch (e) {
-            console.error("MutationObserver failed", e);
-        }
-    }
-
-    if (document.readyState === "loading") {
-        window.addEventListener("DOMContentLoaded", startObserver);
-    } else {
-        startObserver();
-    }
-    // Re-initialize autocomplete when Bootstrap modals are shown
-    if (typeof $ === 'function' && $.fn && $.fn.modal) {
-        $(document).on('shown.bs.modal', function (e) {
-            initForms(e.target);
-        });
-    }
-
-    initForms();
-})();
+// Initialize autocomplete when users interact with the page
+$(document).on('focus', '#lead-form #address, #client-form #address', initAddressAutocomplete);
+$(document).on('shown.bs.modal', '#lead-modal, #client-modal', function () {
+    initAddressAutocomplete(this);
+});
 
