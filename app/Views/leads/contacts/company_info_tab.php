@@ -26,5 +26,9 @@
                 appAlert.success(result.message, {duration: 10000});
             }
         });
+
+        if (window.initAddressAutocomplete) {
+            window.initAddressAutocomplete('#company-form');
+        }
     });
 </script>
