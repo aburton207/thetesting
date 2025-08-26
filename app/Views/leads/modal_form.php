@@ -33,6 +33,9 @@
         if ($modal.hasClass("show")) {
             $("#company_name").focus();
         }
+        if (window.initAddressAutocomplete) {
+            window.initAddressAutocomplete('#lead-form');
+        }
     });
     </script>
 

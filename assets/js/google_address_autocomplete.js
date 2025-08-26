@@ -44,11 +44,9 @@
                 }
                 $address.data('gplaces-init', true);
 
-                var autocomplete = new google.maps.places.PlaceAutocompleteElement({
-                    inputElement: $address[0]
+                var autocomplete = new google.maps.places.Autocomplete($address[0], {
+                    fields: ['address_components']
                 });
-                // Hide the additional search box since we use the existing input
-                $(autocomplete).insertAfter($address).addClass('d-none');
 
                 var fields = ['address', 'city', 'state', 'zip', 'country'];
                 fields.forEach(function (field) {
@@ -57,8 +55,8 @@
                     $form.find('#' + field).attr('autocomplete', 'new-password');
                 });
 
-                autocomplete.addEventListener('gmp-placeselect', function (event) {
-                    var place = (event.detail && event.detail.place) ? event.detail.place : event.target.value;
+                autocomplete.addListener('place_changed', function () {
+                    var place = autocomplete.getPlace();
                     if (!place || !place.address_components) {
                         return;
                     }
