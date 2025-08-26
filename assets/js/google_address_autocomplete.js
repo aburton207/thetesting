@@ -14,13 +14,16 @@
 
         var $forms = $();
         if ($root.length) {
-            if ($root.is('#lead-form, #client-form, #company-form')) {
+            if ($root.is('form')) {
                 $forms = $root;
             } else {
-                $forms = $root.closest('#lead-form, #client-form, #company-form')
-                    .add($root.find('#lead-form, #client-form, #company-form'));
+                $forms = $root.find('form');
             }
         }
+
+        $forms = $forms.filter(function () {
+            return $(this).find('#address').length;
+        });
 
         if (!$forms.length) {
             return;
@@ -134,7 +137,7 @@ $(function () {
 });
 
 // Initialize when an address field receives focus
-$(document).on('focus', '#lead-form #address, #client-form #address, #company-form #address', function () {
+$(document).on('focus', 'form #address', function () {
     window.initAddressAutocomplete(this);
 });
 
