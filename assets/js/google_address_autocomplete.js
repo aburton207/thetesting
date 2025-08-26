@@ -14,13 +14,18 @@
 
         var $forms = $();
         if ($root.length) {
-            if ($root.is('#lead-form, #client-form, #company-form')) {
+            if ($root.is('form')) {
                 $forms = $root;
+            } else if ($root.is('input')) {
+                $forms = $root.closest('form');
             } else {
-                $forms = $root.closest('#lead-form, #client-form, #company-form')
-                    .add($root.find('#lead-form, #client-form, #company-form'));
+                $forms = $root.find('form');
             }
         }
+
+        $forms = $forms.filter(function () {
+            return $(this).find('#address').length;
+        });
 
         if (!$forms.length) {
             return;
@@ -103,21 +108,14 @@
                 };
 
                 // Prefer the classic Autocomplete widget for broader
-                // compatibility and fall back to the newer
-                // PlaceAutocompleteElement when the traditional widget isn't
-                // available.
+                // compatibility. Avoid the newer PlaceAutocompleteElement
+                // since it relies on MutationObserver and can trigger errors
+                // when inputs are initialized inside modals.
                 if (google.maps.places.Autocomplete) {
                     var autocomplete = new google.maps.places.Autocomplete($address[0], {
                         fields: ['address_components']
                     });
                     autocomplete.addListener('place_changed', function () {
-                        handlePlace(autocomplete.getPlace());
-                    });
-                } else if (google.maps.places.PlaceAutocompleteElement) {
-                    var autocomplete = new google.maps.places.PlaceAutocompleteElement();
-                    autocomplete.fields = ['addressComponents'];
-                    autocomplete.inputElement = $address[0];
-                    autocomplete.addEventListener('gmpx-placechange', function () {
                         handlePlace(autocomplete.getPlace());
                     });
                 } else {
@@ -134,8 +132,9 @@ $(function () {
 });
 
 // Initialize when an address field receives focus
-$(document).on('focus', '#lead-form #address, #client-form #address, #company-form #address', function () {
-    window.initAddressAutocomplete(this);
+$(document).on('focus', 'form #address', function () {
+    // Pass the parent form so the initializer can correctly wire up fields
+    window.initAddressAutocomplete(this.form || $(this).closest('form')[0]);
 });
 
 // Initialize when modals containing forms are shown

@@ -64,9 +64,15 @@
         var $modal = $("#client-form").closest(".modal");
         $modal.on("shown.bs.modal", function () {
             $("#company_name").focus();
+            if (window.initAddressAutocomplete) {
+                window.initAddressAutocomplete('#client-form');
+            }
         });
         if ($modal.hasClass("show")) {
             $("#company_name").focus();
+            if (window.initAddressAutocomplete) {
+                window.initAddressAutocomplete('#client-form');
+            }
         }
 
         //save and open add new contact member modal
@@ -76,11 +82,6 @@
             window.showAddNewModal = true;
             $(this).trigger("submit");
         });
-
-        // Initialize address autocomplete using shared helper.
-        if (window.initAddressAutocomplete) {
-            window.initAddressAutocomplete('#client-form');
-        }
     });
 </script>
 

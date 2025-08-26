@@ -29,14 +29,15 @@
         var $modal = $("#lead-form").closest(".modal");
         $modal.on("shown.bs.modal", function () {
             $("#company_name").focus();
+            if (window.initAddressAutocomplete) {
+                window.initAddressAutocomplete('#lead-form');
+            }
         });
         if ($modal.hasClass("show")) {
             $("#company_name").focus();
-        }
-
-        // Initialize address autocomplete using shared helper.
-        if (window.initAddressAutocomplete) {
-            window.initAddressAutocomplete('#lead-form');
+            if (window.initAddressAutocomplete) {
+                window.initAddressAutocomplete('#lead-form');
+            }
         }
     });
     </script>
