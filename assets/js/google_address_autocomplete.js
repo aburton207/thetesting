@@ -101,13 +101,16 @@
                     }
                 };
 
-                // Attach Google Places Autocomplete directly to the existing
-                // input field. Using the classic Autocomplete widget avoids
-                // replacing the form control with the experimental
-                // PlaceAutocompleteElement, which previously caused issues
-                // within our modals and prevented the selected address from
-                // populating the actual form fields.
-                if (google.maps.places.Autocomplete) {
+                // Prefer the newer PlaceAutocompleteElement when available to
+                // avoid reliance on the deprecated Autocomplete widget.
+                if (google.maps.places.PlaceAutocompleteElement) {
+                    var autocomplete = new google.maps.places.PlaceAutocompleteElement();
+                    autocomplete.fields = ['addressComponents'];
+                    autocomplete.inputElement = $address[0];
+                    autocomplete.addEventListener('gmpx-placechange', function () {
+                        handlePlace(autocomplete.getPlace());
+                    });
+                } else if (google.maps.places.Autocomplete) {
                     var autocomplete = new google.maps.places.Autocomplete($address[0], {
                         fields: ['address_components']
                     });
