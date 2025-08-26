@@ -79,15 +79,21 @@
             </label>
             <div class="<?php echo $field_column; ?>">
                 <?php
-                echo form_input(array(
-                    "id" => "owner_id", // Changed from created_by
-                    "name" => "owner_id", // Changed from created_by
-                    "value" => $model_info->owner_id ? $model_info->owner_id : $login_user->id, // Use owner_id from model
-                    "class" => "form-control",
-                    "placeholder" => app_lang('owner'),
-                    "data-rule-required" => true,
-                    "data-msg-required" => app_lang("field_required")
-                ));
+                $owner_options = [];
+                if (!empty($team_members_dropdown)) {
+                    $members = json_decode($team_members_dropdown, true);
+                    if (is_array($members)) {
+                        foreach ($members as $member) {
+                            $owner_options[$member['id']] = $member['text'];
+                        }
+                    }
+                }
+                echo form_dropdown(
+                    "owner_id",
+                    $owner_options,
+                    $model_info->owner_id ? $model_info->owner_id : $login_user->id,
+                    "class='form-control' id='owner_id' data-rule-required='true' data-msg-required='" . app_lang("field_required") . "'"
+                );
                 ?>
             </div>
         </div>
@@ -104,7 +110,7 @@
                 $lead_status_dropdown[$status->id] = $status->title;
             }
             $selected_status = $model_info->lead_status_id ? $model_info->lead_status_id : 1;
-            echo form_dropdown("lead_status_id", $lead_status_dropdown, array($selected_status), "class='select2' id='client_lead_status_id'");
+            echo form_dropdown("lead_status_id", $lead_status_dropdown, $selected_status, "class='form-control' id='client_lead_status_id'");
             ?>
         </div>
     </div>
@@ -359,36 +365,6 @@
     $(document).ready(function() {
         $('[data-bs-toggle="tooltip"]').tooltip();
 
-        <?php if (isset($currency_dropdown)) { ?>
-            if ($('#currency').length) {
-                $('#currency').select2({
-                    data: <?php echo json_encode($currency_dropdown); ?>
-                });
-            }
-        <?php } ?>
-
-        <?php if (isset($groups_dropdown)) { ?>
-            $("#group_ids").select2({
-                multiple: true,
-                data: <?php echo json_encode($groups_dropdown); ?>
-            });
-        <?php } ?>
-
-
-        <?php if ($login_user->is_admin || get_array_value($login_user->permissions, "client") === "all") { ?>
-            $('#owner_id').select2({ // Changed from created_by
-                data: <?php echo $team_members_dropdown; ?>
-            });
-        <?php } ?>
-
-        $('#client_lead_status_id').select2();
-
-        <?php if ($login_user->user_type === "staff" && empty($hide_client_labels)) { ?>
-            $("#client_labels").select2({
-                multiple: true,
-                data: <?php echo json_encode($label_suggestions); ?>
-            });
-        <?php } ?>
         $('.account_type').click(function() {
             var inputValue = $(this).attr("value");
             if (inputValue === "person") {

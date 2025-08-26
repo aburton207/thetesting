@@ -12,13 +12,8 @@ if (isset($sources_dropdown)) {
     }
 }
 ?>
-<select id="<?php echo $id; ?>" name="lead_source_id" class="form-control select2">
+<select id="<?php echo $id; ?>" name="lead_source_id" class="form-control">
     <?php foreach ($dropdown_data as $item) { ?>
         <option value="<?php echo $item['id']; ?>" <?php echo ($selected == $item['id']) ? 'selected' : ''; ?>><?php echo $item['text']; ?></option>
     <?php } ?>
 </select>
-<script>
-    $(function () {
-        $('#<?php echo $id; ?>').select2();
-    });
-</script>
