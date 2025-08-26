@@ -34,64 +34,10 @@
             $("#company_name").focus();
         }
 
-        // Initialize Google Places Autocomplete on this form only.
-        function initFormAddressAutocomplete(formSelector) {
-            var form = document.querySelector(formSelector);
-            if (!form || typeof google === 'undefined' || !google.maps || !google.maps.places) {
-                return;
-            }
-
-            var addressInput = form.querySelector('#address');
-            if (!addressInput) {
-                return;
-            }
-
-            ['address', 'city', 'state', 'zip', 'country'].forEach(function (id) {
-                var field = form.querySelector('#' + id);
-                if (field) {
-                    field.setAttribute('autocomplete', 'new-password');
-                }
-            });
-
-            var autocomplete = new google.maps.places.Autocomplete(addressInput, {fields: ['address_components']});
-            autocomplete.addListener('place_changed', function () {
-                var place = autocomplete.getPlace();
-                if (!place.address_components) {
-                    return;
-                }
-
-                var address = '', city = '', state = '', zip = '', country = '';
-                place.address_components.forEach(function (component) {
-                    var types = component.types;
-                    if (types.indexOf('street_number') > -1) {
-                        address = component.long_name + (address ? ' ' + address : '');
-                    }
-                    if (types.indexOf('route') > -1) {
-                        address = address ? address + ' ' + component.long_name : component.long_name;
-                    }
-                    if (types.indexOf('locality') > -1) {
-                        city = component.long_name;
-                    }
-                    if (types.indexOf('administrative_area_level_1') > -1) {
-                        state = component.short_name;
-                    }
-                    if (types.indexOf('postal_code') > -1) {
-                        zip = component.long_name;
-                    }
-                    if (types.indexOf('country') > -1) {
-                        country = component.long_name;
-                    }
-                });
-
-                if (address) { form.querySelector('#address').value = address; }
-                if (city) { form.querySelector('#city').value = city; }
-                if (state) { form.querySelector('#state').value = state; }
-                if (zip) { form.querySelector('#zip').value = zip; }
-                if (country) { form.querySelector('#country').value = country; }
-            });
+        // Initialize address autocomplete using shared helper.
+        if (window.initAddressAutocomplete) {
+            window.initAddressAutocomplete('#lead-form');
         }
-
-        initFormAddressAutocomplete('#lead-form');
     });
     </script>
 
