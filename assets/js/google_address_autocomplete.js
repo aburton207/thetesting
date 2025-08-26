@@ -44,10 +44,6 @@
                 }
                 $address.data('gplaces-init', true);
 
-                var autocomplete = new google.maps.places.Autocomplete($address[0], {
-                    fields: ['address_components']
-                });
-
                 var fields = ['address', 'city', 'state', 'zip', 'country'];
                 fields.forEach(function (field) {
                     // Use a nonstandard autocomplete value to suppress Chrome's
@@ -55,8 +51,7 @@
                     $form.find('#' + field).attr('autocomplete', 'new-password');
                 });
 
-                autocomplete.addListener('place_changed', function () {
-                    var place = autocomplete.getPlace();
+                var handlePlace = function (place) {
                     if (!place || !place.address_components) {
                         return;
                     }
@@ -104,7 +99,26 @@
                     if (country) {
                         $form.find('#country').val(country).trigger('change');
                     }
-                });
+                };
+
+                if (google.maps.places.PlaceAutocompleteElement) {
+                    var pa = new google.maps.places.PlaceAutocompleteElement();
+                    pa.fields = ['address_components'];
+                    pa.inputElement = $address[0];
+                    $address.after(pa);
+                    pa.addEventListener('gmp-placechange', function () {
+                        handlePlace(pa.getPlace());
+                    });
+                } else if (google.maps.places.Autocomplete) {
+                    var autocomplete = new google.maps.places.Autocomplete($address[0], {
+                        fields: ['address_components']
+                    });
+                    autocomplete.addListener('place_changed', function () {
+                        handlePlace(autocomplete.getPlace());
+                    });
+                } else {
+                    console.warn('Google Places Autocomplete is not available.');
+                }
             });
         });
     };
