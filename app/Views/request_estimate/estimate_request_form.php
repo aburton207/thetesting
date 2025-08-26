@@ -360,7 +360,7 @@ table.dataTable tbody td:first-child {
             }
         }
     </script>
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=<?php echo $googleMapsApiKey; ?>&libraries=places&callback=googleMapsReady&loading=async"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=<?php echo $googleMapsApiKey; ?>&libraries=places&v=beta&callback=googleMapsReady&loading=async"></script>
 <?php } ?>
 
 <script type="text/javascript">
