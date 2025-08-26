@@ -125,5 +125,18 @@
     };
 })(window);
 
-// Forms should call window.initAddressAutocomplete(form) after rendering
+// Initialize for existing forms on page load
+$(function () {
+    window.initAddressAutocomplete(document);
+});
+
+// Initialize when an address field receives focus
+$(document).on('focus', '#lead-form #address, #client-form #address', function () {
+    window.initAddressAutocomplete(this);
+});
+
+// Initialize when modals containing forms are shown
+$(document).on('shown.bs.modal', function (e) {
+    window.initAddressAutocomplete(e.target);
+});
 
