@@ -76,6 +76,9 @@
             window.showAddNewModal = true;
             $(this).trigger("submit");
         });
+        if (window.initAddressAutocomplete) {
+            window.initAddressAutocomplete('#client-form');
+        }
     });
 </script>
 
