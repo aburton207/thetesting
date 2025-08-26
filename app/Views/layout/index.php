@@ -101,6 +101,8 @@ $dynamic_class .= " " . strtolower(get_actual_controller_name($router)) . "-page
         echo view("includes/summernote");
     } ?>
 
+    <script src="<?php echo base_url('assets/js/google_address_autocomplete.js'); ?>"></script>
+
     <nav class="mobile-bottom-menu navbar-expand-lg b-t bg-white fixed-bottom d-block d-sm-none">
         <div class="d-flex justify-content-between pl15 pr15">
             <a class="nav-link sidebar-toggle-btn" aria-current="page" href="#">
