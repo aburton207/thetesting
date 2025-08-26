@@ -188,5 +188,15 @@
         setTimeout(function() {
             $("#name").focus();
         }, 200);
+
+        var $modal = $("#company-form").closest(".modal");
+        $modal.on("shown.bs.modal", function () {
+            if (window.initAddressAutocomplete) {
+                window.initAddressAutocomplete(this);
+            }
+        });
+        if ($modal.hasClass("show") && window.initAddressAutocomplete) {
+            window.initAddressAutocomplete($modal[0]);
+        }
     });
 </script>
