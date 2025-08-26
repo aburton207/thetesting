@@ -77,7 +77,7 @@
                 $lead_status[$status->id] = $status->title;
             }
 
-            echo form_dropdown("lead_status_id", $lead_status, array($model_info->lead_status_id), "class='select2'");
+            echo form_dropdown("lead_status_id", $lead_status, $model_info->lead_status_id, "class='form-control'");
             ?>
         </div>
     </div>
@@ -97,7 +97,7 @@
                     "owner_id",
                     $owners_select,
                     $model_info->owner_id ? $model_info->owner_id : $login_user->id,
-                    "class='form-control select2' id='owner_id'"
+                    "class='form-control' id='owner_id'"
             );
             ?>
         </div>
@@ -314,22 +314,6 @@
 <script type="text/javascript">
     $(document).ready(function() {
         $('[data-bs-toggle="tooltip"]').tooltip();
-        $(".select2").select2();
-
-        <?php if (isset($currency_dropdown)) { ?>
-            if ($('#currency').length) {
-                $('#currency').select2({
-                    data: <?php echo json_encode($currency_dropdown); ?>
-                });
-            }
-        <?php } ?>
-
-        $('#owner_id').select2();
-
-        $("#lead_labels").select2({
-            multiple: true,
-            data: <?php echo json_encode($label_suggestions); ?>
-        });
 
         $('.account_type').click(function() {
             var inputValue = $(this).attr("value");
