@@ -108,21 +108,14 @@
                 };
 
                 // Prefer the classic Autocomplete widget for broader
-                // compatibility and fall back to the newer
-                // PlaceAutocompleteElement when the traditional widget isn't
-                // available.
+                // compatibility. Avoid the newer PlaceAutocompleteElement
+                // since it relies on MutationObserver and can trigger errors
+                // when inputs are initialized inside modals.
                 if (google.maps.places.Autocomplete) {
                     var autocomplete = new google.maps.places.Autocomplete($address[0], {
                         fields: ['address_components']
                     });
                     autocomplete.addListener('place_changed', function () {
-                        handlePlace(autocomplete.getPlace());
-                    });
-                } else if (google.maps.places.PlaceAutocompleteElement) {
-                    var autocomplete = new google.maps.places.PlaceAutocompleteElement();
-                    autocomplete.fields = ['addressComponents'];
-                    autocomplete.inputElement = $address[0];
-                    autocomplete.addEventListener('gmpx-placechange', function () {
                         handlePlace(autocomplete.getPlace());
                     });
                 } else {
