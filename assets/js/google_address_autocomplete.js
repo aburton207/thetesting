@@ -102,20 +102,22 @@
                     }
                 };
 
-                // Prefer the newer PlaceAutocompleteElement when available to
-                // avoid reliance on the deprecated Autocomplete widget.
-                if (google.maps.places.PlaceAutocompleteElement) {
-                    var autocomplete = new google.maps.places.PlaceAutocompleteElement();
-                    autocomplete.fields = ['addressComponents'];
-                    autocomplete.inputElement = $address[0];
-                    autocomplete.addEventListener('gmpx-placechange', function () {
-                        handlePlace(autocomplete.getPlace());
-                    });
-                } else if (google.maps.places.Autocomplete) {
+                // Prefer the classic Autocomplete widget for broader
+                // compatibility and fall back to the newer
+                // PlaceAutocompleteElement when the traditional widget isn't
+                // available.
+                if (google.maps.places.Autocomplete) {
                     var autocomplete = new google.maps.places.Autocomplete($address[0], {
                         fields: ['address_components']
                     });
                     autocomplete.addListener('place_changed', function () {
+                        handlePlace(autocomplete.getPlace());
+                    });
+                } else if (google.maps.places.PlaceAutocompleteElement) {
+                    var autocomplete = new google.maps.places.PlaceAutocompleteElement();
+                    autocomplete.fields = ['addressComponents'];
+                    autocomplete.inputElement = $address[0];
+                    autocomplete.addEventListener('gmpx-placechange', function () {
                         handlePlace(autocomplete.getPlace());
                     });
                 } else {
