@@ -16,6 +16,8 @@
         if ($root.length) {
             if ($root.is('form')) {
                 $forms = $root;
+            } else if ($root.is('input')) {
+                $forms = $root.closest('form');
             } else {
                 $forms = $root.find('form');
             }
@@ -138,7 +140,8 @@ $(function () {
 
 // Initialize when an address field receives focus
 $(document).on('focus', 'form #address', function () {
-    window.initAddressAutocomplete(this);
+    // Pass the parent form so the initializer can correctly wire up fields
+    window.initAddressAutocomplete(this.form || $(this).closest('form')[0]);
 });
 
 // Initialize when modals containing forms are shown
