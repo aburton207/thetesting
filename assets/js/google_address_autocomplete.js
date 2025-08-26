@@ -125,16 +125,5 @@
     };
 })(window);
 
-// Initialize autocomplete when users interact with the page
-$(document).on('focus', '#lead-form #address, #client-form #address', initAddressAutocomplete);
-$(document).on('shown.bs.modal', '#lead-modal, #client-modal', function () {
-    initAddressAutocomplete(this);
-});
-
-// Ensure existing address fields are enhanced once the page is fully loaded
-window.addEventListener('load', function () {
-    if (window.initAddressAutocomplete) {
-        window.initAddressAutocomplete(document);
-    }
-});
+// Forms should call window.initAddressAutocomplete(form) after rendering
 
