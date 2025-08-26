@@ -1,18 +1,19 @@
 // Initialize Google Places Autocomplete for address fields.
-// This script intentionally avoids using a MutationObserver; instead,
-// delegated event handlers initialize autocomplete on demand when users
-// focus an address field or when related modals are displayed.
+// Instead of relying on MutationObserver (which can throw
+// "parameter 1 is not of type 'Node'" errors when the body
+// element isn't ready yet), this file attaches light‑weight
+// event handlers to initialise the autocomplete widget only
+// when the relevant DOM nodes exist.
 (function (window) {
     window.initAddressAutocomplete = function (context) {
-        var $root;
-        if (context && context.target) {
-            $root = $(context.target);
-        } else {
-            $root = $(context);
-        }
+        // Normalise the context so it can be an event, element or jQuery
+        // object. When the function is called without arguments we simply
+        // fall back to the document itself.
+        context = context || document;
+        var $root = $(context.target || context);
 
         var $forms = $();
-        if ($root && $root.length) {
+        if ($root.length) {
             if ($root.is('#lead-form, #client-form')) {
                 $forms = $root;
             } else {
@@ -138,5 +139,10 @@ $(document).on('focus', '#lead-form #address, #client-form #address', function (
 // Initialize when modals containing forms are shown
 $(document).on('shown.bs.modal', function (e) {
     window.initAddressAutocomplete(e.target);
+});
+
+// Initialize when new content is injected via AJAX
+$(document).on('ajaxComplete', function () {
+    window.initAddressAutocomplete(document);
 });
 
