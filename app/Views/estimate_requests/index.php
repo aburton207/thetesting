@@ -51,13 +51,14 @@
                 {title: "# del last yr"},
                 {title: "Buyers group"},
                 {title: "Threaten leave"},
+                {title: "Fixed Price"},
                 {visible: false, searchable: false},
-                {title: '<?php echo app_lang("created_date") ?>', "iDataSort": 22},
+                {title: '<?php echo app_lang("created_date") ?>', "iDataSort": 23},
                 {title: "<?php echo app_lang('status'); ?>"},
                 {title: "<i data-feather='menu' class='icon-16'></i>", "class": "text-center dropdown-option w50"}
             ],
-            printColumns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24],
-            xlsColumns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24]
+            printColumns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 24, 25],
+            xlsColumns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 24, 25]
         });
     });
 </script>
