@@ -2799,4 +2799,13 @@ $lang['show_in_public_form'] = 'Show in public form';
 $lang['full_form'] = 'Full form';
 $lang['volume_by_opportunity_status'] = 'Volume by Opportunity Status';
 
+$lang["leaderboard"] = "Leaderboard";
+$lang["role"] = "Role";
+$lang["closed_won_opportunities"] = "# of Closed Won Opportunities";
+$lang["total_volume"] = "Total Volume";
+$lang["total_margin"] = "Total Margin";
+$lang["commercial_sales"] = "Commercial sales";
+$lang["residential"] = "Residential";
+$lang["closed_date"] = "Closed Date";
+
 return $lang;

@@ -1398,4 +1398,55 @@ function get_details($options = array()) {
 
         return $this->db->query($sql);
     }
+
+    function get_leaderboard($options = array()) {
+        $clients_table = $this->db->prefixTable('clients');
+        $users_table = $this->db->prefixTable('users');
+        $cf_table = $this->db->prefixTable('custom_field_values');
+
+        $where = " AND $clients_table.is_lead=0 AND $clients_table.deleted=0 AND $clients_table.lead_status_id=6";
+        $where .= " AND $users_table.role_id IN (1,7)";
+
+        $owner_id = get_array_value($options, "owner_id");
+        if ($owner_id) {
+            $where .= " AND $users_table.id=" . $this->db->escape($owner_id);
+        }
+
+        $roc = get_array_value($options, "roc");
+        if ($roc) {
+            $where .= " AND $users_table.address=" . $this->db->escape($roc);
+        }
+
+        $role_id = get_array_value($options, "role_id");
+        if ($role_id) {
+            $where .= " AND $users_table.role_id=" . $this->db->escape($role_id);
+        }
+
+        $start_date = get_array_value($options, "start_date");
+        if ($start_date) {
+            $where .= " AND DATE(cf_272.value) >= " . $this->db->escape($start_date);
+        }
+
+        $end_date = get_array_value($options, "end_date");
+        if ($end_date) {
+            $where .= " AND DATE(cf_272.value) <= " . $this->db->escape($end_date);
+        }
+
+        $sql = "SELECT $users_table.id AS staff_id,
+                       CONCAT($users_table.first_name, ' ', $users_table.last_name) AS sales_rep_name,
+                       $users_table.role_id,
+                       $users_table.address AS roc,
+                       COUNT($clients_table.id) AS closed_won,
+                       SUM(IFNULL(cf_273.value,0)) AS total_volume,
+                       SUM(IFNULL(cf_273.value,0) * IFNULL(cf_241.value,0)) AS total_margin
+                FROM $clients_table
+                LEFT JOIN $cf_table AS cf_272 ON cf_272.custom_field_id=272 AND cf_272.related_to_type='clients' AND cf_272.related_to_id=$clients_table.id AND cf_272.deleted=0
+                LEFT JOIN $cf_table AS cf_273 ON cf_273.custom_field_id=273 AND cf_273.related_to_type='clients' AND cf_273.related_to_id=$clients_table.id AND cf_273.deleted=0
+                LEFT JOIN $cf_table AS cf_241 ON cf_241.custom_field_id=241 AND cf_241.related_to_type='clients' AND cf_241.related_to_id=$clients_table.id AND cf_241.deleted=0
+                LEFT JOIN $users_table ON $users_table.id=$clients_table.owner_id
+                WHERE $users_table.deleted=0 AND $users_table.status='active' AND $users_table.user_type='staff' $where
+                GROUP BY $users_table.id";
+
+        return $this->db->query($sql);
+    }
 }
