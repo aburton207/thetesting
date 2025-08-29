@@ -2477,6 +2477,66 @@ private function _save_a_row_of_excel_data($row_data) {
         );
     }
 
+    function leaderboard() {
+        $this->access_only_allowed_members();
+
+        $view_data["team_members_dropdown"] = $this->get_team_members_dropdown(true);
+
+        $roles_dropdown = array(
+            array("id" => "", "text" => "- " . app_lang("role") . " -"),
+            array("id" => "1", "text" => app_lang("commercial_sales")),
+            array("id" => "7", "text" => app_lang("residential"))
+        );
+        $view_data["roles_dropdown"] = json_encode($roles_dropdown);
+
+        $roc_dropdown = array(
+            array("id" => "", "text" => "- " . app_lang("roc") . " -"),
+            array("id" => "Ontario", "text" => "Ontario"),
+            array("id" => "Atlantic", "text" => "Atlantic"),
+            array("id" => "Quebec", "text" => "Quebec"),
+            array("id" => "Pacific", "text" => "Pacific"),
+            array("id" => "Prairies", "text" => "Prairies")
+        );
+        $view_data["roc_dropdown"] = json_encode($roc_dropdown);
+
+        return $this->template->rander("clients/reports/leaderboard", $view_data);
+    }
+
+    function leaderboard_data() {
+        $this->access_only_allowed_members();
+
+        $options = array(
+            "owner_id" => $this->request->getPost("owner_id"),
+            "roc" => $this->request->getPost("roc"),
+            "role_id" => $this->request->getPost("role_id"),
+            "start_date" => $this->request->getPost("start_date"),
+            "end_date" => $this->request->getPost("end_date")
+        );
+
+        $list_data = $this->Clients_model->get_leaderboard($options)->getResult();
+
+        $result = array();
+        foreach ($list_data as $data) {
+            $result[] = $this->_make_leaderboard_row($data);
+        }
+
+        echo json_encode(array("data" => $result));
+    }
+
+    private function _make_leaderboard_row($data) {
+        $member = get_team_member_profile_link($data->staff_id, $data->sales_rep_name);
+        $role = $data->role_id == 1 ? app_lang("commercial_sales") : app_lang("residential");
+
+        return array(
+            $member,
+            $role,
+            $data->roc,
+            $data->closed_won,
+            to_decimal_format($data->total_volume),
+            to_currency($data->total_margin)
+        );
+    }
+
     function load_client_dashboard_summary() {
         $this->access_only_allowed_members();
 
