@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="<?php echo base_url('assets/css/nps_form.css'); ?>" />
+<link rel="stylesheet" href="<?php echo base_url('plugins/Polls/assets/css/nps_form.css'); ?>" />
 <div id="page-content" class="page-wrapper clearfix">
     <div class="card">
         <div class="card-body">
@@ -15,7 +15,16 @@
         $("#nps-form").appForm({
             isModal: false,
             onSuccess: function (result) {
-                $("#nps-form").html(result.message);
+                var $form = $("#nps-form");
+
+                // clear form fields
+                $form[0].reset();
+
+                // remove any existing message
+                $("#nps-response-message").remove();
+
+                // append new message below the form
+                $("<div id='nps-response-message'>" + result.message + "</div>").insertAfter($form);
             }
         });
     });
