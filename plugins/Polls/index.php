@@ -18,21 +18,21 @@ app_hooks()->add_filter('app_filter_staff_left_menu', function ($sidebar_menu) {
     $poll_access_permission = get_poll_setting("access_all_members");
     $poll_view_permission = get_poll_setting("view_all_members");
 
-    $access_poll_specific_permission = unserialize(get_poll_setting("access_poll_specific"));
-    $view_poll_specific_permission = unserialize(get_poll_setting("view_poll_specific"));
+    $raw = get_poll_setting("access_poll_specific");
+    $access_poll_specific_permission = $raw ? unserialize($raw) : array();
 
-    if (!$access_poll_specific_permission) {
-        $access_poll_specific_permission = array();
-    }
-    if (!$view_poll_specific_permission) {
-        $view_poll_specific_permission = array();
-    }
+    $raw = get_poll_setting("view_poll_specific");
+    $view_poll_specific_permission = $raw ? unserialize($raw) : array();
 
     $poll_access_permission_specific = get_array_value($access_poll_specific_permission, "manage_polls_specific");
-    $poll_access_specific = explode(',', $poll_access_permission_specific);
+    $poll_access_specific = $poll_access_permission_specific
+            ? explode(',', $poll_access_permission_specific)
+            : array();
 
     $poll_view_permission_specific = get_array_value($view_poll_specific_permission, "view_polls_specific");
-    $poll_view_specific = explode(',', $poll_view_permission_specific);
+    $poll_view_specific = $poll_view_permission_specific
+            ? explode(',', $poll_view_permission_specific)
+            : array();
 
     $instance = new Security_Controller();
     if ($instance->login_user->is_admin || $poll_access_permission || $poll_view_permission || in_array($instance->login_user->id, $poll_access_specific) || in_array($instance->login_user->id, $poll_view_specific)) {
