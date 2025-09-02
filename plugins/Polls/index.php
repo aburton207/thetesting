@@ -44,6 +44,13 @@ app_hooks()->add_filter('app_filter_staff_left_menu', function ($sidebar_menu) {
             "badge" => polls_count_active_polls(),
             "badge_class" => "bg-primary"
         );
+
+        $sidebar_menu["nps"] = array(
+            "name" => "nps",
+            "url" => "nps",
+            "class" => "bar-chart-2",
+            "position" => 7
+        );
     }
 
     return $sidebar_menu;
@@ -53,7 +60,8 @@ app_hooks()->add_filter('app_filter_staff_left_menu', function ($sidebar_menu) {
 app_hooks()->add_filter('app_filter_action_links_of_Polls', function ($action_links_array) {
     $action_links_array = array(
         anchor(get_uri("poll_settings"), app_lang("settings")),
-        anchor(get_uri("polls"), app_lang("polls"))
+        anchor(get_uri("polls"), app_lang("polls")),
+        anchor(get_uri("nps"), app_lang("nps"))
     );
 
     return $action_links_array;
