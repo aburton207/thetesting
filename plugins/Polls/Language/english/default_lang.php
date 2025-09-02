@@ -54,5 +54,6 @@ $lang["promoters"] = "Promoters";
 $lang["passives"] = "Passives";
 $lang["detractors"] = "Detractors";
 $lang["embed"] = "Embed";
+$lang["additional_comments"] = "Additional comments";
 
 return $lang;

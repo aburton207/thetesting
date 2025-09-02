@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS `nps_responses`(
     `survey_id` INT(11) NOT NULL,
     `question_id` INT(11) NOT NULL,
     `score` TINYINT(4) NOT NULL,
+    `comment` TEXT NULL,
     `token` VARCHAR(255) NOT NULL,
     `created_at` DATETIME NOT NULL,
     PRIMARY KEY(`id`)
