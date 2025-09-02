@@ -243,7 +243,11 @@ class Nps extends \App\Controllers\Security_Controller {
         // ensure the helper with PDF utilities is available
         helper('general');
 
-        \prepare_nps_report_pdf($view_data, $mode);
+        if (function_exists('prepare_nps_report_pdf')) {
+            \prepare_nps_report_pdf($view_data, $mode);
+        } else {
+            show_404();
+        }
     }
 }
 

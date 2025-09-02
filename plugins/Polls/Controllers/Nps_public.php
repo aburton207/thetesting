@@ -45,7 +45,11 @@ class Nps_public extends \App\Controllers\App_Controller {
 
         // start session and get a consistent token for the visitor
         $session = \Config\Services::session();
-        $token = session_id();
+        if (is_callable([$session, 'getId'])) {
+            $token = $session->getId();
+        } else {
+            $token = session_id();
+        }
         if (!$token) {
             $token = $session->get('nps_token');
             if (!$token) {
