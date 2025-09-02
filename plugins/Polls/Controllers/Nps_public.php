@@ -75,7 +75,10 @@ class Nps_public extends \App\Controllers\App_Controller {
             $this->Nps_responses_model->save_score($data);
         }
 
-        echo json_encode(["success" => true, "message" => app_lang("thank_you_for_your_feedback")]);
+        echo json_encode([
+            "success" => true,
+            "message" => view("Polls\\Views\\nps\\thank_you")
+        ]);
     }
 
     // lightweight view for iframe embedding
