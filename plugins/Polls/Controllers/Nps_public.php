@@ -42,8 +42,8 @@ class Nps_public extends \App\Controllers\App_Controller {
         ]);
 
         $survey_id = $this->request->getPost("survey_id");
-        $session = \Config\Services::session();
-        $token = $session->getId();
+        \Config\Services::session();
+        $token = session_id();
         if (!$token) {
             $token = bin2hex(random_bytes(16));
         }
@@ -75,7 +75,7 @@ class Nps_public extends \App\Controllers\App_Controller {
             $this->Nps_responses_model->save_score($data);
         }
 
-        echo json_encode(["success" => true, "message" => app_lang("thank_you")]);
+        echo json_encode(["success" => true, "message" => app_lang("thank_you_for_your_feedback")]);
     }
 
     // lightweight view for iframe embedding
