@@ -55,5 +55,6 @@ $lang["passives"] = "Passives";
 $lang["detractors"] = "Detractors";
 $lang["embed"] = "Embed";
 $lang["additional_comments"] = "Additional comments";
-
+$lang["score"] = "Score";
+$lang["question"] = "Question";
 return $lang;
