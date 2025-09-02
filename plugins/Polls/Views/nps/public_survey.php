@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="<?php echo base_url('assets/css/nps_form.css'); ?>" />
+<link rel="stylesheet" href="<?php echo base_url('plugins/Polls/assets/css/nps_form.css'); ?>" />
 <div id="page-content" class="page-wrapper clearfix">
     <div class="card">
         <div class="card-body">
