@@ -17,7 +17,7 @@
                 <tbody>
                     <?php foreach ($questions as $question) { ?>
                         <tr>
-                            <td><?php echo $question->title; ?></td>
+                            <td><?php echo $question->question_text; ?></td>
                             <td class="text-center option">
                                 <?php
                                 echo modal_anchor(get_uri("nps/question_form"), "<i data-feather='edit' class='icon-16'></i>", array("class" => "edit", "title" => app_lang('edit'), "data-post-id" => $question->id, "data-post-survey_id" => $survey->id));

@@ -37,11 +37,11 @@ class Nps_responses_model extends \App\Models\Crud_model {
 
         $survey_id = $this->_get_clean_value($survey_id);
 
-        $sql = "SELECT $responses_table.question_id, $responses_table.score, COUNT($responses_table.id) AS total, $questions_table.title
+        $sql = "SELECT $responses_table.question_id, $responses_table.score, COUNT($responses_table.id) AS total, $questions_table.question_text AS title
                 FROM $responses_table
                 LEFT JOIN $questions_table ON $questions_table.id = $responses_table.question_id
                 WHERE $responses_table.survey_id=$survey_id
-                GROUP BY $responses_table.question_id, $responses_table.score, $questions_table.title
+                GROUP BY $responses_table.question_id, $responses_table.score, $questions_table.question_text
                 ORDER BY $responses_table.question_id ASC, $responses_table.score ASC";
         return $this->db->query($sql);
     }
