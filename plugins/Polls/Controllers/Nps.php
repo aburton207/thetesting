@@ -58,7 +58,7 @@ class Nps extends \App\Controllers\Security_Controller {
     function question_form() {
         $id = $this->request->getPost('id');
         $survey_id = $this->request->getPost('survey_id');
-        $view_data['model_info'] = (object) $this->Nps_questions_model->get_one($id);
+        $view_data['model_info'] = $this->Nps_questions_model->get_one($id);
         $view_data['survey_id'] = $survey_id;
         return $this->template->view('Polls\\Views\\nps\\question_form', $view_data);
     }
@@ -74,7 +74,7 @@ class Nps extends \App\Controllers\Security_Controller {
         $id = $this->request->getPost('id');
         $data = array(
             "survey_id" => $this->request->getPost('survey_id'),
-            "title" => $this->request->getPost('title'),
+            "question_text" => $this->request->getPost('title'),
             "sort_order" => $this->request->getPost('sort_order')
         );
 
