@@ -1,19 +1,243 @@
-body {font-family: Arial, sans-serif; background: #f7f7f7; color: #333;}
-.nps-form {max-width: 300px; margin: 20px auto; text-align: center; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);}
-.nps-logo img {max-width: 80px; margin-bottom: 15px;}
-.nps-question {margin-bottom: 20px;}
-.nps-question-text {font-weight: 600; display: block; margin-bottom: 15px;}
-.nps-scale {display: flex; justify-content: space-between;}
-.nps-option {flex: 1; margin: 0 2px;}
-.nps-option input {display: none;}
-.nps-option span {display: block; padding: 6px 0; border-radius: 4px; color: #fff; font-size: 12px; cursor: pointer;}
-.nps-option.nps-0 span, .nps-option.nps-1 span, .nps-option.nps-2 span {background: #ff6b6b;}
-.nps-option.nps-3 span, .nps-option.nps-4 span {background: #ffa94d;}
-.nps-option.nps-5 span, .nps-option.nps-6 span {background: #ffd43b; color: #000;}
-.nps-option.nps-7 span, .nps-option.nps-8 span {background: #94d82d;}
-.nps-option.nps-9 span, .nps-option.nps-10 span {background: #38d9a9;}
-.nps-option input:checked + span {box-shadow: 0 0 0 2px #333;}
-.nps-scale-labels {display: flex; justify-content: space-between; font-size: 12px; margin-top: 8px;}
-.nps-comment {width: 100%; margin-top: 10px; min-height: 60px; border: 1px solid #ccc; border-radius: 4px; padding: 6px; resize: vertical;}
-.nps-submit-button {margin-top: 15px; padding: 8px 16px; background: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer; width: 100%;}
-.nps-submit-button:hover {background: #0056b3;}
+/* ---------- Design tokens ---------- */
+:root {
+  --brand: #0a84ff;
+  --brand-ink: #fff;
+  --bg: #ffffff;
+  --ink: #111827;          /* neutral-900 */
+  --muted: #6b7280;        /* neutral-500 */
+  --ring: 0 0 0 3px rgba(10,132,255,.25);
+  --radius: 12px;
+  --shadow: 0 6px 20px rgba(17, 24, 39, 0.08);
+  --input-bd: #e5e7eb;     /* neutral-200 */
+  --input-bg: #f9fafb;     /* neutral-50 */
+  --gap: 12px;
+  --pad: 18px;
+  --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Inter, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+/* Dark mode polish */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b0f17;
+    --ink: #e5e7eb;
+    --muted: #9ca3af;
+    --input-bd: #1f2937;
+    --input-bg: #121723;
+    --shadow: 0 8px 24px rgba(0, 0, 0, .4);
+  }
+}
+
+/* ---------- Layout ---------- */
+.nps-form {
+  font-family: var(--font);
+  max-width: 560px;
+  margin: 32px auto;
+  background: var(--bg);
+  color: var(--ink);
+  padding: clamp(18px, 3vw, 28px);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(17,24,39,.06);
+}
+
+.nps-logo img {
+  width: 88px;
+  height: auto;
+  margin: 0 auto 12px;
+  display: block;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,.08));
+}
+
+.nps-question { 
+  padding: 16px 0 20px;
+  border-top: 1px solid rgba(17,24,39,.06);
+}
+.nps-question:first-of-type { border-top: 0; }
+
+.nps-question-text {
+  font-weight: 650;
+  font-size: 1.05rem;
+  margin-bottom: 12px;
+  line-height: 1.35;
+}
+
+/* ---------- Scale as grid ---------- */
+.nps-scale {
+  display: grid;
+  grid-template-columns: repeat(11, 1fr);
+  gap: 8px;
+}
+
+.nps-option {
+  position: relative;
+}
+
+.nps-option input {
+  /* accessible visually-hidden utility */
+  position: absolute !important;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.nps-option span {
+  display: block;
+  text-align: center;
+  padding: 10px 0;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .2px;
+  background: linear-gradient(180deg, #f3f4f6, #e5e7eb); /* default if no class */
+  color: #111827;
+  border: 1px solid rgba(17,24,39,.08);
+  transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease, background .2s ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Color ramp: red -> amber -> yellow -> lime -> teal */
+.nps-option.nps-0 span,
+.nps-option.nps-1 span,
+.nps-option.nps-2 span { background: linear-gradient(180deg, #ff8686, #ff6b6b); color: #fff; }
+.nps-option.nps-3 span,
+.nps-option.nps-4 span { background: linear-gradient(180deg, #ffbf7a, #ffa94d); color: #3a2410; }
+.nps-option.nps-5 span,
+.nps-option.nps-6 span { background: linear-gradient(180deg, #ffe770, #ffd43b); color: #2a2000; }
+.nps-option.nps-7 span,
+.nps-option.nps-8 span { background: linear-gradient(180deg, #a9eb52, #94d82d); color: #0f2b00; }
+.nps-option.nps-9 span,
+.nps-option.nps-10 span { background: linear-gradient(180deg, #5fe3c1, #38d9a9); color: #052825; }
+
+/* Hover/active states */
+@media (hover: hover) {
+  .nps-option:hover span { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(0,0,0,.08); }
+}
+.nps-option:active span { transform: translateY(0); }
+
+/* Checked state: crisp ring + subtle lift */
+.nps-option input:checked + span {
+  box-shadow: var(--ring), 0 8px 18px rgba(0,0,0,.08);
+  border-color: rgba(10,132,255,.5);
+}
+
+/* Keyboard focus ring for accessibility */
+.nps-option input:focus-visible + span {
+  outline: none;
+  box-shadow: var(--ring), 0 8px 18px rgba(0,0,0,.08);
+}
+
+/* Labels under scale */
+.nps-scale-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 8px;
+}
+
+/* Comment box */
+.nps-comment {
+  width: 100%;
+  margin-top: 12px;
+  min-height: 84px;
+  border: 1px solid var(--input-bd);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: var(--input-bg);
+  color: var(--ink);
+  line-height: 1.45;
+  transition: box-shadow .12s ease, border-color .12s ease, background .2s ease;
+}
+.nps-comment::placeholder { color: var(--muted); }
+.nps-comment:focus {
+  outline: none;
+  border-color: rgba(10,132,255,.5);
+  box-shadow: var(--ring);
+}
+
+/* Submit button */
+.nps-submit-button {
+  margin-top: 18px;
+  padding: 12px 16px;
+  width: 100%;
+  border: 0;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #1a8cff, #0a84ff);
+  color: var(--brand-ink);
+  font-weight: 700;
+  letter-spacing: .2px;
+  cursor: pointer;
+  transition: transform .12s ease, box-shadow .12s ease, filter .2s ease;
+  box-shadow: 0 10px 24px rgba(10,132,255,.25);
+}
+.nps-submit-button:hover { transform: translateY(-1px); box-shadow: 0 14px 32px rgba(10,132,255,.3); }
+.nps-submit-button:active { transform: translateY(0); }
+.nps-submit-button:focus-visible { outline: none; box-shadow: var(--ring), 0 14px 32px rgba(10,132,255,.3); }
+
+/* Tiny helper text (optional) */
+.nps-pretext {
+  margin: 6px 0 18px;
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* Responsive niceties */
+@media (max-width: 420px) {
+  .nps-scale { gap: 6px; }
+  .nps-option span { padding: 9px 0; font-size: 12px; }
+}
+/* Fix odd borders + spacing coming from fieldset/legend defaults */
+.nps-form * { box-sizing: border-box; }
+
+fieldset.nps-question {
+  border: 0;               /* remove the black border */
+  margin: 0;
+  padding: 16px 0 20px;    /* keep our own rhythm */
+}
+
+legend.nps-question-text {
+  margin: 0 0 12px;
+  padding: 0;
+  width: 100%;
+  display: block;          /* avoids clipping/indent */
+}
+
+/* Keep a subtle divider between questions (optional) */
+.nps-question + .nps-question { 
+  border-top: 1px solid rgba(17,24,39,.08);
+}
+
+/* Make sure the scale + labels align cleanly edge-to-edge */
+.nps-scale,
+.nps-scale-labels,
+.nps-comment {
+  width: 100%;
+}
+
+/* Prevent any overflow that can draw a stray right-side line */
+.nps-scale { 
+  overflow: visible; 
+}
+
+/* Textarea rounding/overlap + tidy alignment */
+.nps-comment {
+  display: block;
+  margin-top: 12px;
+  border-radius: 10px;
+}
+
+/* Tighten the label row and ensure it doesn’t wrap weirdly */
+.nps-scale-labels {
+  align-items: center;
+  gap: 12px;
+  white-space: nowrap;
+}
+
+/* If you keep the earlier "section border" on .nps-question, make it subtle */
+.nps-question { 
+  border-top-color: rgba(17,24,39,.08) !important;
+}
