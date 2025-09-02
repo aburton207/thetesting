@@ -15,7 +15,16 @@
         $("#nps-form").appForm({
             isModal: false,
             onSuccess: function (result) {
-                $("#nps-form").html(result.message);
+                var $form = $("#nps-form");
+
+                // clear form fields
+                $form[0].reset();
+
+                // remove any existing message
+                $("#nps-response-message").remove();
+
+                // append new message below the form
+                $("<div id='nps-response-message'>" + result.message + "</div>").insertAfter($form);
             }
         });
     });
