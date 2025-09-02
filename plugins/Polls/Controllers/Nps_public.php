@@ -82,11 +82,10 @@ class Nps_public extends \App\Controllers\App_Controller {
 
         $view_data = [
             "survey" => $survey,
-            "questions" => $this->Nps_questions_model->get_details(["survey_id" => $survey_id])->getResult(),
-            "embedded" => true
+            "questions" => $this->Nps_questions_model->get_details(["survey_id" => $survey_id])->getResult()
         ];
 
-        return $this->template->view("Polls\\Views\\nps\\public_survey", $view_data);
+        return $this->template->view("Polls\\Views\\nps\\embed", $view_data);
     }
 }
 
