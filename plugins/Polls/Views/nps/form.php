@@ -3,7 +3,6 @@
 <?php foreach ($questions as $question) { ?>
     <div class="nps-question">
         <label><?php echo $question->title; ?></label>
-        <input type="hidden" name="question_id[]" value="<?php echo $question->id; ?>" />
         <div class="nps-scale">
             <?php for ($i = 0; $i <= 10; $i++) { ?>
                 <label><input type="radio" name="score[<?php echo $question->id; ?>]" value="<?php echo $i; ?>" required> <?php echo $i; ?></label>

@@ -55,17 +55,24 @@ class Nps_public extends \App\Controllers\App_Controller {
         }
 
         $scores = $this->request->getPost("score");
-        if ($scores && is_array($scores)) {
-            foreach ($scores as $question_id => $score) {
-                $data = [
-                    "survey_id" => $survey_id,
-                    "question_id" => $question_id,
-                    "score" => $score,
-                    "token" => $token,
-                    "created_at" => get_current_utc_time()
-                ];
-                $this->Nps_responses_model->save_score($data);
-            }
+        $question_ids = array_map(function($q) { return $q->id; }, $this->Nps_questions_model->get_details(["survey_id" => $survey_id])->getResult());
+        $submitted_ids = $scores && is_array($scores) ? array_map('intval', array_keys($scores)) : [];
+        $missing_questions = array_diff($question_ids, $submitted_ids);
+
+        if ($missing_questions) {
+            echo json_encode(["success" => false, "message" => app_lang("please_input_all_required_fields")]);
+            return;
+        }
+
+        foreach ($scores as $question_id => $score) {
+            $data = [
+                "survey_id" => $survey_id,
+                "question_id" => $question_id,
+                "score" => $score,
+                "token" => $token,
+                "created_at" => get_current_utc_time()
+            ];
+            $this->Nps_responses_model->save_score($data);
         }
 
         echo json_encode(["success" => true, "message" => app_lang("thank_you")]);
