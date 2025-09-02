@@ -91,6 +91,38 @@ class Nps extends \App\Controllers\Security_Controller {
         }
     }
 
+    // list questions of a survey
+    function questions($survey_id = 0) {
+        validate_numeric_value($survey_id);
+
+        $survey = $this->Nps_surveys_model->get_one($survey_id);
+        if (!$survey || !$survey->id) {
+            show_404();
+        }
+
+        $view_data = array(
+            "survey" => $survey,
+            "questions" => $this->Nps_questions_model->get_details(array("survey_id" => $survey_id))->getResult()
+        );
+
+        return $this->template->rander("Polls\\Views\\nps\\questions", $view_data);
+    }
+
+    // delete a question
+    function delete_question() {
+        $this->validate_submitted_data(array(
+            "id" => "required|numeric"
+        ));
+
+        $id = $this->request->getPost('id');
+
+        if ($this->Nps_questions_model->delete($id)) {
+            echo json_encode(array("success" => true, 'message' => app_lang('record_deleted')));
+        } else {
+            echo json_encode(array("success" => false, 'message' => app_lang('record_cannot_be_deleted')));
+        }
+    }
+
     // show NPS report
     function report($survey_id = 0) {
         $survey = $this->Nps_surveys_model->get_one($survey_id);
