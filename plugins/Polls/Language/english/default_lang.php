@@ -47,4 +47,12 @@ $lang["polls_expire_date_must_be_equal_or_greater_than_today"] = "Expire date mu
 $lang["poll_created"] = "Poll created";
 $lang["notification_poll_created"] = "Created a new poll.";
 
+// NPS
+$lang["nps"] = "NPS";
+$lang["nps_score"] = "NPS Score";
+$lang["promoters"] = "Promoters";
+$lang["passives"] = "Passives";
+$lang["detractors"] = "Detractors";
+$lang["embed"] = "Embed";
+
 return $lang;
