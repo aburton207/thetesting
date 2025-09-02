@@ -4,7 +4,7 @@
     <input type="hidden" name="survey_id" value="<?php echo $survey_id; ?>" />
     <div class="form-group">
         <label><?php echo app_lang("question"); ?></label>
-        <?php echo form_input(array("id" => "title", "name" => "title", "value" => $model_info->title, "class" => "form-control", "required" => "required")); ?>
+        <?php echo form_input(array("id" => "title", "name" => "title", 'value' => $model_info->title ?? '', "class" => "form-control", "required" => "required")); ?>
     </div>
 </div>
 <div class="modal-footer">
