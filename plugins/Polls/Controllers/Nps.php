@@ -98,19 +98,22 @@ class Nps extends \App\Controllers\Security_Controller {
             show_404();
         }
 
-        $responses = $this->Nps_responses_model->get_details(array("survey_id" => $survey_id))->getResult();
-        $promoters = $passives = $detractors = 0;
-        foreach ($responses as $response) {
-            $score = (int) $response->score;
+        $summary = $this->Nps_responses_model->get_summary($survey_id)->getResult();
+
+        $promoters = $passives = $detractors = $total = 0;
+        foreach ($summary as $row) {
+            $score = (int) $row->score;
+            $count = (int) $row->total;
+            $total += $count;
             if ($score >= 9) {
-                $promoters++;
+                $promoters += $count;
             } else if ($score >= 7) {
-                $passives++;
+                $passives += $count;
             } else {
-                $detractors++;
+                $detractors += $count;
             }
         }
-        $total = count($responses);
+
         $nps_score = $total ? (($promoters - $detractors) / $total) * 100 : 0;
 
         $view_data = array(
@@ -118,7 +121,16 @@ class Nps extends \App\Controllers\Security_Controller {
             "promoters" => $promoters,
             "passives" => $passives,
             "detractors" => $detractors,
-            "nps_score" => $nps_score
+            "nps_score" => $nps_score,
+            "total" => $total,
+            "promoters_percent" => $total ? ($promoters / $total) * 100 : 0,
+            "passives_percent" => $total ? ($passives / $total) * 100 : 0,
+            "detractors_percent" => $total ? ($detractors / $total) * 100 : 0,
+            "poll_answers" => array(
+                (object) ["title" => app_lang('promoters'), "total_vote" => $promoters],
+                (object) ["title" => app_lang('passives'), "total_vote" => $passives],
+                (object) ["title" => app_lang('detractors'), "total_vote" => $detractors]
+            )
         );
 
         return $this->template->rander("Polls\\Views\\nps\\report", $view_data);
