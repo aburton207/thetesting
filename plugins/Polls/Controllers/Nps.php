@@ -133,10 +133,14 @@ class Nps extends \App\Controllers\Security_Controller {
         $summary = $this->Nps_responses_model->get_summary($survey_id)->getResult();
 
         $promoters = $passives = $detractors = $total = 0;
+        $questions_summary = array();
+
         foreach ($summary as $row) {
             $score = (int) $row->score;
             $count = (int) $row->total;
             $total += $count;
+
+            // overall summary
             if ($score >= 9) {
                 $promoters += $count;
             } else if ($score >= 7) {
@@ -144,7 +148,49 @@ class Nps extends \App\Controllers\Security_Controller {
             } else {
                 $detractors += $count;
             }
+
+            // summary per question
+            $question_id = $row->question_id;
+            if (!isset($questions_summary[$question_id])) {
+                $questions_summary[$question_id] = array(
+                    "id" => $question_id,
+                    "title" => $row->title,
+                    "scores" => array_fill(0, 11, 0),
+                    "promoters" => 0,
+                    "passives" => 0,
+                    "detractors" => 0,
+                    "total" => 0
+                );
+            }
+
+            $questions_summary[$question_id]["scores"][$score] = $count;
+            $questions_summary[$question_id]["total"] += $count;
+
+            if ($score >= 9) {
+                $questions_summary[$question_id]["promoters"] += $count;
+            } else if ($score >= 7) {
+                $questions_summary[$question_id]["passives"] += $count;
+            } else {
+                $questions_summary[$question_id]["detractors"] += $count;
+            }
         }
+
+        foreach ($questions_summary as &$question) {
+            $question_total = $question["total"];
+            $question["promoters_percent"] = $question_total ? ($question["promoters"] / $question_total) * 100 : 0;
+            $question["passives_percent"] = $question_total ? ($question["passives"] / $question_total) * 100 : 0;
+            $question["detractors_percent"] = $question_total ? ($question["detractors"] / $question_total) * 100 : 0;
+            $question["nps_score"] = $question_total ? (($question["promoters"] - $question["detractors"]) / $question_total) * 100 : 0;
+            $question["poll_answers"] = array(
+                (object) ["title" => app_lang('promoters'), "total_vote" => $question["promoters"]],
+                (object) ["title" => app_lang('passives'), "total_vote" => $question["passives"]],
+                (object) ["title" => app_lang('detractors'), "total_vote" => $question["detractors"]]
+            );
+        }
+
+        unset($question);
+
+        $questions_summary = array_values($questions_summary);
 
         $nps_score = $total ? (($promoters - $detractors) / $total) * 100 : 0;
 
@@ -162,7 +208,8 @@ class Nps extends \App\Controllers\Security_Controller {
                 (object) ["title" => app_lang('promoters'), "total_vote" => $promoters],
                 (object) ["title" => app_lang('passives'), "total_vote" => $passives],
                 (object) ["title" => app_lang('detractors'), "total_vote" => $detractors]
-            )
+            ),
+            "questions_summary" => $questions_summary
         );
 
         return $this->template->rander("Polls\\Views\\nps\\report", $view_data);
