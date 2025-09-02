@@ -123,11 +123,12 @@ class Nps extends \App\Controllers\Security_Controller {
         }
     }
 
-    // show NPS report
-    function report($survey_id = 0) {
+    private function _prepare_report_data($survey_id) {
+        validate_numeric_value($survey_id);
+
         $survey = $this->Nps_surveys_model->get_one($survey_id);
         if (!$survey || !$survey->id) {
-            show_404();
+            return false;
         }
 
         $summary = $this->Nps_responses_model->get_summary($survey_id)->getResult();
@@ -194,7 +195,15 @@ class Nps extends \App\Controllers\Security_Controller {
 
         $nps_score = $total ? (($promoters - $detractors) / $total) * 100 : 0;
 
-        $view_data = array(
+        $responses = $this->Nps_responses_model->get_details(["survey_id" => $survey_id])->getResult();
+        $comments_by_question = array();
+        foreach ($responses as $response) {
+            if ($response->comment) {
+                $comments_by_question[$response->question_id][] = $response;
+            }
+        }
+
+        return array(
             "survey" => $survey,
             "promoters" => $promoters,
             "passives" => $passives,
@@ -209,10 +218,29 @@ class Nps extends \App\Controllers\Security_Controller {
                 (object) ["title" => app_lang('passives'), "total_vote" => $passives],
                 (object) ["title" => app_lang('detractors'), "total_vote" => $detractors]
             ),
-            "questions_summary" => $questions_summary
+            "questions_summary" => $questions_summary,
+            "comments_by_question" => $comments_by_question
         );
+    }
+
+    // show NPS report
+    function report($survey_id = 0) {
+        $view_data = $this->_prepare_report_data($survey_id);
+        if (!$view_data) {
+            show_404();
+        }
 
         return $this->template->rander("Polls\\Views\\nps\\report", $view_data);
+    }
+
+    // download NPS report as PDF
+    function download_pdf($survey_id = 0, $mode = "download") {
+        $view_data = $this->_prepare_report_data($survey_id);
+        if (!$view_data) {
+            show_404();
+        }
+
+        prepare_nps_report_pdf($view_data, $mode);
     }
 }
 
