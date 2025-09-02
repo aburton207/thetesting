@@ -238,6 +238,20 @@ legend.nps-question-text {
 }
 
 /* If you keep the earlier "section border" on .nps-question, make it subtle */
-.nps-question { 
+.nps-question {
   border-top-color: rgba(17,24,39,.08) !important;
+}
+
+/* Message shown after submitting */
+.nps-response-message {
+  font-family: var(--font);
+  max-width: 560px;
+  margin: 32px auto;
+  background: var(--bg);
+  color: var(--ink);
+  padding: clamp(18px, 3vw, 28px);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(17,24,39,.06);
+  text-align: center;
 }
