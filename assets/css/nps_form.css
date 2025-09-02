@@ -1,0 +1,19 @@
+body {font-family: Arial, sans-serif; background: #f7f7f7; color: #333;}
+.nps-form {max-width: 300px; margin: 20px auto; text-align: center; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);}
+.nps-logo img {max-width: 80px; margin-bottom: 15px;}
+.nps-question {margin-bottom: 20px;}
+.nps-question-text {font-weight: 600; display: block; margin-bottom: 15px;}
+.nps-scale {display: flex; justify-content: space-between;}
+.nps-option {flex: 1; margin: 0 2px;}
+.nps-option input {display: none;}
+.nps-option span {display: block; padding: 6px 0; border-radius: 4px; color: #fff; font-size: 12px; cursor: pointer;}
+.nps-option.nps-0 span, .nps-option.nps-1 span, .nps-option.nps-2 span {background: #ff6b6b;}
+.nps-option.nps-3 span, .nps-option.nps-4 span {background: #ffa94d;}
+.nps-option.nps-5 span, .nps-option.nps-6 span {background: #ffd43b; color: #000;}
+.nps-option.nps-7 span, .nps-option.nps-8 span {background: #94d82d;}
+.nps-option.nps-9 span, .nps-option.nps-10 span {background: #38d9a9;}
+.nps-option input:checked + span {box-shadow: 0 0 0 2px #333;}
+.nps-scale-labels {display: flex; justify-content: space-between; font-size: 12px; margin-top: 8px;}
+.nps-comment {width: 100%; margin-top: 10px; min-height: 60px; border: 1px solid #ccc; border-radius: 4px; padding: 6px; resize: vertical;}
+.nps-submit-button {margin-top: 15px; padding: 8px 16px; background: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer; width: 100%;}
+.nps-submit-button:hover {background: #0056b3;}
