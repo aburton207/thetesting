@@ -44,3 +44,30 @@ ALTER TABLE `notifications` ADD `plugin_poll_id` INT(11) NOT NULL AFTER `deleted
 
 INSERT INTO `email_templates`(`id`, `template_name`, `email_subject`, `default_message`, `custom_message`, `template_type`, `language`, `deleted`) VALUES 
 (NULL,'poll_created','New poll created','<div style="background-color: #eeeeef; padding: 50px 0; "> <div style="max-width:640px; margin:0 auto; "> <div style="color: #fff; text-align: center; background-color:#33333e; padding: 30px; border-top-left-radius: 3px; border-top-right-radius: 3px; margin: 0;"><h1>Poll #{POLL_ID}</h1></div><div style="padding: 20px; background-color: rgb(255, 255, 255);"><p style=""><span style="line-height: 18.5714px; font-weight: bold;">Title: {POLL_TITLE}</span><span style="line-height: 18.5714px;"><br></span></p><p style=""><span style="line-height: 18.5714px;">{POLL_DESCRIPTION}</span><br></p> <p style="">This poll will be expired {POLL_EXPIRE_AT}. Please check it out.</p><p style=""><br></p> <p style=""><span style="color: rgb(85, 85, 85); font-size: 14px; line-height: 20px;"><a style="background-color: #00b393; padding: 10px 15px; color: #ffffff;" href="{POLL_URL}" target="_blank">Show Poll</a></span></p> <p style=""><br></p>   </div>  </div> </div>',"","default","",0); --#
+CREATE TABLE IF NOT EXISTS `nps_surveys`(
+    `id` INT(11) NOT NULL AUTO_INCREMENT,
+    `title` TEXT COLLATE utf8_unicode_ci NOT NULL,
+    `description` TEXT COLLATE utf8_unicode_ci NULL,
+    `created_at` DATETIME NOT NULL,
+    `status` ENUM('active', 'inactive') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'active',
+    PRIMARY KEY(`id`)
+) ENGINE = INNODB DEFAULT CHARSET = utf8 COLLATE = utf8_unicode_ci; --#
+
+CREATE TABLE IF NOT EXISTS `nps_questions`(
+    `id` INT(11) NOT NULL AUTO_INCREMENT,
+    `survey_id` INT(11) NOT NULL,
+    `question_text` TEXT COLLATE utf8_unicode_ci NOT NULL,
+    `sort_order` INT(11) NOT NULL DEFAULT '0',
+    PRIMARY KEY(`id`)
+) ENGINE = INNODB DEFAULT CHARSET = utf8 COLLATE = utf8_unicode_ci; --#
+
+CREATE TABLE IF NOT EXISTS `nps_responses`(
+    `id` INT(11) NOT NULL AUTO_INCREMENT,
+    `survey_id` INT(11) NOT NULL,
+    `question_id` INT(11) NOT NULL,
+    `score` TINYINT(4) NOT NULL,
+    `token` VARCHAR(255) NOT NULL,
+    `created_at` DATETIME NOT NULL,
+    PRIMARY KEY(`id`)
+) ENGINE = INNODB DEFAULT CHARSET = utf8 COLLATE = utf8_unicode_ci; --#
+
