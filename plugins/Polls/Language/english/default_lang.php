@@ -32,6 +32,8 @@ $lang["polls_all_members"] = "All members";
 $lang["polls_specific_members"] = "Specific members";
 $lang["polls_choose_members"] = "Choose members";
 
+$lang["manage_questions"] = "Manage questions";
+
 /* settings */
 $lang["polls_who_can_manage_polls"] = "Who can manage polls?";
 $lang["polls_who_can_view_polls"] = "Who can view polls?";

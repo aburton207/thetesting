@@ -12,6 +12,7 @@
                     <tr>
                         <th><?php echo app_lang("title"); ?></th>
                         <th><?php echo app_lang("status"); ?></th>
+                        <th class="text-center option w100"><i data-feather='menu' class='icon-16'></i></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -19,6 +20,9 @@
                         <tr>
                             <td><?php echo anchor(get_uri("nps/report/" . $survey->id), $survey->title); ?></td>
                             <td><?php echo $survey->status; ?></td>
+                            <td class="text-center option">
+                                <?php echo anchor(get_uri("nps/questions/" . $survey->id), app_lang('manage_questions')); ?>
+                            </td>
                         </tr>
                     <?php } ?>
                 </tbody>
