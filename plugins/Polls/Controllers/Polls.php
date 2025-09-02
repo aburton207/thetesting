@@ -6,6 +6,7 @@ class Polls extends \App\Controllers\Security_Controller {
 
     protected $Polls_model;
     protected $Poll_answers_model;
+    protected $Votes_model;
     protected $Votes_table;
     protected $Poll_settings_model;
 
