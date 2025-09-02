@@ -42,10 +42,16 @@ class Nps_public extends \App\Controllers\App_Controller {
         ]);
 
         $survey_id = $this->request->getPost("survey_id");
-        \Config\Services::session();
+
+        // start session and get a consistent token for the visitor
+        $session = \Config\Services::session();
         $token = session_id();
         if (!$token) {
-            $token = bin2hex(random_bytes(16));
+            $token = $session->get('nps_token');
+            if (!$token) {
+                $token = bin2hex(random_bytes(16));
+                $session->set('nps_token', $token);
+            }
         }
 
         $existing = $this->Nps_responses_model->get_details(["survey_id" => $survey_id, "token" => $token])->getRow();
