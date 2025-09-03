@@ -985,46 +985,7 @@ if (!function_exists('prepare_order_pdf')) {
 }
 
 /**
- * Prepare NPS report PDF
  *
- * @param array $data
- * @param string $mode
- * @return void|string
- */
-if (!function_exists('prepare_nps_report_pdf')) {
-
-    function prepare_nps_report_pdf($data, $mode = "download") {
-        $pdf = new Pdf();
-        $pdf->setPrintHeader(false);
-        $pdf->setPrintFooter(false);
-        $pdf->AddPage();
-
-        if ($data) {
-            $data["mode"] = clean_data($mode);
-            $data["is_pdf"] = true;
-            $html = view("Polls\\Views\\nps\\report", $data);
-            if ($mode !== "html") {
-                $pdf->writeHTML($html, true, false, true, false, '');
-            }
-
-            $survey = get_array_value($data, "survey");
-            $pdf_file_name = "nps-report-" . $survey->id . ".pdf";
-
-            if ($mode === "download") {
-                $pdf->Output($pdf_file_name, "D");
-            } else if ($mode === "view") {
-                $pdf->SetTitle($pdf_file_name);
-                $pdf->Output($pdf_file_name, "I");
-                exit;
-            } else if ($mode === "html") {
-                return $html;
-            }
-        }
-    }
-}
-
-/**
- * 
  * get invoice number
  * @param Int $invoice_id
  * @return string
