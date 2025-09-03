@@ -20,6 +20,8 @@ $routes->post('nps/submit', 'Nps_public::submit', $polls_namespace);
 // internal NPS routes
 $routes->post('nps/(:any)', 'Nps::$1', $polls_namespace);
 $routes->get('nps/(:any)', 'Nps::$1', $polls_namespace);
+$routes->post('nps/(:any)/(:any)', 'Nps::$1/$2', $polls_namespace);
+$routes->get('nps/(:any)/(:any)', 'Nps::$1/$2', $polls_namespace);
 
 $routes->get('poll_settings', 'Poll_settings::index', $polls_namespace);
 $routes->post('poll_settings/(:any)', 'Poll_settings::$1', $polls_namespace);
