@@ -320,6 +320,14 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 legend: {display: false},
+                plugins: {
+                    datalabels: {
+                        color: '#333',
+                        formatter: function(value) {
+                            return value.toLocaleString();
+                        }
+                    }
+                },
                 scales: {
                     xAxes: [{
                             ticks: {autoSkip: false}
