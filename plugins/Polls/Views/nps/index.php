@@ -21,7 +21,10 @@
                             <td><?php echo anchor(get_uri("nps/report/" . $survey->id), $survey->title); ?></td>
                             <td><?php echo $survey->status; ?></td>
                             <td class="text-center option">
-                                <?php echo anchor(get_uri("nps/questions/" . $survey->id), app_lang('manage_questions')); ?>
+                                <?php
+                                echo anchor(get_uri("nps/questions/" . $survey->id), "<i data-feather='list' class='icon-16'></i>", array("title" => app_lang('manage_questions')));
+                                echo js_anchor("<i data-feather='x' class='icon-16'></i>", array("title" => app_lang('delete'), "class" => "delete", "data-id" => $survey->id, "data-action-url" => get_uri("nps/delete"), "data-action" => "delete-confirmation"));
+                                ?>
                             </td>
                         </tr>
                     <?php } ?>
