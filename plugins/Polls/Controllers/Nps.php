@@ -54,6 +54,21 @@ class Nps extends \App\Controllers\Security_Controller {
         }
     }
 
+    // delete survey
+    function delete() {
+        $this->validate_submitted_data(array(
+            "id" => "required|numeric"
+        ));
+
+        $id = $this->request->getPost('id');
+
+        if ($this->Nps_surveys_model->delete($id)) {
+            echo json_encode(array("success" => true, 'message' => app_lang('record_deleted')));
+        } else {
+            echo json_encode(array("success" => false, 'message' => app_lang('record_cannot_be_deleted')));
+        }
+    }
+
     // load question add/edit modal
     function question_form() {
         $id = $this->request->getPost('id');
