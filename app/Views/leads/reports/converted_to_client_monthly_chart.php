@@ -151,7 +151,9 @@
                 plugins: {
                     datalabels: {
                         color: '#333',
-                        formatter: function(value) { return value; }
+                        formatter: function(value) {
+                            return parseInt(value, 10).toLocaleString();
+                        }
                     }
                 },
                 tooltips: {
@@ -254,7 +256,9 @@
                 plugins: {
                     datalabels: {
                         color: '#333',
-                        formatter: function(value) { return value; }
+                        formatter: function(value) {
+                            return parseInt(value, 10).toLocaleString();
+                        }
                     }
                 },
                 legend: {
@@ -288,7 +292,9 @@
                 plugins: {
                     datalabels: {
                         color: '#333',
-                        formatter: function(value) { return value; }
+                        formatter: function(value) {
+                            return parseInt(value, 10).toLocaleString();
+                        }
                     }
                 },
                 legend: {
@@ -324,7 +330,7 @@
                     datalabels: {
                         color: '#333',
                         formatter: function(value) {
-                            return value.toLocaleString();
+                            return Number(value).toLocaleString();
                         }
                     }
                 },
@@ -336,7 +342,7 @@
                             ticks: {
                                 beginAtZero: true,
                                 callback: function (value) {
-                                    return value.toLocaleString();
+                                    return Number(value).toLocaleString();
                                 }
                             }
                         }]

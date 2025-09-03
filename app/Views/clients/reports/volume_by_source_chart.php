@@ -32,6 +32,14 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 legend: {display: false},
+                plugins: {
+                    datalabels: {
+                        color: '#333',
+                        formatter: function(value) {
+                            return parseInt(value, 10).toLocaleString();
+                        }
+                    }
+                },
                 scales: {
                     xAxes: [{
                         gridLines: {color: 'rgba(127,127,127,0.1)'},
@@ -42,7 +50,7 @@
                         ticks: {
                             fontColor: '#898fa9',
                             callback: function (value) {
-                                return value.toLocaleString();
+                                return Number(value).toLocaleString();
                             }
                         }
                     }]
