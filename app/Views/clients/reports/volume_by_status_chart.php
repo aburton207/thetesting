@@ -41,7 +41,12 @@
                     }],
                     yAxes: [{
                         gridLines: {color: 'rgba(127,127,127,0.1)'},
-                        ticks: {fontColor: '#898fa9'}
+                        ticks: {
+                            fontColor: '#898fa9',
+                            callback: function (value) {
+                                return value.toLocaleString();
+                            }
+                        }
                     }]
                 }
             }

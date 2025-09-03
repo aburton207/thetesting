@@ -1548,10 +1548,27 @@ class Leads extends Security_Controller {
         $volume_by_status_labels = array();
         $volume_by_status_data = array();
         $volume_by_status_colors = array();
+        $closed_won = array();
         foreach ($volume_status_rows as $row) {
-            $volume_by_status_labels[] = $row->status_title ? $row->status_title : app_lang('unknown');
-            $volume_by_status_data[] = $row->volume * 1;
-            $volume_by_status_colors[] = $row->status_color ? $row->status_color : '#808080';
+            $title = $row->status_title ? $row->status_title : app_lang('unknown');
+            $data = $row->volume * 1;
+            $color = $row->status_color ? $row->status_color : '#808080';
+
+            // Keep "Closed Won" statuses at the end
+            if (stripos($title, 'Closed Won') !== false) {
+                $closed_won = array('label' => $title, 'data' => $data, 'color' => $color);
+                continue;
+            }
+
+            $volume_by_status_labels[] = $title;
+            $volume_by_status_data[] = $data;
+            $volume_by_status_colors[] = $color;
+        }
+
+        if ($closed_won) {
+            $volume_by_status_labels[] = $closed_won['label'];
+            $volume_by_status_data[] = $closed_won['data'];
+            $volume_by_status_colors[] = $closed_won['color'];
         }
 
         $view_data["volume_by_status_labels"] = json_encode($volume_by_status_labels);

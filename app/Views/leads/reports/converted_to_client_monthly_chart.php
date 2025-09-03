@@ -325,7 +325,12 @@
                             ticks: {autoSkip: false}
                         }],
                     yAxes: [{
-                            ticks: {beginAtZero: true}
+                            ticks: {
+                                beginAtZero: true,
+                                callback: function (value) {
+                                    return value.toLocaleString();
+                                }
+                            }
                         }]
                 }
             }
