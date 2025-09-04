@@ -274,20 +274,20 @@
 <?php if ($login_user->user_type === "staff") { ?>
     <div class="form-group">
         <div class="row">
-            <label for="groups" class="<?php echo $label_column; ?>"><?php echo app_lang('client_groups'); ?></label>
-            <div class="<?php echo $field_column; ?>">
-                <?php
+        <label for="groups" class="<?php echo $label_column; ?>"><?php echo app_lang('client_groups'); ?></label>
+        <div class="<?php echo $field_column; ?>">
+            <?php
                 echo form_input(array(
                     "id" => "group_ids",
                     "name" => "group_ids",
                     "value" => $model_info->group_ids,
-                    "class" => "form-control",
+                    "class" => "w100p",
                     "placeholder" => app_lang('client_groups')
                 ));
-                ?>
-            </div>
+            ?>
         </div>
     </div>
+</div>
 <?php } ?>
 
 
@@ -364,6 +364,11 @@
 <script type="text/javascript">
     $(document).ready(function() {
         $('[data-bs-toggle="tooltip"]').tooltip();
+
+        $("#group_ids").select2({
+            multiple: true,
+            data: <?php echo json_encode($groups_dropdown); ?>
+        });
 
         $('.account_type').click(function() {
             var inputValue = $(this).attr("value");
