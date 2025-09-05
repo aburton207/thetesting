@@ -316,7 +316,7 @@ function list_data() {
 private function _make_row($data, $custom_fields) {
     // Show the primary contact's full name instead of the avatar. If the name is
     // not available, show a dash to make the column consistent.
-    $contact_name = trim($data->primary_contact);
+    $contact_name = trim($data->primary_contact ?? "");
     $contact_name = $contact_name !== "" ? $contact_name : "-";
     $primary_contact = get_client_contact_profile_link($data->primary_contact_id, $contact_name);
 
@@ -419,7 +419,7 @@ private function _make_row($data, $custom_fields) {
 }
 
     private function _make_report_row($data, $custom_fields) {
-        $contact_name = trim($data->primary_contact);
+        $contact_name = trim($data->primary_contact ?? "");
         $contact_name = $contact_name !== "" ? $contact_name : "-";
         $primary_contact = get_client_contact_profile_link($data->primary_contact_id, $contact_name);
 
@@ -495,7 +495,7 @@ private function _make_row($data, $custom_fields) {
     }
 
     private function _make_expanded_row($data, $custom_fields) {
-        $contact_name = trim($data->primary_contact);
+        $contact_name = trim($data->primary_contact ?? "");
         $contact_name = $contact_name !== "" ? $contact_name : "-";
         $primary_contact = get_client_contact_profile_link($data->primary_contact_id, $contact_name);
 
