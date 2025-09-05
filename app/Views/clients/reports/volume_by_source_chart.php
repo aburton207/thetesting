@@ -32,6 +32,18 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 legend: {display: false},
+                tooltips: {
+                    callbacks: {
+                        label: function(tooltipItem, data) {
+                            var label = data.datasets[tooltipItem.datasetIndex].label || "";
+                            var value = tooltipItem.yLabel;
+                            if (label) {
+                                return label + ": " + Number(value).toLocaleString();
+                            }
+                            return Number(value).toLocaleString();
+                        }
+                    }
+                },
                 plugins: {
                     datalabels: {
                         color: '#333',
