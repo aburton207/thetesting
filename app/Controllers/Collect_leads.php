@@ -32,6 +32,43 @@ class Collect_leads extends App_Controller {
         return $this->template->rander("collect_leads/index", $view_data);
     }
 
+    //load embedded form by predefined lead form
+    function form($id = 0) {
+        // Check if embedded form is enabled
+        if (!get_setting("enable_embedded_form_to_get_leads")) {
+            show_404();
+        }
+
+        validate_numeric_value($id);
+
+        $model_info = $this->Lead_forms_model->get_one($id);
+        if (!$model_info || $model_info->deleted) {
+            show_404();
+        }
+
+        $view_data['topbar'] = false;
+        $view_data['left_menu'] = false;
+
+        $view_data["currency_dropdown"] = $this->_get_currency_dropdown_select2_data();
+
+        $selected_custom_fields = array();
+        if ($model_info->custom_fields) {
+            $ids = explode(',', $model_info->custom_fields);
+            $custom_fields = $this->Custom_fields_model->get_details(array("related_to" => "leads", "show_in_embedded_form" => true))->getResult();
+            foreach ($custom_fields as $field) {
+                if (in_array($field->id, $ids)) {
+                    $selected_custom_fields[] = $field;
+                }
+            }
+        }
+        $view_data["custom_fields"] = $selected_custom_fields;
+        $view_data["lead_source_id"] = $model_info->lead_source_id;
+        $view_data["lead_owner_id"] = $model_info->owner_id;
+        $view_data["lead_labels"] = $model_info->labels;
+
+        return $this->template->rander("collect_leads/index", $view_data);
+    }
+
     //save external lead
     function save() {
         if (!get_setting("can_create_lead_from_public_form")) {
@@ -76,6 +113,7 @@ class Collect_leads extends App_Controller {
             "is_lead" => 1,
             "lead_status_id" => $this->Lead_status_model->get_first_status(),
             "lead_source_id" => $this->request->getPost("lead_source_id"),
+            "labels" => $this->request->getPost("lead_labels"),
             "created_date" => get_current_utc_time(),
             "owner_id" => $this->request->getPost("lead_owner_id") ? $this->request->getPost("lead_owner_id") : 1 //if no owner is selected, add default admin
         );
@@ -212,6 +250,7 @@ else if ($after_submit_action_of_public_lead_form === "redirect" && $after_submi
         $view_data['embedded'] = $embedded_code;
         $view_data['sources'] = $this->Lead_source_model->get_details()->getResult();
         $view_data['owners'] = $this->Users_model->get_all_where(array("user_type" => "staff", "deleted" => 0, "status" => "active"))->getResult();
+        $view_data['lead_forms'] = $this->Lead_forms_model->get_all_where(array("deleted" => 0))->getResult();
 
         return $this->template->view('collect_leads/embedded_code_modal_form', $view_data);
     }
