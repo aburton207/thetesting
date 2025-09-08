@@ -76,7 +76,8 @@
                     echo form_checkbox("enable_embedded_form_to_get_leads", "1", get_setting("enable_embedded_form_to_get_leads") ? true : false, "id='enable_embedded_form_to_get_leads' class='form-check-input ml15'");
                     ?>
                     <span class="ml10 <?php echo get_setting('enable_embedded_form_to_get_leads') ? "" : "hide"; ?>" id="external_form_embedded_url">
-                        <?php echo modal_anchor(get_uri("collect_leads/embedded_code_modal_form"), "<i data-feather='code' class='icon-16'></i>", array("title" => app_lang('embed'), "class" => "edit external-tickets-embedded-code")) ?>
+                        <?php echo anchor(get_uri("lead_forms"), "<i data-feather='grid' class='icon-16'></i>", array("title" => app_lang('lead_forms'), "class" => "edit")); ?>
+                        <?php echo modal_anchor(get_uri("collect_leads/embedded_code_modal_form"), "<i data-feather='code' class='icon-16'></i>", array("title" => app_lang('embed'), "class" => "edit external-tickets-embedded-code")); ?>
                     </span>
                 </div>
             </div>
