@@ -238,11 +238,58 @@ else if ($after_submit_action_of_public_lead_form === "redirect" && $after_submi
 
     }
 
+    private function _lead_html_form_code($form_id = 0, $source_id = 0, $owner_id = 0) {
+        $view_data = [
+            "lead_source_id" => $source_id,
+            "lead_owner_id" => $owner_id,
+            "lead_labels" => "",
+            "custom_fields" => []
+        ];
+
+        $custom_fields = [];
+
+        if ($form_id) {
+            $model_info = $this->Lead_forms_model->get_one($form_id);
+            if ($model_info && !$model_info->deleted) {
+                $view_data["lead_source_id"] = $model_info->lead_source_id;
+                $view_data["lead_owner_id"] = $model_info->owner_id;
+                $view_data["lead_labels"] = $model_info->labels;
+
+                if ($model_info->custom_fields) {
+                    $ids = explode(',', $model_info->custom_fields);
+                    $fields = $this->Custom_fields_model->get_details(array("related_to" => "leads", "show_in_embedded_form" => true))->getResult();
+                    foreach ($fields as $field) {
+                        if (in_array($field->id, $ids)) {
+                            $custom_fields[] = $field;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!$custom_fields) {
+            $custom_fields = $this->Custom_fields_model->get_details(array("related_to" => "leads", "show_in_embedded_form" => true))->getResult();
+        }
+
+        $view_data["custom_fields"] = $custom_fields;
+        return view("collect_leads/lead_html_form_code", $view_data);
+    }
+
     function lead_html_form_code_modal_form() {
-        $lead_html_form_code = view("collect_leads/lead_html_form_code");
-        $view_data['lead_html_form_code'] = $lead_html_form_code;
+        $view_data['lead_html_form_code'] = $this->_lead_html_form_code();
+        $view_data['sources'] = $this->Lead_source_model->get_details()->getResult();
+        $view_data['owners'] = $this->Users_model->get_all_where(array("user_type" => "staff", "deleted" => 0, "status" => "active"))->getResult();
+        $view_data['lead_forms'] = $this->Lead_forms_model->get_all_where(array("deleted" => 0))->getResult();
 
         return $this->template->view('collect_leads/lead_html_form_code_modal_form', $view_data);
+    }
+
+    function get_lead_html_form_code() {
+        $form_id = $this->request->getPost("lead_form_id");
+        $source_id = $this->request->getPost("lead_source_id");
+        $owner_id = $this->request->getPost("lead_owner_id");
+
+        echo $this->_lead_html_form_code($form_id, $source_id, $owner_id);
     }
 
     function embedded_code_modal_form() {
