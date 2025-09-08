@@ -375,7 +375,7 @@ table.dataTable tbody td:first-child {
 
         function updateLeadSource() {
             var cityVal = $("#city").val().trim().toLowerCase();
-            var provinceVal = $("#state").val(); 
+            var provinceVal = $("#state").val();
 
             if(!provinceVal) {
                 $("#lead_source_id").val("").trigger("change");
@@ -423,6 +423,16 @@ table.dataTable tbody td:first-child {
             var mappedId = sourceMap[provinceVal] ? sourceMap[provinceVal] : "";
             $("#lead_source_id").val(mappedId).trigger("change");
         }
+
+        // 6) If company name is empty, populate it with first and last name on submit
+        $('#lead-form').on('submit', function() {
+            var company = $('#company_name');
+            if (!company.val().trim()) {
+                var first = $('#first_name').val().trim();
+                var last = $('#last_name').val().trim();
+                company.val((first + ' ' + last).trim());
+            }
+        });
     });
 
     // Google Places Autocomplete handled by assets/js/google_address_autocomplete.js

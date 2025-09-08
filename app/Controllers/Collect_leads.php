@@ -101,6 +101,12 @@ class Collect_leads extends App_Controller {
         $company_name = $this->request->getPost('company_name');
         $first_name = $this->request->getPost('first_name');
         $last_name = $this->request->getPost('last_name');
+        $source_id = (int)$this->request->getPost('lead_source_id');
+
+        //fallback to first + last name if company name is empty
+        if (!$company_name) {
+            $company_name = trim($first_name . " " . $last_name);
+        }
 
         $leads_data = array(
             "company_name" => $company_name,
@@ -112,18 +118,14 @@ class Collect_leads extends App_Controller {
             "phone" => $this->request->getPost('phone'),
             "is_lead" => 1,
             "lead_status_id" => $this->Lead_status_model->get_first_status(),
-            "lead_source_id" => $this->request->getPost("lead_source_id"),
+            "lead_source_id" => $source_id,
             "labels" => $this->request->getPost("lead_labels"),
             "created_date" => get_current_utc_time(),
             "owner_id" => $this->request->getPost("lead_owner_id") ? $this->request->getPost("lead_owner_id") : 1 //if no owner is selected, add default admin
         );
 
-        if ($company_name) {
-            $leads_data["type"] = "organization";
-        } else {
-            $leads_data["type"] = "person";
-            $leads_data["company_name"] = $first_name . " " . $last_name;
-        }
+        //determine type based on whether a company name was explicitly provided
+        $leads_data["type"] = $this->request->getPost('company_name') ? "organization" : "person";
 
         $leads_data = clean_data($leads_data);
 
