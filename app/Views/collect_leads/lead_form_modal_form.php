@@ -21,7 +21,7 @@
         <div class="row">
             <label for="lead_source_id" class="col-md-3"><?php echo app_lang('region'); ?></label>
             <div class="col-md-9">
-                <?php echo form_input(array("id" => "lead_source_id", "name" => "lead_source_id", "value" => $model_info->lead_source_id, "class" => "form-control")); ?>
+                <?php echo view('partials/lead_source_select', ['sources_dropdown' => $sources_dropdown, 'selected' => $model_info->lead_source_id, 'id' => 'lead_source_id']); ?>
             </div>
         </div>
     </div>

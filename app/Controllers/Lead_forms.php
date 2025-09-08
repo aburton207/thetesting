@@ -22,9 +22,17 @@ class Lead_forms extends Security_Controller {
         $owners_dropdown = array("" => "-" . app_lang("owner") . "-");
         $owners = $this->Users_model->get_all_where(array("user_type" => "staff", "deleted" => 0, "status" => "active"))->getResult();
         foreach ($owners as $owner) {
-            $owners_dropdown[$owner->id] = $owner->first_name . " " . $owner->last_name;
+        $owners_dropdown[$owner->id] = $owner->first_name . " " . $owner->last_name;
+    }
+    $view_data["owners_dropdown"] = $owners_dropdown;
+
+        // prepare lead sources dropdown
+        $sources_dropdown = array();
+        $sources = $this->Lead_source_model->get_details()->getResult();
+        foreach ($sources as $source) {
+            $sources_dropdown[] = array("id" => $source->id, "text" => $source->title);
         }
-        $view_data["owners_dropdown"] = $owners_dropdown;
+        $view_data["sources_dropdown"] = $sources_dropdown;
 
         // prepare labels dropdown
         $labels_dropdown = array();
@@ -98,10 +106,18 @@ class Lead_forms extends Security_Controller {
             }
         }
 
+        $source = "-";
+        if ($data->lead_source_id) {
+            $source_info = $this->Lead_source_model->get_one($data->lead_source_id);
+            if ($source_info) {
+                $source = $source_info->title;
+            }
+        }
+
         $options = modal_anchor(get_uri("lead_forms/modal_form"), "<i data-feather='edit' class='icon-16'></i>", array("class" => "edit", "title" => app_lang('edit'), "data-post-id" => $data->id))
                 . js_anchor("<i data-feather='x' class='icon-16'></i>", array("title" => app_lang('delete'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("lead_forms/delete"), "data-action" => "delete"));
 
-        return array($data->title, $owner, $data->lead_source_id, $data->labels, $options);
+        return array($data->title, $owner, $source, $data->labels, $options);
     }
 }
 
