@@ -1835,6 +1835,23 @@ private function _get_headers_for_import() {
                 );
             }
         }),
+        array("name" => "lead_source_id", "custom_validation" => function ($lead_source_id, $row_data) {
+            if ($lead_source_id) {
+                if (!is_numeric($lead_source_id)) {
+                    return array(
+                        "error" => app_lang("import_error_invalid_lead_source_id_numeric"),
+                        "highlight" => true
+                    );
+                }
+                $source = $this->Lead_source_model->get_one($lead_source_id);
+                if (!$source->id) {
+                    return array(
+                        "error" => app_lang("import_error_invalid_lead_source_id"),
+                        "highlight" => true
+                    );
+                }
+            }
+        }),
         array("name" => "lead_status_id", "custom_validation" => function ($lead_status_id, $row_data) {
             if ($lead_status_id) {
                 if (!is_numeric($lead_status_id)) {
@@ -1971,6 +1988,8 @@ private function _save_a_row_of_excel_data($row_data) {
             }
         } else if ($column_name == "created_date") {
             $client_data["created_date"] = $this->_check_valid_date($value);
+        } else if ($column_name == "lead_source_id") {
+            $client_data["lead_source_id"] = $value;
         } else if (strpos($column_name, 'cf') !== false) {
             $this->_prepare_custom_field_values_array($column_name, $value, $custom_field_values_array);
         } else {
