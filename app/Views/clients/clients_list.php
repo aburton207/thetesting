@@ -27,32 +27,24 @@
             }
         }
 
-        // Define base columns
+        // Define columns in the desired export order
         var columns = [
-            {title: "<?php echo app_lang('id') ?>", "class": "text-center w50 desktop", order_by: "id"},
-            {title: "<?php echo app_lang('name') ?>", "class": "all", order_by: "company_name"},
-            {title: "<?php echo app_lang('primary_contact') ?>", order_by: "primary_contact"},
-            {title: "<?php echo app_lang('phone') ?>", order_by: "phone"},
+            {title: "<?php echo app_lang('id') ?>", class: "text-center w50 desktop", order_by: "id"},
+            {title: "Region", order_by: "lead_source_title"},
             {title: "<?php echo app_lang('type') ?>", order_by: "account_type"},
-              {title: "Created Date", order_by: "created_date"},
-            {title: "<?php echo app_lang('client_groups') ?>", order_by: "client_groups"},
+            {title: "<?php echo app_lang('created_date'); ?>", order_by: "created_date"},
+            {title: "<?php echo app_lang('name') ?>", class: "all", order_by: "company_name"},
             {title: "<?php echo app_lang('owner') ?>", order_by: "client_owner"},
-            {title: "<?php echo app_lang('source') ?>", order_by: "lead_source_title"},
-            {title: "<?php echo app_lang('status') ?>", "class": "text-center w100", order_by: "status"},
-            {title: "Probability %", "class": "text-center w100"},
-            {title: "Potential Margin", "class": "text-right w100"},
-            {title: "Weighted Forecast", "class": "text-right w100"}
+            {title: "Source"},
+            {title: "Branch", order_by: "client_groups"},
+            {title: "Volume"},
+            {title: "Margin above Rack"},
+            {title: "Potential Margin", class: "text-right w100"},
+            {title: "Stage", class: "text-center w100", order_by: "status"},
+            {title: "Estimated Close Date"},
+            {title: "Weighted Forecast", class: "text-right w100"},
+            {title: "Closed Date"}
         ];
-
-        // Add custom field headers if defined
-        <?php if (!empty($custom_field_headers)) { ?>
-            try {
-                var customColumns = [<?php echo $custom_field_headers; ?>];
-                columns = columns.concat(customColumns.filter(function(col) { return col && typeof col === 'object'; }));
-            } catch (e) {
-                console.error('Invalid custom field headers:', e);
-            }
-        <?php } ?>
 
         // Add options column
         columns.push({title: '<i data-feather="menu" class="icon-16"></i>', "class": "text-center option w100", visible: showOptions});
@@ -79,8 +71,8 @@
                 {startDate: {name: "closed_start_date", value: ""}, endDate: {name: "closed_end_date", value: ""}, label: "Closed Date", showClearButton: true}
             ],
             columns: columns,
-            printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], '<?php echo $custom_field_headers; ?>'),
-            xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], '<?php echo $custom_field_headers; ?>'),
+            printColumns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+            xlsColumns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
             ajax: {
                 dataSrc: function (data) {
                     console.log('Table Data:', data);

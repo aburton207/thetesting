@@ -292,7 +292,7 @@ function list_data() {
 
     $result_data = array();
     foreach ($list_data as $data) {
-        $result_data[] = $this->_make_row($data, $custom_fields);
+        $result_data[] = $this->_make_row($data);
     }
 
     $result["data"] = $result_data;
@@ -308,18 +308,11 @@ function list_data() {
             "custom_fields" => $custom_fields
         );
         $data = $this->Clients_model->get_details($options)->getRow();
-        return $this->_make_row($data, $custom_fields);
+        return $this->_make_row($data);
     }
 
     /* prepare a row of client list table */
-
-private function _make_row($data, $custom_fields) {
-    // Show the primary contact's full name instead of the avatar. If the name is
-    // not available, show a dash to make the column consistent.
-    $contact_name = trim($data->primary_contact);
-    $contact_name = $contact_name !== "" ? $contact_name : "-";
-    $primary_contact = get_client_contact_profile_link($data->primary_contact_id, $contact_name);
-
+private function _make_row($data) {
     $group_list = "";
     if ($data->client_groups) {
         $groups = explode(",", $data->client_groups);
@@ -334,38 +327,32 @@ private function _make_row($data, $custom_fields) {
         $group_list = "<ul class='pl15'>" . $group_list . "</ul>";
     }
 
-    $client_labels = make_labels_view_data($data->labels_list, true);
-
-    // Change this line to use owner_id instead of created_by
     $owner = $this->Users_model->get_one($data->owner_id);
     $owner_name = $owner->id ? $owner->first_name . " " . $owner->last_name : "-";
 
-    // Map lead_status_id to probability percentage
+    // Map lead_status_id to probability percentage for weighted forecast
     $probability = 0;
     $probability_mappings = [
-        1 => 15,  // Contact
-        2 => 40,  // Qualify
-        3 => 50,  // Negotiate
-        10 => 70,   // Discovery
-        6 => 100, // Closed Won - Pending
-        8 => 0,   // Lost
-        9 => 0   // Stalled
-       // Closed Won - Executed
+        1 => 15,
+        2 => 40,
+        3 => 50,
+        10 => 70,
+        6 => 100,
+        8 => 0,
+        9 => 0
     ];
-
     if (isset($probability_mappings[$data->lead_status_id])) {
         $probability = $probability_mappings[$data->lead_status_id];
     }
 
-    // Calculate Potential Margin
     $margin_above_rack = isset($data->cfv_241) ? floatval($data->cfv_241) : 0;
     $volume = isset($data->cfv_273) ? floatval($data->cfv_273) : 0;
+
     $potential_margin = "-";
     if ($margin_above_rack > 0 && $volume > 0) {
         $potential_margin = to_currency($margin_above_rack * $volume, $data->currency_symbol);
     }
 
-    // Calculate Weighted Forecast
     $weighted_forecast = "-";
     if ($margin_above_rack > 0 && $volume > 0) {
         $weighted_forecast = to_currency(($margin_above_rack * $volume) * ($probability / 100), $data->currency_symbol);
@@ -374,9 +361,8 @@ private function _make_row($data, $custom_fields) {
     $status_title = $data->lead_status_title ?: "-";
     $status_color = $data->lead_status_color ?: "#666666";
 
-    // Format created_date to show only the date (YYYY-MM-DD)
     $created_date = $data->created_date ? date('Y-m-d', strtotime($data->created_date)) : "-";
-    // Map account types to user friendly labels
+
     $account_type = strtolower($data->account_type);
     if ($account_type === "person") {
         $account_type_label = "Residential";
@@ -385,16 +371,25 @@ private function _make_row($data, $custom_fields) {
     } else {
         $account_type_label = ucfirst($account_type);
     }
+
+    $source = $data->cfv_265 ? $data->cfv_265 : "-";
+    $volume_val = $data->cfv_273 ? $data->cfv_273 : "-";
+    $margin_val = $data->cfv_241 ? $data->cfv_241 : "-";
+    $estimated_close_date = $data->cfv_167 ? date('Y-m-d', strtotime($data->cfv_167)) : "-";
+    $closed_date = $data->cfv_272 ? date('Y-m-d', strtotime($data->cfv_272)) : "-";
+
     $row_data = array(
         $data->id,
-        anchor(get_uri("clients/view/" . $data->id), $data->company_name),
-        $data->primary_contact ? $primary_contact : "",
-        $data->phone,
-        $account_type_label,
-        $created_date, // Add created_date here
-        $group_list,
-        $owner_name, // This now reflects the owner_id
         $data->lead_source_title ? $data->lead_source_title : "-",
+        $account_type_label,
+        $created_date,
+        anchor(get_uri("clients/view/" . $data->id), $data->company_name),
+        $owner_name,
+        $source,
+        $group_list,
+        $volume_val,
+        $margin_val,
+        $potential_margin,
         js_anchor($status_title, array(
             "style" => "background-color: $status_color; cursor: pointer;",
             "class" => "badge",
@@ -402,15 +397,10 @@ private function _make_row($data, $custom_fields) {
             "data-value" => $data->lead_status_id,
             "data-act" => "update-lead-status"
         )),
-        $probability . "%",
-        $potential_margin,
-        $weighted_forecast
+        $estimated_close_date,
+        $weighted_forecast,
+        $closed_date
     );
-
-    foreach ($custom_fields as $field) {
-        $cf_id = "cfv_" . $field->id;
-        $row_data[] = $this->template->view("custom_fields/output_" . $field->field_type, array("value" => $data->$cf_id));
-    }
 
     $row_data[] = modal_anchor(get_uri("clients/modal_form"), "<i data-feather='edit' class='icon-16'></i>", array("class" => "edit", "title" => app_lang('edit_client'), "data-post-id" => $data->id))
         . js_anchor("<i data-feather='x' class='icon-16'></i>", array('title' => app_lang('delete_client'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("clients/delete"), "data-action" => "delete-confirmation"));
