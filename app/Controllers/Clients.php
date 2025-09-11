@@ -1827,6 +1827,14 @@ private function _get_headers_for_import() {
                 }
             }
         }),
+        array("name" => "created_date", "custom_validation" => function ($created_date) {
+            if ($created_date && !$this->_check_valid_date($created_date)) {
+                return array(
+                    "error" => app_lang("import_date_error_message"),
+                    "highlight" => true
+                );
+            }
+        }),
         array("name" => "lead_status_id", "custom_validation" => function ($lead_status_id, $row_data) {
             if ($lead_status_id) {
                 if (!is_numeric($lead_status_id)) {
@@ -1890,9 +1898,13 @@ private function _save_a_row_of_excel_data($row_data) {
     // Set created_by to the same value as owner_id
     $client_data["created_by"] = $client_data["owner_id"];
 
-    //found information about client, add some additional info
-    $client_data["created_date"] = $now;
-    $client_contact_data["created_at"] = $now;
+    // Use provided created_date or fallback to current time
+    $created_date = get_array_value($client_data, "created_date");
+    if (!$created_date) {
+        $created_date = $now;
+        $client_data["created_date"] = $created_date;
+    }
+    $client_contact_data["created_at"] = $created_date;
 
     //save client data
     $saved_id = $this->Clients_model->ci_save($client_data);
@@ -1957,6 +1969,8 @@ private function _save_a_row_of_excel_data($row_data) {
             if ($owner_id) {
                 $client_data["owner_id"] = $owner_id; // Map owner_name to owner_id
             }
+        } else if ($column_name == "created_date") {
+            $client_data["created_date"] = $this->_check_valid_date($value);
         } else if (strpos($column_name, 'cf') !== false) {
             $this->_prepare_custom_field_values_array($column_name, $value, $custom_field_values_array);
         } else {
