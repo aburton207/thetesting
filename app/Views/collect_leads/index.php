@@ -82,6 +82,12 @@ table.dataTable tbody td:first-child {
             
             <!-- 2) Keep lead_owner_id hidden if needed -->
             <input type="hidden" name="lead_owner_id" value="<?php echo $lead_owner_id; ?>" />
+            <?php if (!empty($lead_source_id)) { ?>
+                <input type="hidden" name="lead_source_id" value="<?php echo $lead_source_id; ?>" />
+            <?php } ?>
+            <?php if (!empty($lead_labels)) { ?>
+                <input type="hidden" name="lead_labels" value="<?php echo $lead_labels; ?>" />
+            <?php } ?>
 
             <!-- 3) Gather hidden fields list, if applicable -->
             <?php $hidden_fields = explode(",", get_setting("hidden_fields_on_lead_embedded_form")); ?>
@@ -235,10 +241,11 @@ table.dataTable tbody td:first-child {
         </div>
     </div>
 <?php } ?>
+            <?php if (!$lead_source_id) { ?>
             <div class="form-group">
                 <label for="lead_source_id">Region</label>
                 <div>
-                    <select 
+                    <select
                         name="lead_source_id"
                         id="lead_source_id"
                         class="form-control select2"
@@ -255,6 +262,7 @@ table.dataTable tbody td:first-child {
                     </select>
                 </div>
             </div>
+            <?php } ?>
 
     
 
@@ -367,7 +375,7 @@ table.dataTable tbody td:first-child {
 
         function updateLeadSource() {
             var cityVal = $("#city").val().trim().toLowerCase();
-            var provinceVal = $("#state").val(); 
+            var provinceVal = $("#state").val();
 
             if(!provinceVal) {
                 $("#lead_source_id").val("").trigger("change");
@@ -415,6 +423,16 @@ table.dataTable tbody td:first-child {
             var mappedId = sourceMap[provinceVal] ? sourceMap[provinceVal] : "";
             $("#lead_source_id").val(mappedId).trigger("change");
         }
+
+        // 6) If company name is empty, populate it with first and last name on submit
+        $('#lead-form').on('submit', function() {
+            var company = $('#company_name');
+            if (!company.val().trim()) {
+                var first = $('#first_name').val().trim();
+                var last = $('#last_name').val().trim();
+                company.val((first + ' ' + last).trim());
+            }
+        });
     });
 
     // Google Places Autocomplete handled by assets/js/google_address_autocomplete.js

@@ -17,6 +17,20 @@
             </div>
             <div class="form-group">
                 <div class="row">
+                    <label for="lead_form_id" class="col-md-3"><?php echo app_lang('form'); ?></label>
+                    <div class="col-md-9">
+                        <?php
+                        $lead_form_dropdown = array('' => "- " . app_lang('form') . " -");
+                        foreach ($lead_forms as $form) {
+                            $lead_form_dropdown[$form->id] = $form->title;
+                        }
+                        echo form_dropdown('lead_form_id', $lead_form_dropdown, '', "class='select2' id='lead_form_id'");
+                        ?>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="row">
                     <label for="source" class="col-md-3"><?php echo app_lang('source'); ?></label>
                     <div class="col-md-9">
                         <?php
@@ -68,6 +82,7 @@
 
         var sourceId = "";
         var ownerId = "";
+        var formId = "";
 
         $("#lead_source_id").on("change", function() {
             sourceId = $(this).val();
@@ -79,11 +94,19 @@
             updateEmbeddedCode();
         });
 
-        function updateEmbeddedCode() {
-            var src = "<?php echo get_uri('collect_leads') . '/index/'; ?>";
-            var embeddedCode = "<?php echo $embedded; ?>";
+        $("#lead_form_id").on("change", function() {
+            formId = $(this).val();
+            updateEmbeddedCode();
+        });
 
-            if (sourceId || ownerId) {
+        function updateEmbeddedCode() {
+            var embeddedCode = "<?php echo $embedded; ?>";
+            if (formId) {
+                var iframeSrc = "<?php echo get_uri('collect_leads/form/'); ?>" + formId;
+                var iframeHtml = "<iframe width='768' height='360' src='" + iframeSrc + "' frameborder='0'></iframe>";
+                $("#embedded-code").val(iframeHtml);
+            } else if (sourceId || ownerId) {
+                var src = "<?php echo get_uri('collect_leads') . '/index/'; ?>";
                 var iframeSrc = src + (sourceId ? sourceId : "0") + "/" + (ownerId ? ownerId : "0");
                 var iframeHtml = "<iframe width='768' height='360' src='" + iframeSrc + "' frameborder='0'></iframe>";
                 $("#embedded-code").val(iframeHtml);

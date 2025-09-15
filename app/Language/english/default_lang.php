@@ -764,6 +764,10 @@ $lang["estimate_list"] = "Estimate List";
 $lang["estimate_forms"] = "Estimate Forms";
 $lang["estimate_request_forms"] = "Estimate Request Forms";
 
+$lang["lead_forms"] = "Lead forms";
+$lang["form"] = "Form";
+$lang["region"] = "Region";
+
 $lang["add_form"] = "Add form";
 $lang["edit_form"] = "Edit form";
 $lang["delete_form"] = "Delete form";

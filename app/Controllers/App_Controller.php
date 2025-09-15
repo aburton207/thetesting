@@ -57,6 +57,7 @@ class App_Controller extends Controller {
     public $Notifications_model;
     public $Custom_fields_model;
     public $Estimate_forms_model;
+    public $Lead_forms_model;
     public $Estimate_requests_model;
     public $Custom_field_values_model;
     public $Estimates_model;
@@ -178,6 +179,7 @@ class App_Controller extends Controller {
             'Notifications_model',
             'Custom_fields_model',
             'Estimate_forms_model',
+            'Lead_forms_model',
             'Estimate_requests_model',
             'Custom_field_values_model',
             'Estimates_model',
