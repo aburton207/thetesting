@@ -224,6 +224,19 @@ class Left_menu {
                 );
             }
 
+            if (get_setting("module_lead") == "1" && ($this->ci->login_user->is_admin || $access_lead === "all")) {
+                $sidebar_menu["lead_conversion_reports"] = array(
+                    "name" => "lead_conversion_report",
+                    "url" => "lead_conversion_reports",
+                    "class" => "target",
+                    "sub_pages" => array(
+                        "lead_conversion_reports",
+                        "lead_conversion_reports/index",
+                        "lead_conversion_reports/data"
+                    )
+                );
+            }
+
 
             $access_file_manager = true;
             if (get_setting("module_file_manager") == "1" && ($this->ci->login_user->is_admin || $access_file_manager)) {

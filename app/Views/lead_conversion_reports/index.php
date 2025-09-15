@@ -11,7 +11,7 @@
 <script type="text/javascript">
     $(document).ready(function () {
         $("#lead-conversion-table").appTable({
-            source: '<?php echo_uri("reports/lead_conversion_data"); ?>',
+            source: '<?php echo_uri("lead_conversion_reports/data"); ?>',
             filterDropdown: [
                 {name: "owner_id", class: "w200", options: <?php echo $owners_dropdown; ?>},
                 {name: "region_id", class: "w200", options: <?php echo $regions_dropdown; ?>},
