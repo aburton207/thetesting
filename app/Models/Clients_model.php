@@ -987,6 +987,125 @@ function get_details($options = array()) {
         return $builder->get();
     }
 
+    function get_client_conversion_timeline($filters = array()) {
+        $clients_table = $this->db->prefixTable('clients');
+        $users_table = $this->db->prefixTable('users');
+        $lead_source_table = $this->db->prefixTable('lead_source');
+        $lead_status_table = $this->db->prefixTable('lead_status');
+        $custom_field_values_table = $this->db->prefixTable('custom_field_values');
+
+        $source_expression = "COALESCE(NULLIF(lead_cf.value, ''), NULLIF(client_cf.value, ''))";
+
+        $builder = $this->db->table("$clients_table AS c");
+        $builder->select("
+            c.id,
+            c.company_name,
+            c.client_migration_date,
+            c.owner_id,
+            CONCAT_WS(' ', u.first_name, u.last_name) AS owner_name,
+            c.lead_source_id,
+            ls.title AS region_name,
+            c.lead_status_id,
+            st.title AS status_title,
+            $source_expression AS source_value
+        ", false);
+
+        $builder->join("$users_table AS u", "u.id = c.owner_id", "left");
+        $builder->join("$lead_source_table AS ls", "ls.id = c.lead_source_id", "left");
+        $builder->join("$lead_status_table AS st", "st.id = c.lead_status_id", "left");
+        $builder->join("$custom_field_values_table AS lead_cf", "lead_cf.related_to_id = c.id AND lead_cf.custom_field_id = 238 AND lead_cf.related_to_type = 'leads' AND lead_cf.deleted = 0", "left");
+        $builder->join("$custom_field_values_table AS client_cf", "client_cf.related_to_id = c.id AND client_cf.custom_field_id = 265 AND client_cf.related_to_type = 'clients' AND client_cf.deleted = 0", "left");
+
+        $builder->where("c.deleted", 0);
+        $builder->where("c.is_lead", 0);
+        $builder->where("c.client_migration_date >", "2000-01-01 00:00:00");
+
+        $owner_id = $this->_get_clean_value($filters, "owner_id");
+        if ($owner_id) {
+            $builder->where("c.owner_id", $owner_id);
+        }
+
+        $region_id = $this->_get_clean_value($filters, "region_id");
+        if ($region_id) {
+            $builder->where("c.lead_source_id", $region_id);
+        }
+
+        $lead_status_id = $this->_get_clean_value($filters, "lead_status_id");
+        if ($lead_status_id) {
+            $builder->where("c.lead_status_id", $lead_status_id);
+        }
+
+        $source_value = $this->_get_clean_value($filters, "source_value");
+        if ($source_value) {
+            $builder->groupStart();
+            $builder->where("lead_cf.value", $source_value);
+            $builder->orWhere("client_cf.value", $source_value);
+            $builder->groupEnd();
+        }
+
+        $created_start_date = $this->_get_clean_value($filters, "created_start_date");
+        if ($created_start_date) {
+            $builder->where("c.created_date >=", $created_start_date . " 00:00:00");
+        }
+
+        $created_end_date = $this->_get_clean_value($filters, "created_end_date");
+        if ($created_end_date) {
+            $builder->where("c.created_date <=", $created_end_date . " 23:59:59");
+        }
+
+        $migration_start_date = $this->_get_clean_value($filters, "migration_start_date");
+        if ($migration_start_date) {
+            $builder->where("c.client_migration_date >=", $migration_start_date . " 00:00:00");
+        }
+
+        $migration_end_date = $this->_get_clean_value($filters, "migration_end_date");
+        if ($migration_end_date) {
+            $builder->where("c.client_migration_date <=", $migration_end_date . " 23:59:59");
+        }
+
+        $builder->orderBy("c.client_migration_date", "ASC");
+        $builder->orderBy("c.company_name", "ASC");
+
+        $clients = $builder->get()->getResult();
+
+        $timeline_counts = array();
+        foreach ($clients as $client) {
+            if ($client->client_migration_date) {
+                $timestamp = strtotime($client->client_migration_date);
+                if ($timestamp) {
+                    $key = date("Y-m", $timestamp);
+                    if (!isset($timeline_counts[$key])) {
+                        $timeline_counts[$key] = 0;
+                    }
+                    $timeline_counts[$key]++;
+                }
+            }
+        }
+
+        ksort($timeline_counts);
+
+        $labels = array();
+        $values = array();
+        $cumulative = array();
+        $running_total = 0;
+
+        foreach ($timeline_counts as $key => $count) {
+            $labels[] = date("M Y", strtotime($key . "-01"));
+            $values[] = $count;
+            $running_total += $count;
+            $cumulative[] = $running_total;
+        }
+
+        return array(
+            "clients" => $clients,
+            "timeline" => array(
+                "labels" => $labels,
+                "values" => $values,
+                "cumulative" => $cumulative
+            )
+        );
+    }
+
     function get_lead_conversion_source_values($field_ids = array(238, 265)) {
         $custom_field_values_table = $this->db->prefixTable('custom_field_values');
 
