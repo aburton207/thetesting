@@ -99,6 +99,7 @@ if (!function_exists('get_reports_topbar')) {
             $reports_menu[] = array("name" => "opportunity_data_reports", "url" => "clients/clients_report", "class" => "users", "single_button" => true);
             $reports_menu[] = array("name" => "fill_the_funnel_leaderboard", "url" => "clients/fill_the_funnel_leaderboard", "class" => "trending-up", "single_button" => true);
             $reports_menu[] = array("name" => "leaderboard", "url" => "clients/leaderboard", "class" => "award", "single_button" => true);
+            $reports_menu[] = array("name" => "lead_conversion_report", "url" => "reports/lead_conversion", "class" => "target", "single_button" => true);
         }
 
         if (get_setting("module_ticket") == "1" && ($ci->login_user->is_admin || $access_ticket == "all")) {

@@ -1922,6 +1922,10 @@ $lang["select_from_template"] = "Select from template";
 $lang["type_new_item"] = "Type new item";
 
 $lang["conversion_rate"] = "Conversion rate";
+$lang["lead_conversion_report"] = "Lead conversion report";
+$lang["average_conversion_time"] = "Average conversion time";
+$lang["conversion_date"] = "Conversion date";
+$lang["unknown"] = "Unknown";
 
 $lang["all_tasks"] = "All objectives";
 $lang["user_roles"] = "User Roles";
