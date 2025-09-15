@@ -2803,6 +2803,7 @@ $lang["leaderboard"] = "Leaderboard";
 $lang["role"] = "Role";
 $lang["closed_won_opportunities"] = "# of Closed Won Opportunities";
 $lang["total_volume"] = "Total Volume";
+$lang["total_volume_all_pages"] = "Total Volume for All Pages";
 $lang["total_margin"] = "Total Margin";
 $lang["commercial_sales"] = "Commercial sales";
 $lang["residential"] = "Residential";

@@ -2,6 +2,34 @@
 
 <div id="page-content" class="page-wrapper clearfix">
     <div id="client-dashboard-summary-container" class="mb20"></div>
+    <div id="client-volume-totals" class="row clearfix mb20 hide">
+        <div class="col-md-3 col-sm-6 widget-container">
+            <div class="card dashboard-icon-widget">
+                <div class="card-body">
+                    <div class="widget-icon bg-primary">
+                        <i data-feather="bar-chart-2" class="icon"></i>
+                    </div>
+                    <div class="widget-details">
+                        <h1 id="client-volume-total-current" class="mb0">0</h1>
+                        <span class="bg-transparent-white"><?php echo app_lang('total_volume'); ?></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 widget-container">
+            <div class="card dashboard-icon-widget">
+                <div class="card-body">
+                    <div class="widget-icon bg-success">
+                        <i data-feather="layers" class="icon"></i>
+                    </div>
+                    <div class="widget-details">
+                        <h1 id="client-volume-total-all" class="mb0">0</h1>
+                        <span class="bg-transparent-white"><?php echo app_lang('total_volume_all_pages'); ?></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="bg-white mb20">
         <div id="clients-report-chart-filters"></div>
     </div>
@@ -12,6 +40,12 @@
             <div id="clients-summary" class="p15"></div>
         </div>
     </div>
+<?php
+    $custom_field_ids_for_js = !empty($custom_field_ids) ? json_encode(array_map('intval', $custom_field_ids)) : '[]';
+    $volume_custom_field_id_for_js = isset($volume_custom_field_id) ? json_encode((int) $volume_custom_field_id) : 'null';
+    $margin_above_rack_custom_field_id_for_js = isset($margin_above_rack_custom_field_id) ? json_encode((int) $margin_above_rack_custom_field_id) : 'null';
+?>
+
 </div>
 
 <script type="text/javascript">
@@ -47,12 +81,32 @@
             {title: "Weighted Forecast", class: "text-right w100"}
         ];
 
+        var baseColumnCount = columns.length;
+
         <?php if (!empty($custom_field_headers)) { ?>
         try {
             var customColumns = [<?php echo $custom_field_headers; ?>];
-            columns = columns.concat(customColumns.filter(function (col) { return col && typeof col === 'object'; }));
+            customColumns = customColumns.filter(function (col) { return col && typeof col === 'object'; });
+            columns = columns.concat(customColumns);
         } catch (e) { }
         <?php } ?>
+
+        var customFieldIds = <?php echo $custom_field_ids_for_js; ?>;
+        var volumeFieldId = <?php echo $volume_custom_field_id_for_js; ?>;
+        var marginFieldId = <?php echo $margin_above_rack_custom_field_id_for_js; ?>;
+        var volumeColumnIndex = null;
+        var marginColumnIndex = null;
+
+        if (customFieldIds && customFieldIds.length) {
+            customFieldIds.forEach(function (fieldId, index) {
+                if (volumeFieldId !== null && fieldId === volumeFieldId) {
+                    volumeColumnIndex = baseColumnCount + index;
+                }
+                if (marginFieldId !== null && fieldId === marginFieldId) {
+                    marginColumnIndex = baseColumnCount + index;
+                }
+            });
+        }
 
         columns.push({title: '<i data-feather="menu" class="icon-16"></i>', class: "text-center option w100", visible: showOptions});
 
@@ -60,18 +114,76 @@
         var summation = [
             {column: 8, fieldName: "avg_probability", dataType: 'number'},
             {column: 9, fieldName: "sum_potential_margin", dataType: 'currency', dynamicSymbol: true},
-            {column: 10, fieldName: "sum_weighted_forecast", dataType: 'currency', dynamicSymbol: true},
-            {column: 11, fieldName: "sum_volume", dataType: 'number'},
-            {column: 12, fieldName: "avg_margin_above_rack", dataType: 'number'}
+            {column: 10, fieldName: "sum_weighted_forecast", dataType: 'currency', dynamicSymbol: true}
         ];
 
+        if (volumeColumnIndex !== null) {
+            summation.push({column: volumeColumnIndex, fieldName: "sum_volume", dataType: 'number'});
+        }
+
+        if (marginColumnIndex !== null) {
+            summation.push({column: marginColumnIndex, fieldName: "avg_margin_above_rack", dataType: 'number'});
+        }
+
+        var updateVolumeWidget = function (currentPageVolume, allPagesVolume) {
+            var $container = $("#client-volume-totals");
+
+            if (volumeColumnIndex === null) {
+                $container.addClass("hide");
+                return;
+            }
+
+            var currentValue = parseFloat(currentPageVolume);
+            if (isNaN(currentValue)) {
+                currentValue = 0;
+            }
+
+            var allValue = parseFloat(allPagesVolume);
+            if (isNaN(allValue)) {
+                allValue = 0;
+            }
+
+            $("#client-volume-total-current").text(toCurrency(currentValue, "none"));
+            $("#client-volume-total-all").text(toCurrency(allValue, "none"));
+            $container.removeClass("hide");
+        };
+
         var updateSummary = function (info) {
-            if (!info) return;
-            var html = "<strong>Average Probability:</strong> " + parseFloat(info.avg_probability).toFixed(2) + "% ";
-            html += "&nbsp;&nbsp;<strong>Sum Potential Margin:</strong> " + toCurrency(info.sum_potential_margin);
-            html += "&nbsp;&nbsp;<strong>Sum Weighted Forecast:</strong> " + toCurrency(info.sum_weighted_forecast);
-            html += "&nbsp;&nbsp;<strong>Sum Volume:</strong> " + parseFloat(info.sum_volume).toFixed(2);
-            html += "&nbsp;&nbsp;<strong>Average Margin Above Rack:</strong> " + parseFloat(info.avg_margin_above_rack).toFixed(2);
+            if (!info) {
+                $("#clients-summary").html("");
+                return;
+            }
+
+            var avgProbability = parseFloat(info.avg_probability);
+            if (isNaN(avgProbability)) {
+                avgProbability = 0;
+            }
+
+            var sumPotentialMargin = parseFloat(info.sum_potential_margin);
+            if (isNaN(sumPotentialMargin)) {
+                sumPotentialMargin = 0;
+            }
+
+            var sumWeightedForecast = parseFloat(info.sum_weighted_forecast);
+            if (isNaN(sumWeightedForecast)) {
+                sumWeightedForecast = 0;
+            }
+
+            var sumVolume = parseFloat(info.sum_volume);
+            if (isNaN(sumVolume)) {
+                sumVolume = 0;
+            }
+
+            var avgMarginAboveRack = parseFloat(info.avg_margin_above_rack);
+            if (isNaN(avgMarginAboveRack)) {
+                avgMarginAboveRack = 0;
+            }
+
+            var html = "<strong>Average Probability:</strong> " + avgProbability.toFixed(2) + "% ";
+            html += "&nbsp;&nbsp;<strong>Sum Potential Margin:</strong> " + toCurrency(sumPotentialMargin);
+            html += "&nbsp;&nbsp;<strong>Sum Weighted Forecast:</strong> " + toCurrency(sumWeightedForecast);
+            html += "&nbsp;&nbsp;<strong><?php echo app_lang('total_volume'); ?>:</strong> " + toCurrency(sumVolume, 'none');
+            html += "&nbsp;&nbsp;<strong>Average Margin Above Rack:</strong> " + avgMarginAboveRack.toFixed(2);
             $("#clients-summary").html(html);
         };
 
@@ -154,16 +266,47 @@
                 $(dt.table().footer()).find('[data-current-page="8"]').html(avgProb.toFixed(2) + "%");
 
                 //calculate page average for margin above rack column
-                var marData = api.column(12, {page: 'current'}).data();
-                var marSum = 0;
-                marData.each(function(value) {
-                    var n = parseFloat(value);
-                    if (!isNaN(n)) { marSum += n; }
-                });
-                var avgMar = marData.length ? marSum / marData.length : 0;
-                $(dt.table().footer()).find('[data-current-page="12"]').html(avgMar.toFixed(2));
+                if (marginColumnIndex !== null) {
+                    var marData = api.column(marginColumnIndex, {page: 'current'}).data();
+                    var marSum = 0;
+                    marData.each(function(value) {
+                        var n = parseFloat(value);
+                        if (isNaN(n)) {
+                            n = parseFloat(value.toString().replace(/[^0-9.-]/g, ""));
+                        }
+                        if (!isNaN(n)) { marSum += n; }
+                    });
+                    var avgMar = marData.length ? marSum / marData.length : 0;
+                    $(dt.table().footer()).find('[data-current-page="' + marginColumnIndex + '"]').html(avgMar.toFixed(2));
+                }
 
-                updateSummary(dt.settings()[0].oInit.summationInfo);
+                var summationInfo = null;
+                if (dt.settings()[0] && dt.settings()[0].oInit) {
+                    summationInfo = dt.settings()[0].oInit.summationInfo;
+                }
+
+                if (volumeColumnIndex !== null) {
+                    var volumeData = api.column(volumeColumnIndex, {page: 'current'}).data();
+                    var volumeSum = 0;
+                    volumeData.each(function(value) {
+                        var numericValue = unformatCurrency(value);
+                        if (!isNaN(numericValue)) {
+                            volumeSum += numericValue;
+                        }
+                    });
+
+                    var allPagesVolume = 0;
+                    if (summationInfo && typeof summationInfo.sum_volume !== "undefined") {
+                        allPagesVolume = parseFloat(summationInfo.sum_volume);
+                        if (isNaN(allPagesVolume)) {
+                            allPagesVolume = 0;
+                        }
+                    }
+
+                    updateVolumeWidget(volumeSum, allPagesVolume);
+                }
+
+                updateSummary(summationInfo);
             }
         });
 
