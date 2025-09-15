@@ -61,6 +61,27 @@
                     </div>
                 </div>
             </div>
+            <?php if (!empty($source_custom_field_label)) { ?>
+            <div class="form-group">
+                <div class="row">
+                    <label for="custom_field_265" class="col-md-3"><?php echo $source_custom_field_label; ?></label>
+                    <div class="col-md-9">
+                        <?php
+                        if (!empty($source_custom_field_has_options)) {
+                            echo form_dropdown("custom_field_265", $source_custom_field_options, '', "class='select2' id='custom_field_265'");
+                        } else {
+                            echo form_input(array(
+                                "id" => "custom_field_265",
+                                "name" => "custom_field_265",
+                                "class" => "form-control",
+                                "placeholder" => $source_custom_field_label
+                            ));
+                        }
+                        ?>
+                    </div>
+                </div>
+            </div>
+            <?php } ?>
         </div>
     </div>
     <div class="modal-footer">
@@ -80,9 +101,17 @@
 
         $(".select2").select2();
 
+        var leadFormsSourceMap = <?php echo json_encode($lead_forms_source_map ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>;
         var sourceId = "";
         var ownerId = "";
         var formId = "";
+        var customFieldValue = "";
+        var customFieldOverride = false;
+        var $customField = $("#custom_field_265");
+
+        if ($customField.length) {
+            customFieldValue = $customField.val() || "";
+        }
 
         $("#lead_source_id").on("change", function() {
             sourceId = $(this).val();
@@ -96,18 +125,65 @@
 
         $("#lead_form_id").on("change", function() {
             formId = $(this).val();
+            var handled = applyCustomFieldValueFromForm(formId);
+            if (!handled) {
+                updateEmbeddedCode();
+            }
+        });
+
+        $customField.on("change input", function(event) {
+            customFieldValue = $(this).val() || "";
+            customFieldOverride = event.programmaticTrigger ? false : true;
             updateEmbeddedCode();
         });
 
+        function applyCustomFieldValueFromForm(formIdentifier) {
+            var mappedValue = "";
+            if (formIdentifier && Object.prototype.hasOwnProperty.call(leadFormsSourceMap, formIdentifier)) {
+                mappedValue = leadFormsSourceMap[formIdentifier] || "";
+            }
+
+            if ($customField.length) {
+                customFieldOverride = false;
+                if ($customField.is('select')) {
+                    var changeEvent = $.Event('change');
+                    changeEvent.programmaticTrigger = true;
+                    $customField.val(mappedValue).trigger(changeEvent);
+                } else {
+                    var inputEvent = $.Event('input');
+                    inputEvent.programmaticTrigger = true;
+                    $customField.val(mappedValue).trigger(inputEvent);
+                }
+                return true;
+            }
+
+            customFieldValue = mappedValue || "";
+            customFieldOverride = false;
+            return false;
+        }
+
+        function shouldIncludeCustomField() {
+            return customFieldOverride || (!formId && customFieldValue !== "");
+        }
+
         function updateEmbeddedCode() {
             var embeddedCode = "<?php echo $embedded; ?>";
+            var includeCustomField = shouldIncludeCustomField();
             if (formId) {
                 var iframeSrc = "<?php echo get_uri('collect_leads/form/'); ?>" + formId;
+                if (includeCustomField) {
+                    var separator = iframeSrc.indexOf('?') === -1 ? '?' : '&';
+                    iframeSrc += separator + "custom_field_265=" + encodeURIComponent(customFieldValue);
+                }
                 var iframeHtml = "<iframe width='768' height='360' src='" + iframeSrc + "' frameborder='0'></iframe>";
                 $("#embedded-code").val(iframeHtml);
-            } else if (sourceId || ownerId) {
+            } else if (sourceId || ownerId || includeCustomField) {
                 var src = "<?php echo get_uri('collect_leads') . '/index/'; ?>";
                 var iframeSrc = src + (sourceId ? sourceId : "0") + "/" + (ownerId ? ownerId : "0");
+                if (includeCustomField) {
+                    var glue = iframeSrc.indexOf('?') === -1 ? '?' : '&';
+                    iframeSrc += glue + "custom_field_265=" + encodeURIComponent(customFieldValue);
+                }
                 var iframeHtml = "<iframe width='768' height='360' src='" + iframeSrc + "' frameborder='0'></iframe>";
                 $("#embedded-code").val(iframeHtml);
             } else {
@@ -117,3 +193,4 @@
 
     });
 </script>
+

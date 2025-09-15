@@ -43,6 +43,27 @@
                     </div>
                 </div>
             </div>
+            <?php if (!empty($source_custom_field_label)) { ?>
+            <div class="form-group">
+                <div class="row">
+                    <label for="custom_field_265" class="col-md-3"><?php echo $source_custom_field_label; ?></label>
+                    <div class="col-md-9">
+                        <?php
+                        if (!empty($source_custom_field_has_options)) {
+                            echo form_dropdown('custom_field_265', $source_custom_field_options, '', "class='select2' id='custom_field_265'");
+                        } else {
+                            echo form_input(array(
+                                "id" => "custom_field_265",
+                                "name" => "custom_field_265",
+                                "class" => "form-control",
+                                "placeholder" => $source_custom_field_label
+                            ));
+                        }
+                        ?>
+                    </div>
+                </div>
+            </div>
+            <?php } ?>
             <div class="form-group">
                 <div class="row">
                     <div class="col-md-12">
@@ -71,19 +92,66 @@
 
         $(".select2").select2();
 
+        var leadFormsSourceMap = <?php echo json_encode($lead_forms_source_map ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>;
         var sourceId = "";
         var ownerId = "";
         var formId = "";
+        var customFieldValue = "";
+        var customFieldOverride = false;
+        var $customField = $("#custom_field_265");
+
+        if ($customField.length) {
+            customFieldValue = $customField.val() || "";
+        }
+
+        function shouldIncludeCustomField() {
+            return customFieldOverride || (!formId && customFieldValue !== "");
+        }
 
         function updateHtmlCode() {
+            var postData = {
+                lead_source_id: sourceId,
+                lead_owner_id: ownerId,
+                lead_form_id: formId
+            };
+
+            if (shouldIncludeCustomField()) {
+                postData.custom_field_265 = customFieldValue;
+            }
+
             $.ajax({
                 url: "<?php echo get_uri('collect_leads/get_lead_html_form_code'); ?>",
                 type: "POST",
-                data: {lead_source_id: sourceId, lead_owner_id: ownerId, lead_form_id: formId},
+                data: postData,
                 success: function (result) {
                     $("#lead-html-form-code").val(result);
                 }
             });
+        }
+
+        function applyCustomFieldValueFromForm(formIdentifier) {
+            var mappedValue = "";
+            if (formIdentifier && Object.prototype.hasOwnProperty.call(leadFormsSourceMap, formIdentifier)) {
+                mappedValue = leadFormsSourceMap[formIdentifier] || "";
+            }
+
+            if ($customField.length) {
+                customFieldOverride = false;
+                if ($customField.is('select')) {
+                    var changeEvent = $.Event('change');
+                    changeEvent.programmaticTrigger = true;
+                    $customField.val(mappedValue).trigger(changeEvent);
+                } else {
+                    var inputEvent = $.Event('input');
+                    inputEvent.programmaticTrigger = true;
+                    $customField.val(mappedValue).trigger(inputEvent);
+                }
+                return true;
+            }
+
+            customFieldValue = mappedValue || "";
+            customFieldOverride = false;
+            return false;
         }
 
         updateHtmlCode();
@@ -100,6 +168,15 @@
 
         $("#lead_form_id").on("change", function () {
             formId = $(this).val();
+            var handled = applyCustomFieldValueFromForm(formId);
+            if (!handled) {
+                updateHtmlCode();
+            }
+        });
+
+        $customField.on("change input", function (event) {
+            customFieldValue = $(this).val() || "";
+            customFieldOverride = event.programmaticTrigger ? false : true;
             updateHtmlCode();
         });
 
@@ -111,3 +188,4 @@
         });
     });
 </script>
+

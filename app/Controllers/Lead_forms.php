@@ -4,6 +4,8 @@ namespace App\Controllers;
 
 class Lead_forms extends Security_Controller {
 
+    private const SOURCE_CUSTOM_FIELD_ID = 265;
+
     function __construct() {
         parent::__construct();
         $this->init_permission_checker("lead");
@@ -51,18 +53,28 @@ class Lead_forms extends Security_Controller {
         }
         $view_data["custom_fields_dropdown"] = $custom_fields_dropdown;
 
+        $custom_field_meta = $this->getSourceCustomFieldMeta();
+        $view_data["source_custom_field_label"] = $custom_field_meta['label'] ?? '';
+        $view_data["source_custom_field_options"] = $custom_field_meta['options'] ?? [];
+        $view_data["source_custom_field_has_options"] = $custom_field_meta['has_options'] ?? false;
+
         return $this->template->view("collect_leads/lead_form_modal_form", $view_data);
     }
 
     function save() {
         $this->access_only_admin_or_settings_admin();
         $id = $this->request->getPost("id");
+        $custom_source_value = $this->request->getPost("custom_field_" . self::SOURCE_CUSTOM_FIELD_ID);
+        if (is_string($custom_source_value)) {
+            $custom_source_value = trim($custom_source_value);
+        }
         $data = array(
             "title" => $this->request->getPost("title"),
             "owner_id" => $this->request->getPost("owner_id"),
             "lead_source_id" => $this->request->getPost("lead_source_id"),
             "labels" => is_array($this->request->getPost("labels")) ? implode(",", $this->request->getPost("labels")) : $this->request->getPost("labels"),
-            "custom_fields" => is_array($this->request->getPost("custom_fields")) ? implode(",", $this->request->getPost("custom_fields")) : $this->request->getPost("custom_fields")
+            "custom_fields" => is_array($this->request->getPost("custom_fields")) ? implode(",", $this->request->getPost("custom_fields")) : $this->request->getPost("custom_fields"),
+            "custom_source_value" => $custom_source_value
         );
         $save_id = $this->Lead_forms_model->ci_save($data, $id);
         if ($save_id) {
@@ -118,6 +130,39 @@ class Lead_forms extends Security_Controller {
                 . js_anchor("<i data-feather='x' class='icon-16'></i>", array("title" => app_lang('delete'), "class" => "delete", "data-id" => $data->id, "data-action-url" => get_uri("lead_forms/delete"), "data-action" => "delete"));
 
         return array($data->title, $owner, $source, $data->labels, $options);
+    }
+
+    private function getSourceCustomFieldMeta(): array {
+        $field = $this->Custom_fields_model->get_one(self::SOURCE_CUSTOM_FIELD_ID);
+        if (!$field || !$field->id) {
+            return [];
+        }
+
+        $label = $field->title_language_key ? app_lang($field->title_language_key) : $field->title;
+
+        $options = [];
+        if (!empty($field->options)) {
+            $raw_options = preg_split('/\r\n|\r|\n|,/', $field->options);
+            if (is_array($raw_options)) {
+                foreach ($raw_options as $option) {
+                    $option = trim($option);
+                    if ($option !== '') {
+                        $options[$option] = $option;
+                    }
+                }
+            }
+        }
+
+        $dropdown = [];
+        if (!empty($options)) {
+            $dropdown = array('' => "- " . $label . " -") + $options;
+        }
+
+        return [
+            'label' => $label,
+            'options' => $dropdown,
+            'has_options' => !empty($options),
+        ];
     }
 }
 
