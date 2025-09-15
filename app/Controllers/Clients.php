@@ -2225,7 +2225,17 @@ private function _save_a_row_of_excel_data($row_data) {
         $access_info = $this->get_access_info("invoice");
         $view_data["show_invoice_info"] = (get_setting("module_invoice") && $access_info->access_type == "all") ? true : false;
 
+        $custom_fields_for_table = $this->Custom_fields_model->get_available_fields_for_table("clients", $this->login_user->is_admin, $this->login_user->user_type);
         $view_data["custom_field_headers"] = $this->Custom_fields_model->get_custom_field_headers_for_table("clients", $this->login_user->is_admin, $this->login_user->user_type);
+
+        $custom_field_ids = array();
+        foreach ($custom_fields_for_table as $custom_field) {
+            $custom_field_ids[] = (int) $custom_field->id;
+        }
+
+        $view_data["custom_field_ids"] = $custom_field_ids;
+        $view_data["volume_custom_field_id"] = 273;
+        $view_data["margin_above_rack_custom_field_id"] = 241;
         $view_data['statuses'] = $this->Lead_status_model->get_details()->getResult();
         $view_data['groups_dropdown'] = json_encode($this->_get_groups_dropdown_select2_data(true));
         $view_data['can_edit_clients'] = $this->can_edit_clients();
