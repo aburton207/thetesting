@@ -899,6 +899,111 @@ function get_details($options = array()) {
         return $this->db->query($sql);
     }
 
+    function get_lead_conversion_report_details($options = array()) {
+        $clients_table = $this->db->prefixTable('clients');
+        $users_table = $this->db->prefixTable('users');
+        $lead_source_table = $this->db->prefixTable('lead_source');
+        $custom_field_values_table = $this->db->prefixTable('custom_field_values');
+
+        $source_expression = "COALESCE(NULLIF(lead_cf.value, ''), NULLIF(client_cf.value, ''))";
+
+        $builder = $this->db->table("$clients_table AS c");
+        $builder->select("
+            c.owner_id,
+            CONCAT_WS(' ', u.first_name, u.last_name) AS owner_name,
+            c.lead_source_id,
+            ls.title AS region_name,
+            $source_expression AS source_value,
+            SUM(CASE WHEN c.is_lead = 1 THEN 1 ELSE 0 END) AS total_leads,
+            SUM(CASE WHEN c.is_lead = 0 AND c.client_migration_date IS NOT NULL AND c.client_migration_date > '2000-01-01' THEN 1 ELSE 0 END) AS conversions,
+            AVG(CASE WHEN c.is_lead = 0 AND c.client_migration_date IS NOT NULL AND c.client_migration_date > '2000-01-01' THEN TIMESTAMPDIFF(DAY, c.created_date, c.client_migration_date) END) AS avg_conversion_time
+        ", false);
+
+        $builder->join("$users_table AS u", "u.id = c.owner_id", "left");
+        $builder->join("$lead_source_table AS ls", "ls.id = c.lead_source_id", "left");
+        $builder->join("$custom_field_values_table AS lead_cf", "lead_cf.related_to_id = c.id AND lead_cf.custom_field_id = 238 AND lead_cf.related_to_type = 'leads' AND lead_cf.deleted = 0", "left");
+        $builder->join("$custom_field_values_table AS client_cf", "client_cf.related_to_id = c.id AND client_cf.custom_field_id = 265 AND client_cf.related_to_type = 'clients' AND client_cf.deleted = 0", "left");
+
+        $builder->where("c.deleted", 0);
+
+        $owner_id = $this->_get_clean_value($options, "owner_id");
+        if ($owner_id) {
+            $builder->where("c.owner_id", $owner_id);
+        }
+
+        $region_id = $this->_get_clean_value($options, "region_id");
+        if ($region_id) {
+            $builder->where("c.lead_source_id", $region_id);
+        }
+
+        $lead_status_id = $this->_get_clean_value($options, "lead_status_id");
+        if ($lead_status_id) {
+            $builder->where("c.lead_status_id", $lead_status_id);
+        }
+
+        $source_value = $this->_get_clean_value($options, "source_value");
+        if ($source_value) {
+            $builder->groupStart();
+            $builder->where("lead_cf.value", $source_value);
+            $builder->orWhere("client_cf.value", $source_value);
+            $builder->groupEnd();
+        }
+
+        $created_start_date = $this->_get_clean_value($options, "created_start_date");
+        if ($created_start_date) {
+            $builder->where("c.created_date >=", $created_start_date . " 00:00:00");
+        }
+
+        $created_end_date = $this->_get_clean_value($options, "created_end_date");
+        if ($created_end_date) {
+            $builder->where("c.created_date <=", $created_end_date . " 23:59:59");
+        }
+
+        $migration_start_date = $this->_get_clean_value($options, "migration_start_date");
+        $migration_end_date = $this->_get_clean_value($options, "migration_end_date");
+        if ($migration_start_date || $migration_end_date) {
+            $builder->groupStart();
+            $builder->where("c.is_lead", 1);
+            $builder->orGroupStart();
+            $builder->where("c.is_lead", 0);
+            if ($migration_start_date) {
+                $builder->where("c.client_migration_date >=", $migration_start_date . " 00:00:00");
+            }
+            if ($migration_end_date) {
+                $builder->where("c.client_migration_date <=", $migration_end_date . " 23:59:59");
+            }
+            $builder->groupEnd();
+            $builder->groupEnd();
+        }
+
+        $builder->groupBy("c.owner_id");
+        $builder->groupBy("c.lead_source_id");
+        $builder->groupBy($source_expression, false);
+
+        $builder->orderBy("owner_name", "ASC");
+        $builder->orderBy("region_name", "ASC");
+        $builder->orderBy("source_value", "ASC");
+
+        return $builder->get();
+    }
+
+    function get_lead_conversion_source_values($field_ids = array(238, 265)) {
+        $custom_field_values_table = $this->db->prefixTable('custom_field_values');
+
+        $builder = $this->db->table($custom_field_values_table);
+        $builder->distinct();
+        $builder->select('value');
+        $builder->where('deleted', 0);
+        if ($field_ids && is_array($field_ids)) {
+            $builder->whereIn('custom_field_id', $field_ids);
+        }
+        $builder->where('value IS NOT NULL', null, false);
+        $builder->where('value !=', '');
+        $builder->orderBy('value', 'ASC');
+
+        return $builder->get();
+    }
+
     function get_client_status_statistics($options = array()) {
         $clients_table = $this->db->prefixTable('clients');
         $lead_status_table = $this->db->prefixTable('lead_status');
