@@ -843,6 +843,11 @@ if (!function_exists('send_notification_emails')) {
 
             $parser_data["LEAD_ID"] = $notification->lead_id;
             $parser_data["LEAD_URL"] = $url;
+            $parser_data["LEAD_SOURCE"] = "";
+            $parser_data["LEAD_LABELS"] = "";
+
+            $extra_lead_source_id = "";
+            $extra_lead_label_ids = "";
 
             if ($notification->description) {
                 $extra_data = json_decode($notification->description, true);
@@ -855,8 +860,74 @@ if (!function_exists('send_notification_emails')) {
                     $parser_data['FORM_DATA'] = get_array_value($extra_data, 'form_data');
                     $parser_data['CUSTOM_FIELD_VALUES'] = get_array_value($extra_data, 'custom_field_values');
                     $parser_data['FILES_DATA'] = get_array_value($extra_data, 'files_data');
+                    $parser_data['LEAD_SOURCE'] = get_array_value($extra_data, 'lead_source');
+                    $parser_data['LEAD_LABELS'] = get_array_value($extra_data, 'lead_labels');
+                    $extra_lead_source_id = get_array_value($extra_data, 'lead_source_id');
+                    $extra_lead_label_ids = get_array_value($extra_data, 'lead_label_ids');
                     $parser_data['SITE_URL'] = get_uri();
                 }
+            }
+
+            if (!$parser_data['LEAD_SOURCE'] && isset($parser_data['FORM_DATA']) && is_array($parser_data['FORM_DATA'])) {
+                $parser_data['LEAD_SOURCE'] = get_array_value($parser_data['FORM_DATA'], 'lead_source');
+            }
+
+            if (!$parser_data['LEAD_LABELS'] && isset($parser_data['FORM_DATA']) && is_array($parser_data['FORM_DATA'])) {
+                $parser_data['LEAD_LABELS'] = get_array_value($parser_data['FORM_DATA'], 'lead_labels');
+            }
+
+            if (!$parser_data['LEAD_SOURCE'] || !$parser_data['LEAD_LABELS']) {
+                $lead_info = $ci->Clients_model->get_details(array("id" => $notification->lead_id))->getRow();
+                if ($lead_info) {
+                    if (!$parser_data['LEAD_SOURCE'] && $lead_info->lead_source_title) {
+                        $parser_data['LEAD_SOURCE'] = $lead_info->lead_source_title;
+                    }
+
+                    if (!$parser_data['LEAD_LABELS']) {
+                        $label_titles = array();
+                        if ($lead_info->labels) {
+                            $label_titles = $ci->Labels_model->get_titles_by_ids($lead_info->labels);
+                        } elseif ($lead_info->labels_list) {
+                            $labels_array = explode(':--::--:', $lead_info->labels_list);
+                            foreach ($labels_array as $label_item) {
+                                if (!$label_item) {
+                                    continue;
+                                }
+                                $label_parts = explode('--::--', $label_item);
+                                $label_title = get_array_value($label_parts, 1);
+                                if ($label_title) {
+                                    $label_titles[] = $label_title;
+                                }
+                            }
+                        }
+
+                        if ($label_titles) {
+                            $parser_data['LEAD_LABELS'] = implode(', ', $label_titles);
+                        }
+                    }
+                }
+            }
+
+            if (!$parser_data['LEAD_SOURCE'] && $extra_lead_source_id) {
+                $source_info = $ci->Lead_source_model->get_one($extra_lead_source_id);
+                if ($source_info && $source_info->id) {
+                    $parser_data['LEAD_SOURCE'] = $source_info->title;
+                }
+            }
+
+            if (!$parser_data['LEAD_LABELS'] && $extra_lead_label_ids) {
+                $label_titles = $ci->Labels_model->get_titles_by_ids($extra_lead_label_ids);
+                if ($label_titles) {
+                    $parser_data['LEAD_LABELS'] = implode(', ', $label_titles);
+                }
+            }
+
+            if (!$parser_data['LEAD_SOURCE']) {
+                $parser_data['LEAD_SOURCE'] = app_lang('not_specified');
+            }
+
+            if (!$parser_data['LEAD_LABELS']) {
+                $parser_data['LEAD_LABELS'] = app_lang('not_specified');
             }
         } else if ($notification->event == "project_completed") {
             $template_name = "project_completed";
@@ -1152,7 +1223,9 @@ function parse_email_template($template, $data) {
         $form_data_rows = '';
         $custom_labels = [
             'state' => 'Province',
-            'zip' => 'Postal Code'
+            'zip' => 'Postal Code',
+            'lead_source' => 'Lead Source',
+            'lead_labels' => 'Lead Labels'
         ];
         foreach ($data['FORM_DATA'] as $key => $value) {
             if ($value) {

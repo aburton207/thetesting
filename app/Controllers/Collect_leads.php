@@ -102,6 +102,37 @@ class Collect_leads extends App_Controller {
         $first_name = $this->request->getPost('first_name');
         $last_name = $this->request->getPost('last_name');
         $source_id = (int)$this->request->getPost('lead_source_id');
+        $lead_labels_input = $this->request->getPost('lead_labels');
+
+        validate_list_of_numbers($lead_labels_input);
+
+        $lead_label_ids_array = array();
+        if ($lead_labels_input) {
+            $raw_label_ids = preg_split('/[,-]/', $lead_labels_input, -1, PREG_SPLIT_NO_EMPTY);
+            foreach ($raw_label_ids as $raw_id) {
+                $raw_id = trim($raw_id);
+                if ($raw_id === "") {
+                    continue;
+                }
+                if (is_numeric($raw_id)) {
+                    $lead_label_ids_array[] = (int) $raw_id;
+                }
+            }
+        }
+
+        $lead_label_ids_array = array_values(array_unique($lead_label_ids_array));
+        $lead_label_ids_string = $lead_label_ids_array ? implode(',', $lead_label_ids_array) : "";
+
+        $lead_source_title = "";
+        if ($source_id) {
+            $lead_source = $this->Lead_source_model->get_one($source_id);
+            if ($lead_source && $lead_source->id) {
+                $lead_source_title = $lead_source->title;
+            }
+        }
+
+        $label_titles = $this->Labels_model->get_titles_by_ids($lead_label_ids_array);
+        $lead_labels_text = $label_titles ? implode(', ', $label_titles) : "";
 
         //fallback to first + last name if company name is empty
         if (!$company_name) {
@@ -119,7 +150,7 @@ class Collect_leads extends App_Controller {
             "is_lead" => 1,
             "lead_status_id" => $this->Lead_status_model->get_first_status(),
             "lead_source_id" => $source_id,
-            "labels" => $this->request->getPost("lead_labels"),
+            "labels" => $lead_label_ids_string,
             "created_date" => get_current_utc_time(),
             "owner_id" => $this->request->getPost("lead_owner_id") ? $this->request->getPost("lead_owner_id") : 1 //if no owner is selected, add default admin
         );
@@ -170,6 +201,14 @@ class Collect_leads extends App_Controller {
             "phone" => $this->request->getPost('phone')
         );
 
+        if ($lead_source_title) {
+            $form_data['lead_source'] = $lead_source_title;
+        }
+
+        if ($lead_labels_text) {
+            $form_data['lead_labels'] = $lead_labels_text;
+        }
+
         //collect custom field values
         $custom_field_values = array();
         $form_fields = $this->Custom_fields_model->get_details(array("related_to" => "leads", "show_in_embedded_form" => true))->getResult();
@@ -188,7 +227,11 @@ class Collect_leads extends App_Controller {
             "lead_id" => $lead_id,
             "form_data" => $form_data,
             "custom_field_values" => $custom_field_values,
-            "files_data" => array()
+            "files_data" => array(),
+            "lead_source" => $lead_source_title,
+            "lead_source_id" => $source_id,
+            "lead_labels" => $lead_labels_text,
+            "lead_label_ids" => $lead_label_ids_string
         );
 
         // Log the notification with details

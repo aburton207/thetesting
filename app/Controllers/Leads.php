@@ -194,12 +194,39 @@ class Leads extends Security_Controller {
                     }
                 }
 
+                $lead_source_title = "";
+                $lead_source_id = $this->request->getPost('lead_source_id');
+                if ($lead_source_id) {
+                    $lead_source = $this->Lead_source_model->get_one($lead_source_id);
+                    if ($lead_source && $lead_source->id) {
+                        $lead_source_title = $lead_source->title;
+                    }
+                }
+
+                $lead_labels_text = "";
+                $label_titles = $this->Labels_model->get_titles_by_ids($labels);
+                if ($label_titles) {
+                    $lead_labels_text = implode(', ', $label_titles);
+                }
+
+                if ($lead_source_title) {
+                    $form_data['lead_source'] = $lead_source_title;
+                }
+
+                if ($lead_labels_text) {
+                    $form_data['lead_labels'] = $lead_labels_text;
+                }
+
                 $notification_data = array(
                     "lead_id" => $save_id,
                     "user_id" => $this->login_user->id,
                     "form_data" => $form_data,
                     "custom_field_values" => $custom_field_values,
-                    "files_data" => array()
+                    "files_data" => array(),
+                    "lead_source" => $lead_source_title,
+                    "lead_source_id" => $lead_source_id,
+                    "lead_labels" => $lead_labels_text,
+                    "lead_label_ids" => $labels
                 );
 
                 log_notification("lead_created", array(
