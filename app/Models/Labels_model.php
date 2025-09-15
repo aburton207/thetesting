@@ -61,13 +61,75 @@ class Labels_model extends Crud_model {
         if ($id && $type) {
             $id = $this->_get_clean_value($id);
             $type = $this->_get_clean_value($type);
-            
+
             $table = $this->db->prefixTable($type);
 
             $sql = "SELECT COUNT($table.id) AS existing_labels FROM $table WHERE $table.deleted=0 AND FIND_IN_SET('$id', $table.labels)";
 
             return $this->db->query($sql)->getRow()->existing_labels;
         }
+    }
+
+    /**
+     * Return label titles for the supplied ids.
+     *
+     * @param string|array $label_ids Comma separated string or array of ids
+     * @return array List of label titles ordered by the incoming ids
+     */
+    function get_titles_by_ids($label_ids = array()) {
+        if (!$label_ids) {
+            return array();
+        }
+
+        if (!is_array($label_ids)) {
+            if (is_string($label_ids)) {
+                $label_ids = preg_split('/[,-]/', $label_ids, -1, PREG_SPLIT_NO_EMPTY);
+            } else {
+                $label_ids = array($label_ids);
+            }
+        }
+
+        $clean_ids = array();
+        foreach ($label_ids as $id) {
+            $id = trim($id);
+            if ($id === "") {
+                continue;
+            }
+            if (is_numeric($id)) {
+                $clean_ids[] = (int) $id;
+            }
+        }
+
+        $clean_ids = array_values(array_unique($clean_ids));
+
+        if (!$clean_ids) {
+            return array();
+        }
+
+        $labels_table = $this->db->prefixTable('labels');
+        $builder = $this->db->table($labels_table);
+        $builder->select('id, title');
+        $builder->where('deleted', 0);
+        $builder->whereIn('id', $clean_ids);
+        $result = $builder->get()->getResult();
+
+        if (!$result) {
+            return array();
+        }
+
+        $title_map = array();
+        foreach ($result as $row) {
+            $title_map[$row->id] = $row->title;
+        }
+
+        $titles = array();
+        foreach ($clean_ids as $id) {
+            if (isset($title_map[$id])) {
+                $titles[] = $title_map[$id];
+            }
+        }
+
+        return $titles;
     }
 
 }

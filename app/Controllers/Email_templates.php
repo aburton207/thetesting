@@ -71,6 +71,8 @@ class Email_templates extends Security_Controller {
                     "CONTACT_LAST_NAME",
                     "SIGNATURE",
                     "LEAD_URL",
+                    "LEAD_SOURCE",
+                    "LEAD_LABELS",
                     "LOGO_URL",
                     "RECIPIENTS_EMAIL_ADDRESS",
                     "FORM_DATA",
