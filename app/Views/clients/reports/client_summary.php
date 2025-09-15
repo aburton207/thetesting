@@ -1,7 +1,6 @@
 <?php echo get_reports_topbar(); ?>
 
 <div id="page-content" class="page-wrapper clearfix">
-    <div id="client-dashboard-summary-container" class="mb20"></div>
     <div id="client-volume-totals" class="row clearfix mb20 hide">
         <div class="col-md-3 col-sm-6 widget-container">
             <div class="card dashboard-icon-widget">
@@ -239,7 +238,6 @@
                     info = instance.settings.summationInfo;
                 }
                 updateSummary(info);
-                loadClientDashboardSummary();
             },
             onRelaodCallback: function (instance) {
                 var info = null;
@@ -249,7 +247,6 @@
                     info = instance.settings.summationInfo;
                 }
                 updateSummary(info);
-                loadClientDashboardSummary();
             },
             footerCallback: function (row, data, start, end, display, table) {
                 var api = new $.fn.dataTable.Api(table);
@@ -310,21 +307,5 @@
             }
         });
 
-        function loadClientDashboardSummary() {
-            var ownerId = $('[name="owner_id"]').val();
-            $.ajax({
-                url: '<?php echo get_uri("clients/load_client_dashboard_summary"); ?>',
-                type: 'POST',
-                dataType: 'json',
-                data: {owner_id: ownerId},
-                success: function (response) {
-                    if (response.success) {
-                        $('#client-dashboard-summary-container').html(response.statistics);
-                    } else {
-                        $('#client-dashboard-summary-container').html("");
-                    }
-                }
-            });
-        }
     });
 </script>
