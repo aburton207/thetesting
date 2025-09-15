@@ -36,15 +36,15 @@
     <?php if (!empty($source_custom_field_label)) { ?>
     <div class="form-group">
         <div class="row">
-            <label for="custom_field_238" class="col-md-3"><?php echo $source_custom_field_label; ?></label>
+            <label for="custom_field_265" class="col-md-3"><?php echo $source_custom_field_label; ?></label>
             <div class="col-md-9">
                 <?php
                 if (!empty($source_custom_field_has_options)) {
-                    echo form_dropdown("custom_field_238", $source_custom_field_options, $model_info->custom_source_value, "class='select2' id='custom_field_238'");
+                    echo form_dropdown("custom_field_265", $source_custom_field_options, $model_info->custom_source_value, "class='select2' id='custom_field_265'");
                 } else {
                     echo form_input(array(
-                        "id" => "custom_field_238",
-                        "name" => "custom_field_238",
+                        "id" => "custom_field_265",
+                        "name" => "custom_field_265",
                         "value" => $model_info->custom_source_value,
                         "class" => "form-control",
                         "placeholder" => $source_custom_field_label
