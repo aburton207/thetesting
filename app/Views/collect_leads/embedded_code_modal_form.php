@@ -64,15 +64,15 @@
             <?php if (!empty($source_custom_field_label)) { ?>
             <div class="form-group">
                 <div class="row">
-                    <label for="custom_field_265" class="col-md-3"><?php echo $source_custom_field_label; ?></label>
+                    <label for="custom_field_238" class="col-md-3"><?php echo $source_custom_field_label; ?></label>
                     <div class="col-md-9">
                         <?php
                         if (!empty($source_custom_field_has_options)) {
-                            echo form_dropdown("custom_field_265", $source_custom_field_options, '', "class='select2' id='custom_field_265'");
+                            echo form_dropdown("custom_field_238", $source_custom_field_options, '', "class='select2' id='custom_field_238'");
                         } else {
                             echo form_input(array(
-                                "id" => "custom_field_265",
-                                "name" => "custom_field_265",
+                                "id" => "custom_field_238",
+                                "name" => "custom_field_238",
                                 "class" => "form-control",
                                 "placeholder" => $source_custom_field_label
                             ));
@@ -107,7 +107,7 @@
         var formId = "";
         var customFieldValue = "";
         var customFieldOverride = false;
-        var $customField = $("#custom_field_265");
+        var $customField = $("#custom_field_238");
 
         if ($customField.length) {
             customFieldValue = $customField.val() || "";
@@ -173,7 +173,7 @@
                 var iframeSrc = "<?php echo get_uri('collect_leads/form/'); ?>" + formId;
                 if (includeCustomField) {
                     var separator = iframeSrc.indexOf('?') === -1 ? '?' : '&';
-                    iframeSrc += separator + "custom_field_265=" + encodeURIComponent(customFieldValue);
+                    iframeSrc += separator + "custom_field_238=" + encodeURIComponent(customFieldValue);
                 }
                 var iframeHtml = "<iframe width='768' height='360' src='" + iframeSrc + "' frameborder='0'></iframe>";
                 $("#embedded-code").val(iframeHtml);
@@ -182,7 +182,7 @@
                 var iframeSrc = src + (sourceId ? sourceId : "0") + "/" + (ownerId ? ownerId : "0");
                 if (includeCustomField) {
                     var glue = iframeSrc.indexOf('?') === -1 ? '?' : '&';
-                    iframeSrc += glue + "custom_field_265=" + encodeURIComponent(customFieldValue);
+                    iframeSrc += glue + "custom_field_238=" + encodeURIComponent(customFieldValue);
                 }
                 var iframeHtml = "<iframe width='768' height='360' src='" + iframeSrc + "' frameborder='0'></iframe>";
                 $("#embedded-code").val(iframeHtml);
