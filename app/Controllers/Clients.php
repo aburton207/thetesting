@@ -297,6 +297,14 @@ function list_data() {
 
     $result["data"] = $result_data;
 
+    $sum_options = $all_options;
+    $sum_options["sum_volume_only"] = true;
+    unset($sum_options["limit"], $sum_options["skip"]);
+    $total_volume = $this->Clients_model->get_details($sum_options);
+    $result["summation"] = array(
+        "total_volume" => $total_volume
+    );
+
     echo json_encode($result);
 }
 
