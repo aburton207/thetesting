@@ -61,6 +61,27 @@
                     </div>
                 </div>
             </div>
+            <?php if (!empty($source_custom_field_label)) { ?>
+            <div class="form-group">
+                <div class="row">
+                    <label for="custom_field_265" class="col-md-3"><?php echo $source_custom_field_label; ?></label>
+                    <div class="col-md-9">
+                        <?php
+                        if (!empty($source_custom_field_has_options)) {
+                            echo form_dropdown("custom_field_265", $source_custom_field_options, '', "class='select2' id='custom_field_265'");
+                        } else {
+                            echo form_input(array(
+                                "id" => "custom_field_265",
+                                "name" => "custom_field_265",
+                                "class" => "form-control",
+                                "placeholder" => $source_custom_field_label
+                            ));
+                        }
+                        ?>
+                    </div>
+                </div>
+            </div>
+            <?php } ?>
         </div>
     </div>
     <div class="modal-footer">
@@ -83,6 +104,9 @@
         var sourceId = "";
         var ownerId = "";
         var formId = "";
+        var customFieldValue = "";
+
+        customFieldValue = $("#custom_field_265").val() || "";
 
         $("#lead_source_id").on("change", function() {
             sourceId = $(this).val();
@@ -99,15 +123,27 @@
             updateEmbeddedCode();
         });
 
+        $("#custom_field_265").on("change input", function() {
+            customFieldValue = $(this).val() || "";
+            updateEmbeddedCode();
+        });
+
         function updateEmbeddedCode() {
             var embeddedCode = "<?php echo $embedded; ?>";
+            var hasCustomField = customFieldValue !== "";
             if (formId) {
                 var iframeSrc = "<?php echo get_uri('collect_leads/form/'); ?>" + formId;
+                if (hasCustomField) {
+                    iframeSrc += (iframeSrc.indexOf('?') === -1 ? '?' : '&') + "custom_field_265=" + encodeURIComponent(customFieldValue);
+                }
                 var iframeHtml = "<iframe width='768' height='360' src='" + iframeSrc + "' frameborder='0'></iframe>";
                 $("#embedded-code").val(iframeHtml);
-            } else if (sourceId || ownerId) {
+            } else if (sourceId || ownerId || hasCustomField) {
                 var src = "<?php echo get_uri('collect_leads') . '/index/'; ?>";
                 var iframeSrc = src + (sourceId ? sourceId : "0") + "/" + (ownerId ? ownerId : "0");
+                if (hasCustomField) {
+                    iframeSrc += "?custom_field_265=" + encodeURIComponent(customFieldValue);
+                }
                 var iframeHtml = "<iframe width='768' height='360' src='" + iframeSrc + "' frameborder='0'></iframe>";
                 $("#embedded-code").val(iframeHtml);
             } else {

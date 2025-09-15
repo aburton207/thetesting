@@ -43,6 +43,27 @@
                     </div>
                 </div>
             </div>
+            <?php if (!empty($source_custom_field_label)) { ?>
+            <div class="form-group">
+                <div class="row">
+                    <label for="custom_field_265" class="col-md-3"><?php echo $source_custom_field_label; ?></label>
+                    <div class="col-md-9">
+                        <?php
+                        if (!empty($source_custom_field_has_options)) {
+                            echo form_dropdown('custom_field_265', $source_custom_field_options, '', "class='select2' id='custom_field_265'");
+                        } else {
+                            echo form_input(array(
+                                "id" => "custom_field_265",
+                                "name" => "custom_field_265",
+                                "class" => "form-control",
+                                "placeholder" => $source_custom_field_label
+                            ));
+                        }
+                        ?>
+                    </div>
+                </div>
+            </div>
+            <?php } ?>
             <div class="form-group">
                 <div class="row">
                     <div class="col-md-12">
@@ -74,12 +95,15 @@
         var sourceId = "";
         var ownerId = "";
         var formId = "";
+        var customFieldValue = "";
+
+        customFieldValue = $("#custom_field_265").val() || "";
 
         function updateHtmlCode() {
             $.ajax({
                 url: "<?php echo get_uri('collect_leads/get_lead_html_form_code'); ?>",
                 type: "POST",
-                data: {lead_source_id: sourceId, lead_owner_id: ownerId, lead_form_id: formId},
+                data: {lead_source_id: sourceId, lead_owner_id: ownerId, lead_form_id: formId, custom_field_265: customFieldValue},
                 success: function (result) {
                     $("#lead-html-form-code").val(result);
                 }
@@ -100,6 +124,11 @@
 
         $("#lead_form_id").on("change", function () {
             formId = $(this).val();
+            updateHtmlCode();
+        });
+
+        $("#custom_field_265").on("change input", function () {
+            customFieldValue = $(this).val() || "";
             updateHtmlCode();
         });
 
