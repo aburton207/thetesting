@@ -33,6 +33,7 @@ function get_details($options = array()) {
     }
 
     $custom_field_type = "clients";
+    $sum_volume_only = get_array_value($options, "sum_volume_only");
 
     $leads_only = $this->_get_clean_value($options, "leads_only");
     if ($leads_only) {
@@ -184,6 +185,26 @@ function get_details($options = array()) {
         $where .= $this->get_custom_field_search_query($clients_table, $custom_field_type, $search_by);
 
         $where .= " )";
+    }
+
+    if ($sum_volume_only) {
+        $custom_field_values_table = $this->db->prefixTable('custom_field_values');
+        $volume_alias = "cfvt_273";
+        $additional_volume_join = "";
+
+        if (strpos($join_custom_fieds, "cfvt_273") === false) {
+            $volume_alias = "volume_cf";
+            $additional_volume_join = " LEFT JOIN $custom_field_values_table AS $volume_alias ON $volume_alias.related_to_type='$custom_field_type' AND $volume_alias.related_to_id=$clients_table.id AND $volume_alias.deleted=0 AND $volume_alias.custom_field_id=273";
+        }
+
+        $sum_sql = "SELECT SUM(CAST(IFNULL($volume_alias.value, 0) AS DECIMAL(15,4))) AS total_volume
+                FROM $clients_table
+                $join_custom_fieds
+                $additional_volume_join
+                WHERE $clients_table.deleted=0 $where $custom_fields_where";
+
+        $sum_row = $this->db->query($sum_sql)->getRow();
+        return $sum_row ? floatval($sum_row->total_volume) : 0;
     }
 
     $sql = "SELECT SQL_CALC_FOUND_ROWS $clients_table.*,
