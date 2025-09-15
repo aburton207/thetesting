@@ -142,11 +142,13 @@ class Lead_forms extends Security_Controller {
 
         $options = [];
         if (!empty($field->options)) {
-            $raw_options = explode(',', $field->options);
-            foreach ($raw_options as $option) {
-                $option = trim($option);
-                if ($option !== '') {
-                    $options[$option] = $option;
+            $raw_options = preg_split('/\r\n|\r|\n|,/', $field->options);
+            if (is_array($raw_options)) {
+                foreach ($raw_options as $option) {
+                    $option = trim($option);
+                    if ($option !== '') {
+                        $options[$option] = $option;
+                    }
                 }
             }
         }

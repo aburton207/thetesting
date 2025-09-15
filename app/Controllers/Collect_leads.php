@@ -30,6 +30,9 @@ class Collect_leads extends App_Controller {
         $custom_fields = $this->Custom_fields_model->get_details(array("show_in_embedded_form" => true, "related_to" => "leads"))->getResult();
 
         $custom_source_value = $this->request->getGet('custom_field_' . self::SOURCE_CUSTOM_FIELD_ID);
+        if ($custom_source_value !== null && is_string($custom_source_value)) {
+            $custom_source_value = trim($custom_source_value);
+        }
         $view_data["custom_field_" . self::SOURCE_CUSTOM_FIELD_ID . "_value"] = $custom_source_value !== null ? $custom_source_value : "";
         $view_data["custom_fields"] = $this->filterCustomSourceField($custom_fields, $custom_source_value);
         $view_data["lead_source_id"] = $source_id;
@@ -69,6 +72,9 @@ class Collect_leads extends App_Controller {
         }
 
         $custom_source_override = $this->request->getGet('custom_field_' . self::SOURCE_CUSTOM_FIELD_ID);
+        if ($custom_source_override !== null && is_string($custom_source_override)) {
+            $custom_source_override = trim($custom_source_override);
+        }
         $custom_source_value = $custom_source_override !== null ? $custom_source_override : $model_info->custom_source_value;
         if ($custom_source_value === null) {
             $custom_source_value = "";
@@ -299,7 +305,12 @@ else if ($after_submit_action_of_public_lead_form === "redirect" && $after_submi
 
     private function _lead_html_form_code($form_id = 0, $source_id = 0, $owner_id = 0, $custom_source_value = null) {
         $overrideProvided = $custom_source_value !== null;
-        $custom_source_value = $custom_source_value === null ? "" : $custom_source_value;
+        if ($overrideProvided && is_string($custom_source_value)) {
+            $custom_source_value = trim($custom_source_value);
+        }
+        if (!$overrideProvided) {
+            $custom_source_value = "";
+        }
 
         $view_data = [
             "lead_source_id" => $source_id,
@@ -319,7 +330,7 @@ else if ($after_submit_action_of_public_lead_form === "redirect" && $after_submi
                 $view_data["lead_labels"] = $model_info->labels;
 
                 if (!$overrideProvided) {
-                    $custom_source_value = $model_info->custom_source_value ? $model_info->custom_source_value : "";
+                    $custom_source_value = $model_info->custom_source_value ? trim($model_info->custom_source_value) : "";
                     $view_data["custom_field_" . self::SOURCE_CUSTOM_FIELD_ID . "_value"] = $custom_source_value;
                 }
 
@@ -355,6 +366,7 @@ else if ($after_submit_action_of_public_lead_form === "redirect" && $after_submi
         $view_data['source_custom_field_label'] = $custom_field_meta['label'] ?? '';
         $view_data['source_custom_field_options'] = $custom_field_meta['options'] ?? [];
         $view_data['source_custom_field_has_options'] = $custom_field_meta['has_options'] ?? false;
+        $view_data['lead_forms_source_map'] = $this->getLeadFormsSourceMap($view_data['lead_forms']);
 
         return $this->template->view('collect_leads/lead_html_form_code_modal_form', $view_data);
     }
@@ -364,6 +376,9 @@ else if ($after_submit_action_of_public_lead_form === "redirect" && $after_submi
         $source_id = $this->request->getPost("lead_source_id");
         $owner_id = $this->request->getPost("lead_owner_id");
         $custom_source_value = $this->request->getPost('custom_field_' . self::SOURCE_CUSTOM_FIELD_ID);
+        if ($custom_source_value !== null && is_string($custom_source_value)) {
+            $custom_source_value = trim($custom_source_value);
+        }
 
         echo $this->_lead_html_form_code($form_id, $source_id, $owner_id, $custom_source_value);
     }
@@ -379,6 +394,7 @@ else if ($after_submit_action_of_public_lead_form === "redirect" && $after_submi
         $view_data['source_custom_field_label'] = $custom_field_meta['label'] ?? '';
         $view_data['source_custom_field_options'] = $custom_field_meta['options'] ?? [];
         $view_data['source_custom_field_has_options'] = $custom_field_meta['has_options'] ?? false;
+        $view_data['lead_forms_source_map'] = $this->getLeadFormsSourceMap($view_data['lead_forms']);
 
         return $this->template->view('collect_leads/embedded_code_modal_form', $view_data);
     }
@@ -394,7 +410,15 @@ else if ($after_submit_action_of_public_lead_form === "redirect" && $after_submi
     }
 
     private function hasCustomSourceValue($value): bool {
-        return $value !== null && $value !== "";
+        if ($value === null) {
+            return false;
+        }
+
+        if (is_string($value)) {
+            return trim($value) !== '';
+        }
+
+        return $value !== "";
     }
 
     private function getSourceCustomFieldMeta(): array {
@@ -407,11 +431,13 @@ else if ($after_submit_action_of_public_lead_form === "redirect" && $after_submi
 
         $options = [];
         if (!empty($field->options)) {
-            $raw_options = explode(',', $field->options);
-            foreach ($raw_options as $option) {
-                $option = trim($option);
-                if ($option !== '') {
-                    $options[$option] = $option;
+            $raw_options = preg_split('/\r\n|\r|\n|,/', $field->options);
+            if (is_array($raw_options)) {
+                foreach ($raw_options as $option) {
+                    $option = trim($option);
+                    if ($option !== '') {
+                        $options[$option] = $option;
+                    }
                 }
             }
         }
@@ -426,6 +452,29 @@ else if ($after_submit_action_of_public_lead_form === "redirect" && $after_submi
             'options' => $dropdown,
             'has_options' => !empty($options),
         ];
+    }
+
+    private function getLeadFormsSourceMap($lead_forms): array {
+        $map = [];
+
+        if (!is_array($lead_forms)) {
+            return $map;
+        }
+
+        foreach ($lead_forms as $form) {
+            if (!isset($form->id)) {
+                continue;
+            }
+
+            $value = '';
+            if (isset($form->custom_source_value) && $form->custom_source_value !== null) {
+                $value = is_string($form->custom_source_value) ? trim($form->custom_source_value) : $form->custom_source_value;
+            }
+
+            $map[$form->id] = $value === null ? '' : (string) $value;
+        }
+
+        return $map;
     }
 }
 
