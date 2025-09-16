@@ -916,7 +916,7 @@ function get_details($options = array()) {
         $builder->select("
             c.owner_id,
             CONCAT_WS(' ', u.first_name, u.last_name) AS owner_name,
-            c.lead_source_id,
+            c.lead_source_id AS region_id,
             ls.title AS region_name,
             $source_expression AS source_value,
             SUM(CASE WHEN c.is_lead = 1 THEN 1 ELSE 0 END) AS total_leads,
@@ -1095,7 +1095,7 @@ function get_details($options = array()) {
             c.client_migration_date,
             c.owner_id,
             CONCAT_WS(' ', u.first_name, u.last_name) AS owner_name,
-            c.lead_source_id,
+            c.lead_source_id AS region_id,
             ls.title AS region_name,
             c.lead_status_id,
             st.title AS status_title,
@@ -1200,20 +1200,24 @@ function get_details($options = array()) {
 
     function get_lead_conversion_source_values($field_ids = null) {
         if (!$field_ids) {
-            $field_ids = array(self::LEAD_SOURCE_CUSTOM_FIELD_ID, self::CLIENT_SOURCE_CUSTOM_FIELD_ID);
+            $field_ids = array(self::LEAD_SOURCE_CUSTOM_FIELD_ID);
+        }
+
+        if (!is_array($field_ids)) {
+            $field_ids = array($field_ids);
         }
 
         $custom_field_values_table = $this->db->prefixTable('custom_field_values');
 
         $builder = $this->db->table($custom_field_values_table);
         $builder->distinct();
-        $builder->select('value');
+        $builder->select('TRIM(value) AS value', false);
         $builder->where('deleted', 0);
         if ($field_ids && is_array($field_ids)) {
             $builder->whereIn('custom_field_id', $field_ids);
         }
         $builder->where('value IS NOT NULL', null, false);
-        $builder->where('value !=', '');
+        $builder->where("TRIM(value) != ''", null, false);
         $builder->orderBy('value', 'ASC');
 
         return $builder->get();
