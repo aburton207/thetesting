@@ -201,6 +201,10 @@ function get_details($options = array()) {
 
         $sum_sql = "SELECT SUM(CAST(IFNULL($volume_alias.value, 0) AS DECIMAL(15,4))) AS total_volume
                 FROM $clients_table
+                LEFT JOIN $users_table ON $users_table.client_id = $clients_table.id AND $users_table.deleted=0 AND $users_table.is_primary_contact=1
+                LEFT JOIN (SELECT $users_table.id, CONCAT($users_table.first_name, ' ', $users_table.last_name) AS owner_name, $users_table.image AS owner_avatar
+                           FROM $users_table WHERE $users_table.deleted=0 AND $users_table.user_type='staff') AS owner_details ON owner_details.id=$clients_table.owner_id
+                LEFT JOIN $lead_status_table ON $clients_table.lead_status_id = $lead_status_table.id
                 $join_custom_fieds
                 $additional_volume_join
                 WHERE $clients_table.deleted=0 $where $custom_fields_where";
