@@ -1195,12 +1195,17 @@ function get_details($options = array()) {
 
     function get_lead_conversion_source_values($field_ids = null) {
         if (!$field_ids) {
-            $field_ids = array(self::LEAD_SOURCE_CUSTOM_FIELD_ID);
+            $field_ids = array(
+                self::LEAD_SOURCE_CUSTOM_FIELD_ID,
+                self::CLIENT_SOURCE_CUSTOM_FIELD_ID
+            );
         }
 
         if (!is_array($field_ids)) {
             $field_ids = array($field_ids);
         }
+
+        $field_ids = array_unique(array_map('intval', $field_ids));
 
         $custom_field_values_table = $this->db->prefixTable('custom_field_values');
 
