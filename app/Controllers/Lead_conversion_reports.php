@@ -12,10 +12,12 @@ class Lead_conversion_reports extends Security_Controller {
     public function index() {
         $this->_validate_lead_conversion_access();
 
-        $view_data["owners_dropdown"] = json_encode($this->_get_lead_conversion_owners_dropdown());
-        $view_data["regions_dropdown"] = json_encode($this->_get_lead_conversion_regions_dropdown());
-        $view_data["sources_dropdown"] = json_encode($this->_get_lead_conversion_sources_dropdown());
-        $view_data["statuses_dropdown"] = json_encode($this->_get_lead_conversion_status_dropdown());
+        $filters = $this->_get_lead_conversion_filters();
+
+        $view_data["owners_dropdown"] = json_encode($this->_get_lead_conversion_owners_dropdown(get_array_value($filters, "owner_id")));
+        $view_data["regions_dropdown"] = json_encode($this->_get_lead_conversion_regions_dropdown(get_array_value($filters, "region_id")));
+        $view_data["sources_dropdown"] = json_encode($this->_get_lead_conversion_sources_dropdown(get_array_value($filters, "source_value")));
+        $view_data["statuses_dropdown"] = json_encode($this->_get_lead_conversion_status_dropdown(get_array_value($filters, "lead_status_id")));
 
         return $this->template->rander("lead_conversion_reports/index", $view_data);
     }
@@ -88,10 +90,10 @@ class Lead_conversion_reports extends Security_Controller {
         $values = ($timeline && isset($timeline["values"])) ? $timeline["values"] : array();
         $cumulative = ($timeline && isset($timeline["cumulative"])) ? $timeline["cumulative"] : array();
 
-        $view_data["owners_dropdown"] = json_encode($this->_get_lead_conversion_owners_dropdown());
-        $view_data["regions_dropdown"] = json_encode($this->_get_lead_conversion_regions_dropdown());
-        $view_data["sources_dropdown"] = json_encode($this->_get_lead_conversion_sources_dropdown());
-        $view_data["statuses_dropdown"] = json_encode($this->_get_lead_conversion_status_dropdown());
+        $view_data["owners_dropdown"] = json_encode($this->_get_lead_conversion_owners_dropdown(get_array_value($filters, "owner_id")));
+        $view_data["regions_dropdown"] = json_encode($this->_get_lead_conversion_regions_dropdown(get_array_value($filters, "region_id")));
+        $view_data["sources_dropdown"] = json_encode($this->_get_lead_conversion_sources_dropdown(get_array_value($filters, "source_value")));
+        $view_data["statuses_dropdown"] = json_encode($this->_get_lead_conversion_status_dropdown(get_array_value($filters, "lead_status_id")));
         $view_data["timeline_labels"] = json_encode($labels);
         $view_data["timeline_values"] = json_encode($values);
         $view_data["timeline_cumulative"] = json_encode($cumulative);
@@ -114,13 +116,13 @@ class Lead_conversion_reports extends Security_Controller {
             return;
         }
 
-        $initial_report = $this->_get_rep_conversion_rates_data();
+        $initial_report = $this->_get_rep_conversion_rates_data($filters);
         $chart = get_array_value($initial_report, "chart", array());
 
-        $view_data["owners_dropdown"] = json_encode($this->_get_lead_conversion_owners_dropdown());
-        $view_data["regions_dropdown"] = json_encode($this->_get_lead_conversion_regions_dropdown());
-        $view_data["sources_dropdown"] = json_encode($this->_get_lead_conversion_sources_dropdown());
-        $view_data["statuses_dropdown"] = json_encode($this->_get_lead_conversion_status_dropdown());
+        $view_data["owners_dropdown"] = json_encode($this->_get_lead_conversion_owners_dropdown(get_array_value($filters, "owner_id")));
+        $view_data["regions_dropdown"] = json_encode($this->_get_lead_conversion_regions_dropdown(get_array_value($filters, "region_id")));
+        $view_data["sources_dropdown"] = json_encode($this->_get_lead_conversion_sources_dropdown(get_array_value($filters, "source_value")));
+        $view_data["statuses_dropdown"] = json_encode($this->_get_lead_conversion_status_dropdown(get_array_value($filters, "lead_status_id")));
         $view_data["chart_labels"] = json_encode(get_array_value($chart, "labels", array()));
         $view_data["chart_rates"] = json_encode(get_array_value($chart, "rates", array()));
         $view_data["chart_conversions"] = json_encode(get_array_value($chart, "conversions", array()));
@@ -131,56 +133,102 @@ class Lead_conversion_reports extends Security_Controller {
 
     private function _get_lead_conversion_filters() {
         return array(
-            "owner_id" => $this->request->getPost("owner_id"),
-            "region_id" => $this->request->getPost("region_id"),
-            "source_value" => $this->request->getPost("source_value"),
-            "lead_status_id" => $this->request->getPost("lead_status_id"),
-            "created_start_date" => $this->request->getPost("created_start_date"),
-            "created_end_date" => $this->request->getPost("created_end_date"),
-            "migration_start_date" => $this->request->getPost("migration_start_date"),
-            "migration_end_date" => $this->request->getPost("migration_end_date")
+            "owner_id" => $this->_get_filter_value("owner_id"),
+            "region_id" => $this->_get_filter_value("region_id"),
+            "source_value" => $this->_get_filter_value("source_value"),
+            "lead_status_id" => $this->_get_filter_value("lead_status_id"),
+            "created_start_date" => $this->_get_filter_value("created_start_date"),
+            "created_end_date" => $this->_get_filter_value("created_end_date"),
+            "migration_start_date" => $this->_get_filter_value("migration_start_date"),
+            "migration_end_date" => $this->_get_filter_value("migration_end_date")
         );
     }
 
-    private function _get_lead_conversion_owners_dropdown() {
+    private function _get_filter_value($key) {
+        $value = $this->request->getPost($key);
+
+        if ($value === null) {
+            $value = $this->request->getGet($key);
+        }
+
+        return $value;
+    }
+
+    private function _get_lead_conversion_owners_dropdown($selected_owner_id = null) {
         $team_members = $this->Users_model->get_all_where(array("user_type" => "staff", "deleted" => 0, "status" => "active"))->getResult();
-        $dropdown = array(array("id" => "", "text" => "- " . app_lang("owner") . " -"));
+        $dropdown = array(array(
+            "id" => "",
+            "text" => "- " . app_lang("owner") . " -",
+            "isSelected" => ($selected_owner_id === null || $selected_owner_id === "")
+        ));
 
         foreach ($team_members as $member) {
-            $dropdown[] = array("id" => $member->id, "text" => trim($member->first_name . " " . $member->last_name));
+            $dropdown[] = array(
+                "id" => $member->id,
+                "text" => trim($member->first_name . " " . $member->last_name),
+                "isSelected" => ($selected_owner_id !== null && $selected_owner_id !== "" && intval($selected_owner_id) === intval($member->id))
+            );
         }
 
         return $dropdown;
     }
 
-    private function _get_lead_conversion_regions_dropdown() {
+    private function _get_lead_conversion_regions_dropdown($selected_region_id = null) {
         $regions = $this->Lead_source_model->get_details()->getResult();
-        $dropdown = array(array("id" => "", "text" => "- " . app_lang("region") . " -"));
+        $dropdown = array(array(
+            "id" => "",
+            "text" => "- " . app_lang("region") . " -",
+            "isSelected" => ($selected_region_id === null || $selected_region_id === "")
+        ));
 
         foreach ($regions as $region) {
-            $dropdown[] = array("id" => $region->id, "text" => $region->title);
+            $dropdown[] = array(
+                "id" => $region->id,
+                "text" => $region->title,
+                "isSelected" => ($selected_region_id !== null && $selected_region_id !== "" && intval($selected_region_id) === intval($region->id))
+            );
         }
 
         return $dropdown;
     }
 
-    private function _get_lead_conversion_sources_dropdown() {
+    private function _get_lead_conversion_sources_dropdown($selected_source_value = null) {
         $sources = $this->Clients_model->get_lead_conversion_source_values()->getResult();
-        $dropdown = array(array("id" => "", "text" => "- " . app_lang("campaign") . " -"));
+        $selected_source_value = $selected_source_value !== null ? trim($selected_source_value) : $selected_source_value;
+
+        $dropdown = array(array(
+            "id" => "",
+            "text" => "- " . app_lang("campaign") . " -",
+            "isSelected" => ($selected_source_value === null || $selected_source_value === "")
+        ));
 
         foreach ($sources as $source) {
-            $dropdown[] = array("id" => $source->value, "text" => $source->value);
+            $value = trim($source->value);
+
+            $dropdown[] = array(
+                "id" => $value,
+                "text" => $value,
+                "isSelected" => ($selected_source_value !== null && $selected_source_value !== "" && $selected_source_value === $value)
+            );
         }
 
         return $dropdown;
     }
 
-    private function _get_lead_conversion_status_dropdown() {
+    private function _get_lead_conversion_status_dropdown($selected_status_id = null) {
         $statuses = $this->Lead_status_model->get_details()->getResult();
-        $dropdown = array(array("id" => "", "text" => "- " . app_lang("lead_status") . " -"));
+        $dropdown = array(array(
+            "id" => "",
+            "text" => "- " . app_lang("lead_status") . " -",
+            "isSelected" => ($selected_status_id === null || $selected_status_id === "")
+        ));
 
         foreach ($statuses as $status) {
-            $dropdown[] = array("id" => $status->id, "text" => $status->title);
+            $dropdown[] = array(
+                "id" => $status->id,
+                "text" => $status->title,
+                "isSelected" => ($selected_status_id !== null && $selected_status_id !== "" && intval($selected_status_id) === intval($status->id))
+            );
         }
 
         return $dropdown;
