@@ -907,8 +907,6 @@ function get_details($options = array()) {
         $lead_source_table = $this->db->prefixTable('lead_source');
         $custom_field_values_table = $this->db->prefixTable('custom_field_values');
 
-        $source_expression = "COALESCE(NULLIF(lead_cf.value, ''), NULLIF(client_cf.value, ''))";
-
         $lead_source_custom_field_id = self::LEAD_SOURCE_CUSTOM_FIELD_ID;
         $client_source_custom_field_id = self::CLIENT_SOURCE_CUSTOM_FIELD_ID;
 
@@ -918,7 +916,6 @@ function get_details($options = array()) {
             CONCAT_WS(' ', u.first_name, u.last_name) AS owner_name,
             c.lead_source_id AS region_id,
             ls.title AS region_name,
-            $source_expression AS source_value,
             SUM(CASE WHEN c.is_lead = 1 THEN 1 ELSE 0 END) AS total_leads,
             SUM(CASE WHEN c.is_lead = 0 AND c.client_migration_date IS NOT NULL AND c.client_migration_date > '2000-01-01' THEN 1 ELSE 0 END) AS conversions,
             AVG(CASE WHEN c.is_lead = 0 AND c.client_migration_date IS NOT NULL AND c.client_migration_date > '2000-01-01' THEN TIMESTAMPDIFF(DAY, c.created_date, c.client_migration_date) END) AS avg_conversion_time
@@ -983,11 +980,9 @@ function get_details($options = array()) {
 
         $builder->groupBy("c.owner_id");
         $builder->groupBy("c.lead_source_id");
-        $builder->groupBy($source_expression, false);
 
         $builder->orderBy("owner_name", "ASC");
         $builder->orderBy("region_name", "ASC");
-        $builder->orderBy("source_value", "ASC");
 
         return $builder->get();
     }

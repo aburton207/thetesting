@@ -187,8 +187,6 @@ class Lead_conversion_reports extends Security_Controller {
     }
 
     private function _make_lead_conversion_row($data, $total_leads, $conversions) {
-        $source = $data->source_value ? $data->source_value : app_lang("unknown");
-
         $owner_name = trim($data->owner_name);
         if ($data->owner_id) {
             $owner = get_team_member_profile_link($data->owner_id, $owner_name ? $owner_name : app_lang("unknown"));
@@ -209,7 +207,6 @@ class Lead_conversion_reports extends Security_Controller {
         }
 
         return array(
-            $source,
             $owner,
             $region,
             to_decimal_format($total_leads),
