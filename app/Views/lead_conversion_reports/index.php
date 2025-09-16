@@ -24,15 +24,14 @@
             ],
             columns: [
                 {title: "<?php echo app_lang('owner'); ?>", class: "all"},
-                {title: "<?php echo app_lang('region'); ?>"},
                 {title: "<?php echo app_lang('total_leads'); ?>", class: "text-center"},
                 {title: "<?php echo app_lang('converted_to_client'); ?>", class: "text-center"},
                 {title: "<?php echo app_lang('conversion_rate'); ?>", class: "text-right"},
                 {title: "<?php echo app_lang('average_conversion_time'); ?>", class: "text-right"}
             ],
-            order: [[2, "desc"]],
-            printColumns: [0, 1, 2, 3, 4, 5],
-            xlsColumns: [0, 1, 2, 3, 4, 5]
+            order: [[1, "desc"]],
+            printColumns: [0, 1, 2, 3, 4],
+            xlsColumns: [0, 1, 2, 3, 4]
         });
     });
 </script>

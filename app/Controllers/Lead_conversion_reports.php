@@ -194,8 +194,6 @@ class Lead_conversion_reports extends Security_Controller {
             $owner = app_lang("unknown");
         }
 
-        $region = $data->region_name ? $data->region_name : app_lang("unknown");
-
         $conversion_rate = 0;
         if ($total_leads > 0) {
             $conversion_rate = ($conversions / $total_leads) * 100;
@@ -208,7 +206,6 @@ class Lead_conversion_reports extends Security_Controller {
 
         return array(
             $owner,
-            $region,
             to_decimal_format($total_leads),
             to_decimal_format($conversions),
             to_decimal_format($conversion_rate) . "%",

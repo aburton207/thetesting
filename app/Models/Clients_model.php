@@ -904,7 +904,6 @@ function get_details($options = array()) {
     function get_lead_conversion_report_details($options = array()) {
         $clients_table = $this->db->prefixTable('clients');
         $users_table = $this->db->prefixTable('users');
-        $lead_source_table = $this->db->prefixTable('lead_source');
         $custom_field_values_table = $this->db->prefixTable('custom_field_values');
 
         $lead_source_custom_field_id = self::LEAD_SOURCE_CUSTOM_FIELD_ID;
@@ -914,15 +913,12 @@ function get_details($options = array()) {
         $builder->select("
             c.owner_id,
             CONCAT_WS(' ', u.first_name, u.last_name) AS owner_name,
-            c.lead_source_id AS region_id,
-            ls.title AS region_name,
             SUM(CASE WHEN c.is_lead = 1 THEN 1 ELSE 0 END) AS total_leads,
             SUM(CASE WHEN c.is_lead = 0 AND c.client_migration_date IS NOT NULL AND c.client_migration_date > '2000-01-01' THEN 1 ELSE 0 END) AS conversions,
             AVG(CASE WHEN c.is_lead = 0 AND c.client_migration_date IS NOT NULL AND c.client_migration_date > '2000-01-01' THEN TIMESTAMPDIFF(DAY, c.created_date, c.client_migration_date) END) AS avg_conversion_time
         ", false);
 
         $builder->join("$users_table AS u", "u.id = c.owner_id", "left");
-        $builder->join("$lead_source_table AS ls", "ls.id = c.lead_source_id", "left");
         $builder->join("$custom_field_values_table AS lead_cf", "lead_cf.related_to_id = c.id AND lead_cf.custom_field_id = $lead_source_custom_field_id AND lead_cf.related_to_type = 'leads' AND lead_cf.deleted = 0", "left");
         $builder->join("$custom_field_values_table AS client_cf", "client_cf.related_to_id = c.id AND client_cf.custom_field_id = $client_source_custom_field_id AND client_cf.related_to_type = 'clients' AND client_cf.deleted = 0", "left");
 
@@ -979,10 +975,7 @@ function get_details($options = array()) {
         }
 
         $builder->groupBy("c.owner_id");
-        $builder->groupBy("c.lead_source_id");
-
         $builder->orderBy("owner_name", "ASC");
-        $builder->orderBy("region_name", "ASC");
 
         return $builder->get();
     }
