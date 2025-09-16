@@ -98,12 +98,12 @@ if (!function_exists('get_reports_topbar')) {
             $client_reports_dropdown = array(
                 "client_summary" => array("name" => "client_summary", "url" => "clients/clients_report"),
                 "show_expanded_view" => array("name" => "show_expanded_view", "url" => "clients/show_expanded_view"),
+                "converted_to_client_report" => array("name" => "converted_to_client_report", "url" => "leads/converted_to_client_report"),
                 "fill_the_funnel_leaderboard" => array("name" => "fill_the_funnel_leaderboard", "url" => "clients/fill_the_funnel_leaderboard"),
                 "leaderboard" => array("name" => "leaderboard", "url" => "clients/leaderboard")
             );
 
             $lead_reports_dropdown = array(
-                "converted_to_client_report" => array("name" => "converted_to_client_report", "url" => "leads/converted_to_client_report"),
                 "lead_conversion_report" => array("name" => "lead_conversion_report", "url" => "lead_conversion_reports"),
                 "client_conversion_timeline" => array("name" => "client_conversion_timeline", "url" => "lead_conversion_reports/client_timeline"),
                 "rep_conversion_rates" => array("name" => "rep_conversion_rates", "url" => "lead_conversion_reports/rep_conversion_rates")
