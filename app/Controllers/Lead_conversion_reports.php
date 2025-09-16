@@ -2,7 +2,7 @@
 
 namespace App\Controllers;
 
-class LeadConversionReports extends Security_Controller {
+class Lead_conversion_reports extends Security_Controller {
 
     public function __construct() {
         parent::__construct();
@@ -329,5 +329,5 @@ class LeadConversionReports extends Security_Controller {
     }
 }
 
-/* End of file LeadConversionReports.php */
-/* Location: ./app/controllers/LeadConversionReports.php */
+/* End of file Lead_conversion_reports.php */
+/* Location: ./app/controllers/Lead_conversion_reports.php */

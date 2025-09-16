@@ -95,10 +95,22 @@ if (!function_exists('get_reports_topbar')) {
         }
 
         if (get_setting("module_lead") == "1" && ($ci->login_user->is_admin || $access_lead == "all")) {
-            $reports_menu[] = array("name" => "opportunities_graphs", "url" => "leads/converted_to_client_report", "class" => "layers", "single_button" => true);
-            $reports_menu[] = array("name" => "opportunity_data_reports", "url" => "clients/clients_report", "class" => "users", "single_button" => true);
-            $reports_menu[] = array("name" => "fill_the_funnel_leaderboard", "url" => "clients/fill_the_funnel_leaderboard", "class" => "trending-up", "single_button" => true);
-            $reports_menu[] = array("name" => "leaderboard", "url" => "clients/leaderboard", "class" => "award", "single_button" => true);
+            $client_reports_dropdown = array(
+                "client_summary" => array("name" => "client_summary", "url" => "clients/clients_report"),
+                "show_expanded_view" => array("name" => "show_expanded_view", "url" => "clients/show_expanded_view"),
+                "fill_the_funnel_leaderboard" => array("name" => "fill_the_funnel_leaderboard", "url" => "clients/fill_the_funnel_leaderboard"),
+                "leaderboard" => array("name" => "leaderboard", "url" => "clients/leaderboard")
+            );
+
+            $lead_reports_dropdown = array(
+                "converted_to_client_report" => array("name" => "converted_to_client_report", "url" => "leads/converted_to_client_report"),
+                "lead_conversion_report" => array("name" => "lead_conversion_report", "url" => "lead_conversion_reports"),
+                "client_conversion_timeline" => array("name" => "client_conversion_timeline", "url" => "lead_conversion_reports/client_timeline"),
+                "rep_conversion_rates" => array("name" => "rep_conversion_rates", "url" => "lead_conversion_reports/rep_conversion_rates")
+            );
+
+            $reports_menu["client_reports"] = array("name" => "client_reports", "url" => "clients/clients_report", "class" => "users", "dropdown_item" => $client_reports_dropdown);
+            $reports_menu["lead_reports"] = array("name" => "lead_reports", "url" => "lead_conversion_reports", "class" => "target", "dropdown_item" => $lead_reports_dropdown);
         }
 
         if (get_setting("module_ticket") == "1" && ($ci->login_user->is_admin || $access_ticket == "all")) {

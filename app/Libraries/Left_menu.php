@@ -205,35 +205,46 @@ class Left_menu {
 
             $reports_menu = get_reports_topbar(true);
             if (!empty($reports_menu)) {
+                $reports_submenu = array();
+                $reports_sub_pages = array(
+                    "invoices/invoices_summary",
+                    "orders/orders_summary",
+                    "projects/all_timesheets",
+                    "expenses/income_vs_expenses",
+                    "invoice_payments/payments_summary",
+                    "expenses/summary",
+                    "projects/team_members_summary",
+                    "tickets/tickets_chart_report"
+                );
+
+                if (array_key_exists("client_reports", $reports_menu)) {
+                    $reports_submenu[] = array("name" => "client_reports", "url" => "clients/clients_report");
+                    $reports_sub_pages = array_merge($reports_sub_pages, array(
+                        "clients/clients_report",
+                        "clients/show_expanded_view",
+                        "clients/fill_the_funnel_leaderboard",
+                        "clients/leaderboard"
+                    ));
+                }
+
+                if (array_key_exists("lead_reports", $reports_menu)) {
+                    $reports_submenu[] = array("name" => "lead_reports", "url" => "lead_conversion_reports");
+                    $reports_sub_pages = array_merge($reports_sub_pages, array(
+                        "leads/converted_to_client_report",
+                        "lead_conversion_reports",
+                        "lead_conversion_reports/index",
+                        "lead_conversion_reports/data",
+                        "lead_conversion_reports/client_timeline",
+                        "lead_conversion_reports/rep_conversion_rates"
+                    ));
+                }
+
                 $sidebar_menu["reports"] = array(
                     "name" => "reports",
                     "url" => "reports/index",
                     "class" => "pie-chart",
-                    "sub_pages" => array(
-                        "invoices/invoices_summary",
-                        "orders/orders_summary",
-                        "projects/all_timesheets",
-                        "expenses/income_vs_expenses",
-                        "invoice_payments/payments_summary",
-                        "expenses/summary",
-                        "projects/team_members_summary",
-                        "leads/converted_to_client_report",
-                        "clients/clients_report",
-                        "tickets/tickets_chart_report"
-                    )
-                );
-            }
-
-            if (get_setting("module_lead") == "1" && ($this->ci->login_user->is_admin || $access_lead === "all")) {
-                $sidebar_menu["lead_conversion_reports"] = array(
-                    "name" => "lead_conversion_report",
-                    "url" => "lead_conversion_reports",
-                    "class" => "target",
-                    "sub_pages" => array(
-                        "lead_conversion_reports",
-                        "lead_conversion_reports/index",
-                        "lead_conversion_reports/data"
-                    )
+                    "submenu" => $reports_submenu,
+                    "sub_pages" => array_values(array_unique($reports_sub_pages))
                 );
             }
 
