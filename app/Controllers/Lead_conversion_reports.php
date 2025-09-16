@@ -23,16 +23,7 @@ class Lead_conversion_reports extends Security_Controller {
     public function data() {
         $this->_validate_lead_conversion_access();
 
-        $options = array(
-            "owner_id" => $this->request->getPost("owner_id"),
-            "region_id" => $this->request->getPost("region_id"),
-            "source_value" => $this->request->getPost("source_value"),
-            "lead_status_id" => $this->request->getPost("lead_status_id"),
-            "created_start_date" => $this->request->getPost("created_start_date"),
-            "created_end_date" => $this->request->getPost("created_end_date"),
-            "migration_start_date" => $this->request->getPost("migration_start_date"),
-            "migration_end_date" => $this->request->getPost("migration_end_date")
-        );
+        $options = $this->_get_lead_conversion_filters();
 
         $list_data = $this->Clients_model->get_lead_conversion_report_details($options)->getResult();
 
@@ -54,16 +45,7 @@ class Lead_conversion_reports extends Security_Controller {
     public function client_timeline() {
         $this->_validate_lead_conversion_access();
 
-        $filters = array(
-            "owner_id" => $this->request->getPost("owner_id"),
-            "region_id" => $this->request->getPost("region_id"),
-            "source_value" => $this->request->getPost("source_value"),
-            "lead_status_id" => $this->request->getPost("lead_status_id"),
-            "created_start_date" => $this->request->getPost("created_start_date"),
-            "created_end_date" => $this->request->getPost("created_end_date"),
-            "migration_start_date" => $this->request->getPost("migration_start_date"),
-            "migration_end_date" => $this->request->getPost("migration_end_date")
-        );
+        $filters = $this->_get_lead_conversion_filters();
 
         $timeline_data = $this->Clients_model->get_client_conversion_timeline($filters);
 
@@ -120,16 +102,7 @@ class Lead_conversion_reports extends Security_Controller {
     public function rep_conversion_rates() {
         $this->_validate_lead_conversion_access();
 
-        $filters = array(
-            "owner_id" => $this->request->getPost("owner_id"),
-            "region_id" => $this->request->getPost("region_id"),
-            "source_value" => $this->request->getPost("source_value"),
-            "lead_status_id" => $this->request->getPost("lead_status_id"),
-            "created_start_date" => $this->request->getPost("created_start_date"),
-            "created_end_date" => $this->request->getPost("created_end_date"),
-            "migration_start_date" => $this->request->getPost("migration_start_date"),
-            "migration_end_date" => $this->request->getPost("migration_end_date")
-        );
+        $filters = $this->_get_lead_conversion_filters();
 
         if ($this->request->getPost("datatable")) {
             $report_data = $this->_get_rep_conversion_rates_data($filters);
@@ -154,6 +127,19 @@ class Lead_conversion_reports extends Security_Controller {
         $view_data["chart_total_leads"] = json_encode(get_array_value($chart, "total_leads", array()));
 
         return $this->template->rander("lead_conversion_reports/rep_conversion_rates", $view_data);
+    }
+
+    private function _get_lead_conversion_filters() {
+        return array(
+            "owner_id" => $this->request->getPost("owner_id"),
+            "region_id" => $this->request->getPost("region_id"),
+            "source_value" => $this->request->getPost("source_value"),
+            "lead_status_id" => $this->request->getPost("lead_status_id"),
+            "created_start_date" => $this->request->getPost("created_start_date"),
+            "created_end_date" => $this->request->getPost("created_end_date"),
+            "migration_start_date" => $this->request->getPost("migration_start_date"),
+            "migration_end_date" => $this->request->getPost("migration_end_date")
+        );
     }
 
     private function _get_lead_conversion_owners_dropdown() {

@@ -5,6 +5,8 @@ namespace App\Models;
 class Clients_model extends Crud_model {
 
     protected $table = null;
+    private const LEAD_SOURCE_CUSTOM_FIELD_ID = 238;
+    private const CLIENT_SOURCE_CUSTOM_FIELD_ID = 265;
 
     function __construct() {
         $this->table = 'clients';
@@ -907,6 +909,9 @@ function get_details($options = array()) {
 
         $source_expression = "COALESCE(NULLIF(lead_cf.value, ''), NULLIF(client_cf.value, ''))";
 
+        $lead_source_custom_field_id = self::LEAD_SOURCE_CUSTOM_FIELD_ID;
+        $client_source_custom_field_id = self::CLIENT_SOURCE_CUSTOM_FIELD_ID;
+
         $builder = $this->db->table("$clients_table AS c");
         $builder->select("
             c.owner_id,
@@ -921,8 +926,8 @@ function get_details($options = array()) {
 
         $builder->join("$users_table AS u", "u.id = c.owner_id", "left");
         $builder->join("$lead_source_table AS ls", "ls.id = c.lead_source_id", "left");
-        $builder->join("$custom_field_values_table AS lead_cf", "lead_cf.related_to_id = c.id AND lead_cf.custom_field_id = 238 AND lead_cf.related_to_type = 'leads' AND lead_cf.deleted = 0", "left");
-        $builder->join("$custom_field_values_table AS client_cf", "client_cf.related_to_id = c.id AND client_cf.custom_field_id = 265 AND client_cf.related_to_type = 'clients' AND client_cf.deleted = 0", "left");
+        $builder->join("$custom_field_values_table AS lead_cf", "lead_cf.related_to_id = c.id AND lead_cf.custom_field_id = $lead_source_custom_field_id AND lead_cf.related_to_type = 'leads' AND lead_cf.deleted = 0", "left");
+        $builder->join("$custom_field_values_table AS client_cf", "client_cf.related_to_id = c.id AND client_cf.custom_field_id = $client_source_custom_field_id AND client_cf.related_to_type = 'clients' AND client_cf.deleted = 0", "left");
 
         $builder->where("c.deleted", 0);
 
@@ -996,6 +1001,9 @@ function get_details($options = array()) {
         $conversions_expression = "SUM(CASE WHEN c.is_lead = 0 AND c.client_migration_date IS NOT NULL AND c.client_migration_date > '2000-01-01' THEN 1 ELSE 0 END)";
         $conversion_rate_expression = "COALESCE(({$conversions_expression} / NULLIF({$total_leads_expression}, 0)) * 100, 0)";
 
+        $lead_source_custom_field_id = self::LEAD_SOURCE_CUSTOM_FIELD_ID;
+        $client_source_custom_field_id = self::CLIENT_SOURCE_CUSTOM_FIELD_ID;
+
         $builder = $this->db->table("$clients_table AS c");
         $builder->select("
             c.owner_id,
@@ -1007,8 +1015,8 @@ function get_details($options = array()) {
         ", false);
 
         $builder->join("$users_table AS u", "u.id = c.owner_id", "left");
-        $builder->join("$custom_field_values_table AS lead_cf", "lead_cf.related_to_id = c.id AND lead_cf.custom_field_id = 238 AND lead_cf.related_to_type = 'leads' AND lead_cf.deleted = 0", "left");
-        $builder->join("$custom_field_values_table AS client_cf", "client_cf.related_to_id = c.id AND client_cf.custom_field_id = 265 AND client_cf.related_to_type = 'clients' AND client_cf.deleted = 0", "left");
+        $builder->join("$custom_field_values_table AS lead_cf", "lead_cf.related_to_id = c.id AND lead_cf.custom_field_id = $lead_source_custom_field_id AND lead_cf.related_to_type = 'leads' AND lead_cf.deleted = 0", "left");
+        $builder->join("$custom_field_values_table AS client_cf", "client_cf.related_to_id = c.id AND client_cf.custom_field_id = $client_source_custom_field_id AND client_cf.related_to_type = 'clients' AND client_cf.deleted = 0", "left");
 
         $builder->where("c.deleted", 0);
 
@@ -1077,6 +1085,9 @@ function get_details($options = array()) {
 
         $source_expression = "COALESCE(NULLIF(lead_cf.value, ''), NULLIF(client_cf.value, ''))";
 
+        $lead_source_custom_field_id = self::LEAD_SOURCE_CUSTOM_FIELD_ID;
+        $client_source_custom_field_id = self::CLIENT_SOURCE_CUSTOM_FIELD_ID;
+
         $builder = $this->db->table("$clients_table AS c");
         $builder->select("
             c.id,
@@ -1094,8 +1105,8 @@ function get_details($options = array()) {
         $builder->join("$users_table AS u", "u.id = c.owner_id", "left");
         $builder->join("$lead_source_table AS ls", "ls.id = c.lead_source_id", "left");
         $builder->join("$lead_status_table AS st", "st.id = c.lead_status_id", "left");
-        $builder->join("$custom_field_values_table AS lead_cf", "lead_cf.related_to_id = c.id AND lead_cf.custom_field_id = 238 AND lead_cf.related_to_type = 'leads' AND lead_cf.deleted = 0", "left");
-        $builder->join("$custom_field_values_table AS client_cf", "client_cf.related_to_id = c.id AND client_cf.custom_field_id = 265 AND client_cf.related_to_type = 'clients' AND client_cf.deleted = 0", "left");
+        $builder->join("$custom_field_values_table AS lead_cf", "lead_cf.related_to_id = c.id AND lead_cf.custom_field_id = $lead_source_custom_field_id AND lead_cf.related_to_type = 'leads' AND lead_cf.deleted = 0", "left");
+        $builder->join("$custom_field_values_table AS client_cf", "client_cf.related_to_id = c.id AND client_cf.custom_field_id = $client_source_custom_field_id AND client_cf.related_to_type = 'clients' AND client_cf.deleted = 0", "left");
 
         $builder->where("c.deleted", 0);
         $builder->where("c.is_lead", 0);
@@ -1187,7 +1198,11 @@ function get_details($options = array()) {
         );
     }
 
-    function get_lead_conversion_source_values($field_ids = array(238, 265)) {
+    function get_lead_conversion_source_values($field_ids = null) {
+        if (!$field_ids) {
+            $field_ids = array(self::LEAD_SOURCE_CUSTOM_FIELD_ID, self::CLIENT_SOURCE_CUSTOM_FIELD_ID);
+        }
+
         $custom_field_values_table = $this->db->prefixTable('custom_field_values');
 
         $builder = $this->db->table($custom_field_values_table);
