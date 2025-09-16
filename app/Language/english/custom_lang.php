@@ -1332,6 +1332,7 @@ $lang["client_contacts"] = "Opportunity contacts";
 $lang["lead_contacts"] = "Lead contacts";
 $lang["add_a_lead"] = "Add a lead";
 $lang["source"] = "Region";
+$lang["campaign"] = "Campaign";
 $lang["lead_source"] = "Region";
 $lang["client_status"] = "Status";
 $lang["close_rate"] = "Close Rate";
