@@ -5,6 +5,8 @@ namespace App\Models;
 class Clients_model extends Crud_model {
 
     protected $table = null;
+    private const LEAD_SOURCE_CUSTOM_FIELD_ID = 238;
+    private const CLIENT_SOURCE_CUSTOM_FIELD_ID = 265;
 
     function __construct() {
         $this->table = 'clients';
@@ -199,6 +201,10 @@ function get_details($options = array()) {
 
         $sum_sql = "SELECT SUM(CAST(IFNULL($volume_alias.value, 0) AS DECIMAL(15,4))) AS total_volume
                 FROM $clients_table
+                LEFT JOIN $users_table ON $users_table.client_id = $clients_table.id AND $users_table.deleted=0 AND $users_table.is_primary_contact=1
+                LEFT JOIN (SELECT $users_table.id, CONCAT($users_table.first_name, ' ', $users_table.last_name) AS owner_name, $users_table.image AS owner_avatar
+                           FROM $users_table WHERE $users_table.deleted=0 AND $users_table.user_type='staff') AS owner_details ON owner_details.id=$clients_table.owner_id
+                LEFT JOIN $lead_status_table ON $clients_table.lead_status_id = $lead_status_table.id
                 $join_custom_fieds
                 $additional_volume_join
                 WHERE $clients_table.deleted=0 $where $custom_fields_where";
@@ -902,27 +908,23 @@ function get_details($options = array()) {
     function get_lead_conversion_report_details($options = array()) {
         $clients_table = $this->db->prefixTable('clients');
         $users_table = $this->db->prefixTable('users');
-        $lead_source_table = $this->db->prefixTable('lead_source');
         $custom_field_values_table = $this->db->prefixTable('custom_field_values');
 
-        $source_expression = "COALESCE(NULLIF(lead_cf.value, ''), NULLIF(client_cf.value, ''))";
+        $lead_source_custom_field_id = self::LEAD_SOURCE_CUSTOM_FIELD_ID;
+        $client_source_custom_field_id = self::CLIENT_SOURCE_CUSTOM_FIELD_ID;
 
         $builder = $this->db->table("$clients_table AS c");
         $builder->select("
             c.owner_id,
             CONCAT_WS(' ', u.first_name, u.last_name) AS owner_name,
-            c.lead_source_id,
-            ls.title AS region_name,
-            $source_expression AS source_value,
             SUM(CASE WHEN c.is_lead = 1 THEN 1 ELSE 0 END) AS total_leads,
             SUM(CASE WHEN c.is_lead = 0 AND c.client_migration_date IS NOT NULL AND c.client_migration_date > '2000-01-01' THEN 1 ELSE 0 END) AS conversions,
             AVG(CASE WHEN c.is_lead = 0 AND c.client_migration_date IS NOT NULL AND c.client_migration_date > '2000-01-01' THEN TIMESTAMPDIFF(DAY, c.created_date, c.client_migration_date) END) AS avg_conversion_time
         ", false);
 
         $builder->join("$users_table AS u", "u.id = c.owner_id", "left");
-        $builder->join("$lead_source_table AS ls", "ls.id = c.lead_source_id", "left");
-        $builder->join("$custom_field_values_table AS lead_cf", "lead_cf.related_to_id = c.id AND lead_cf.custom_field_id = 238 AND lead_cf.related_to_type = 'leads' AND lead_cf.deleted = 0", "left");
-        $builder->join("$custom_field_values_table AS client_cf", "client_cf.related_to_id = c.id AND client_cf.custom_field_id = 265 AND client_cf.related_to_type = 'clients' AND client_cf.deleted = 0", "left");
+        $builder->join("$custom_field_values_table AS lead_cf", "lead_cf.related_to_id = c.id AND lead_cf.custom_field_id = $lead_source_custom_field_id AND lead_cf.related_to_type = 'leads' AND lead_cf.deleted = 0", "left");
+        $builder->join("$custom_field_values_table AS client_cf", "client_cf.related_to_id = c.id AND client_cf.custom_field_id = $client_source_custom_field_id AND client_cf.related_to_type = 'clients' AND client_cf.deleted = 0", "left");
 
         $builder->where("c.deleted", 0);
 
@@ -977,12 +979,7 @@ function get_details($options = array()) {
         }
 
         $builder->groupBy("c.owner_id");
-        $builder->groupBy("c.lead_source_id");
-        $builder->groupBy($source_expression, false);
-
         $builder->orderBy("owner_name", "ASC");
-        $builder->orderBy("region_name", "ASC");
-        $builder->orderBy("source_value", "ASC");
 
         return $builder->get();
     }
@@ -996,6 +993,9 @@ function get_details($options = array()) {
         $conversions_expression = "SUM(CASE WHEN c.is_lead = 0 AND c.client_migration_date IS NOT NULL AND c.client_migration_date > '2000-01-01' THEN 1 ELSE 0 END)";
         $conversion_rate_expression = "COALESCE(({$conversions_expression} / NULLIF({$total_leads_expression}, 0)) * 100, 0)";
 
+        $lead_source_custom_field_id = self::LEAD_SOURCE_CUSTOM_FIELD_ID;
+        $client_source_custom_field_id = self::CLIENT_SOURCE_CUSTOM_FIELD_ID;
+
         $builder = $this->db->table("$clients_table AS c");
         $builder->select("
             c.owner_id,
@@ -1007,8 +1007,8 @@ function get_details($options = array()) {
         ", false);
 
         $builder->join("$users_table AS u", "u.id = c.owner_id", "left");
-        $builder->join("$custom_field_values_table AS lead_cf", "lead_cf.related_to_id = c.id AND lead_cf.custom_field_id = 238 AND lead_cf.related_to_type = 'leads' AND lead_cf.deleted = 0", "left");
-        $builder->join("$custom_field_values_table AS client_cf", "client_cf.related_to_id = c.id AND client_cf.custom_field_id = 265 AND client_cf.related_to_type = 'clients' AND client_cf.deleted = 0", "left");
+        $builder->join("$custom_field_values_table AS lead_cf", "lead_cf.related_to_id = c.id AND lead_cf.custom_field_id = $lead_source_custom_field_id AND lead_cf.related_to_type = 'leads' AND lead_cf.deleted = 0", "left");
+        $builder->join("$custom_field_values_table AS client_cf", "client_cf.related_to_id = c.id AND client_cf.custom_field_id = $client_source_custom_field_id AND client_cf.related_to_type = 'clients' AND client_cf.deleted = 0", "left");
 
         $builder->where("c.deleted", 0);
 
@@ -1077,6 +1077,9 @@ function get_details($options = array()) {
 
         $source_expression = "COALESCE(NULLIF(lead_cf.value, ''), NULLIF(client_cf.value, ''))";
 
+        $lead_source_custom_field_id = self::LEAD_SOURCE_CUSTOM_FIELD_ID;
+        $client_source_custom_field_id = self::CLIENT_SOURCE_CUSTOM_FIELD_ID;
+
         $builder = $this->db->table("$clients_table AS c");
         $builder->select("
             c.id,
@@ -1084,7 +1087,7 @@ function get_details($options = array()) {
             c.client_migration_date,
             c.owner_id,
             CONCAT_WS(' ', u.first_name, u.last_name) AS owner_name,
-            c.lead_source_id,
+            c.lead_source_id AS region_id,
             ls.title AS region_name,
             c.lead_status_id,
             st.title AS status_title,
@@ -1094,8 +1097,8 @@ function get_details($options = array()) {
         $builder->join("$users_table AS u", "u.id = c.owner_id", "left");
         $builder->join("$lead_source_table AS ls", "ls.id = c.lead_source_id", "left");
         $builder->join("$lead_status_table AS st", "st.id = c.lead_status_id", "left");
-        $builder->join("$custom_field_values_table AS lead_cf", "lead_cf.related_to_id = c.id AND lead_cf.custom_field_id = 238 AND lead_cf.related_to_type = 'leads' AND lead_cf.deleted = 0", "left");
-        $builder->join("$custom_field_values_table AS client_cf", "client_cf.related_to_id = c.id AND client_cf.custom_field_id = 265 AND client_cf.related_to_type = 'clients' AND client_cf.deleted = 0", "left");
+        $builder->join("$custom_field_values_table AS lead_cf", "lead_cf.related_to_id = c.id AND lead_cf.custom_field_id = $lead_source_custom_field_id AND lead_cf.related_to_type = 'leads' AND lead_cf.deleted = 0", "left");
+        $builder->join("$custom_field_values_table AS client_cf", "client_cf.related_to_id = c.id AND client_cf.custom_field_id = $client_source_custom_field_id AND client_cf.related_to_type = 'clients' AND client_cf.deleted = 0", "left");
 
         $builder->where("c.deleted", 0);
         $builder->where("c.is_lead", 0);
@@ -1187,18 +1190,31 @@ function get_details($options = array()) {
         );
     }
 
-    function get_lead_conversion_source_values($field_ids = array(238, 265)) {
+    function get_lead_conversion_source_values($field_ids = null) {
+        if (!$field_ids) {
+            $field_ids = array(
+                self::LEAD_SOURCE_CUSTOM_FIELD_ID,
+                self::CLIENT_SOURCE_CUSTOM_FIELD_ID
+            );
+        }
+
+        if (!is_array($field_ids)) {
+            $field_ids = array($field_ids);
+        }
+
+        $field_ids = array_unique(array_map('intval', $field_ids));
+
         $custom_field_values_table = $this->db->prefixTable('custom_field_values');
 
         $builder = $this->db->table($custom_field_values_table);
         $builder->distinct();
-        $builder->select('value');
+        $builder->select('TRIM(value) AS value', false);
         $builder->where('deleted', 0);
         if ($field_ids && is_array($field_ids)) {
             $builder->whereIn('custom_field_id', $field_ids);
         }
         $builder->where('value IS NOT NULL', null, false);
-        $builder->where('value !=', '');
+        $builder->where("TRIM(value) != ''", null, false);
         $builder->orderBy('value', 'ASC');
 
         return $builder->get();

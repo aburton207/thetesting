@@ -142,7 +142,7 @@
                 {title: "<?php echo app_lang('conversion_date'); ?>", class: "w15p"},
                 {title: "<?php echo app_lang('owner'); ?>", class: "w15p"},
                 {title: "<?php echo app_lang('region'); ?>", class: "w15p"},
-                {title: "<?php echo app_lang('source'); ?>", class: "w15p"},
+                {title: "<?php echo app_lang('campaign'); ?>", class: "w15p"},
                 {title: "<?php echo app_lang('lead_status'); ?>", class: "w15p"}
             ],
             order: [[1, "asc"]]
