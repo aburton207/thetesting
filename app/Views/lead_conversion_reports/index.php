@@ -23,7 +23,7 @@
                 {startDate: {name: "migration_start_date", value: ""}, endDate: {name: "migration_end_date", value: ""}, label: "<?php echo app_lang('conversion_date'); ?>", showClearButton: true}
             ],
             columns: [
-                {title: "<?php echo app_lang('source'); ?>", class: "all"},
+                {title: "<?php echo app_lang('campaign'); ?>", class: "all"},
                 {title: "<?php echo app_lang('owner'); ?>"},
                 {title: "<?php echo app_lang('region'); ?>"},
                 {title: "<?php echo app_lang('total_leads'); ?>", class: "text-center"},

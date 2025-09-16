@@ -166,7 +166,7 @@ class Lead_conversion_reports extends Security_Controller {
 
     private function _get_lead_conversion_sources_dropdown() {
         $sources = $this->Clients_model->get_lead_conversion_source_values()->getResult();
-        $dropdown = array(array("id" => "", "text" => "- " . app_lang("source") . " -"));
+        $dropdown = array(array("id" => "", "text" => "- " . app_lang("campaign") . " -"));
 
         foreach ($sources as $source) {
             $dropdown[] = array("id" => $source->value, "text" => $source->value);
