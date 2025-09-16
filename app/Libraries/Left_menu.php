@@ -222,6 +222,7 @@ class Left_menu {
                     $reports_sub_pages = array_merge($reports_sub_pages, array(
                         "clients/clients_report",
                         "clients/show_expanded_view",
+                        "leads/converted_to_client_report",
                         "clients/fill_the_funnel_leaderboard",
                         "clients/leaderboard"
                     ));
@@ -230,7 +231,6 @@ class Left_menu {
                 if (array_key_exists("lead_reports", $reports_menu)) {
                     $reports_submenu[] = array("name" => "lead_reports", "url" => "lead_conversion_reports");
                     $reports_sub_pages = array_merge($reports_sub_pages, array(
-                        "leads/converted_to_client_report",
                         "lead_conversion_reports",
                         "lead_conversion_reports/index",
                         "lead_conversion_reports/data",

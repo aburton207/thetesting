@@ -2793,11 +2793,11 @@ $lang["new_opportunities"] = "New Opportunities";
 $lang["closed_deals"] = "Closed Deals";
 $lang["total_points"] = "Total Points";
 $lang["fill_the_funnel_region_leaderboard"] = "Fill the Funnel - Region Leaderboard";
-$lang["client_reports"] = "Client reports";
-$lang["client_summary"] = "Client summary";
+$lang["client_reports"] = "Opportunity reports";
+$lang["client_summary"] = "Opportunity summary";
 $lang["lead_reports"] = "Lead reports";
-$lang["converted_to_client_report"] = "Converted to client report";
-$lang["client_conversion_timeline"] = "Client conversion timeline";
+$lang["converted_to_client_report"] = "Converted to opportunity report";
+$lang["client_conversion_timeline"] = "Opportunity conversion timeline";
 $lang["rep_conversion_rates"] = "Rep conversion rates";
 
 $lang["opportunities_graphs"] = "Opportunities Graphs";
