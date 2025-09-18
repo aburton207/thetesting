@@ -48,6 +48,49 @@ class Security_Controller extends App_Controller {
         }
     }
 
+    /**
+     * Determine a default lead source based on the logged-in staff member's address.
+     *
+     * @return int|null
+     */
+    protected function get_default_lead_source_id_from_user_address() {
+        if (!$this->login_user || $this->login_user->user_type !== "staff") {
+            return null;
+        }
+
+        $address = "";
+
+        if (property_exists($this->login_user, 'address')) {
+            $address = trim((string) $this->login_user->address);
+        } else if (property_exists($this->login_user, 'id') && $this->login_user->id) {
+            $full_user_info = $this->Users_model->get_one($this->login_user->id);
+            if ($full_user_info) {
+                $address = trim((string) $full_user_info->address);
+            }
+        }
+
+        if (!$address) {
+            return null;
+        }
+
+        $address_lower = strtolower($address);
+        $region_to_lead_source_map = [
+            'atlantic' => 4,
+            'pacific' => 2,
+            'ontario' => 6,
+            'prairies' => 3,
+            'quebec' => 5,
+        ];
+
+        foreach ($region_to_lead_source_map as $keyword => $lead_source_id) {
+            if (strpos($address_lower, $keyword) !== false) {
+                return $lead_source_id;
+            }
+        }
+
+        return null;
+    }
+
     //initialize the login user's permissions with readable format
     protected function init_permission_checker($module) {
         $info = $this->get_access_info($module);

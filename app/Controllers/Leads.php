@@ -71,6 +71,13 @@ class Leads extends Security_Controller {
 
         $view_data["view"] = $this->request->getPost('view'); //view='details' needed only when loding from the lead's details view
         $view_data['model_info'] = $this->Clients_model->get_one($lead_id);
+
+        if (!$lead_id && $this->login_user->user_type === "staff" && empty($view_data['model_info']->lead_source_id)) {
+            $default_lead_source_id = $this->get_default_lead_source_id_from_user_address();
+            if ($default_lead_source_id) {
+                $view_data['model_info']->lead_source_id = $default_lead_source_id;
+            }
+        }
         $view_data["currency_dropdown"] = $this->_get_currency_dropdown_select2_data();
         $view_data["owners_dropdown"] = $this->_get_owners_dropdown();
 
