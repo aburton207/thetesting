@@ -53,17 +53,25 @@ class Security_Controller extends App_Controller {
      *
      * @return int|null
      */
-    protected function get_default_lead_source_id_from_user_address() {
-        if (!$this->login_user || $this->login_user->user_type !== "staff") {
+    protected function get_default_lead_source_id_from_user_address($user = null) {
+        if ($user === null) {
+            $user = $this->login_user;
+        } else if (is_numeric($user)) {
+            $user = $this->Users_model->get_one($user);
+        }
+
+        if (!$user || !is_object($user) || $user->user_type !== "staff") {
             return null;
         }
 
         $address = "";
 
-        if (property_exists($this->login_user, 'address')) {
-            $address = trim((string) $this->login_user->address);
-        } else if (property_exists($this->login_user, 'id') && $this->login_user->id) {
-            $full_user_info = $this->Users_model->get_one($this->login_user->id);
+        if (property_exists($user, 'address')) {
+            $address = trim((string) $user->address);
+        }
+
+        if (!$address && property_exists($user, 'id') && $user->id) {
+            $full_user_info = $this->Users_model->get_one($user->id);
             if ($full_user_info) {
                 $address = trim((string) $full_user_info->address);
             }
@@ -89,6 +97,21 @@ class Security_Controller extends App_Controller {
         }
 
         return null;
+    }
+
+    protected function get_team_member_lead_source_defaults() {
+        $team_members = $this->Users_model->get_all_where(array("user_type" => "staff", "deleted" => 0, "status" => "active"))->getResult();
+
+        $defaults = array();
+
+        foreach ($team_members as $member) {
+            $default_lead_source_id = $this->get_default_lead_source_id_from_user_address($member);
+            if ($default_lead_source_id) {
+                $defaults[$member->id] = $default_lead_source_id;
+            }
+        }
+
+        return $defaults;
     }
 
     //initialize the login user's permissions with readable format

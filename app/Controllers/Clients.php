@@ -95,6 +95,7 @@ class Clients extends Security_Controller {
         $view_data["currency_dropdown"] = $this->_get_currency_dropdown_select2_data();
         $view_data["groups_dropdown"] = $this->_get_groups_dropdown_select2_data();
         $view_data["team_members_dropdown"] = $this->get_team_members_dropdown();
+        $view_data['owner_lead_source_defaults'] = $this->get_team_member_lead_source_defaults();
         $view_data['label_suggestions'] = $this->make_labels_dropdown("client", $view_data['model_info']->labels);
         $view_data["custom_fields"] = $this->Custom_fields_model->get_combined_details("clients", $client_id, $this->login_user->is_admin, $this->login_user->user_type)->getResult();
         $view_data['statuses'] = $this->Lead_status_model->get_details()->getResult(); // Add statuses for dropdown
@@ -116,6 +117,7 @@ class Clients extends Security_Controller {
     ));
 
     $company_name = $this->request->getPost('company_name');
+    $lead_source_id = trim((string) $this->request->getPost('lead_source_id'));
 
         $data = array(
             "company_name" => $company_name,
@@ -129,7 +131,6 @@ class Clients extends Security_Controller {
             "website" => $this->request->getPost('website'),
             "vat_number" => $this->request->getPost('vat_number'),
             "gst_number" => $this->request->getPost('gst_number'),
-            "lead_source_id" => $this->request->getPost('lead_source_id'),
         );
 
     $lead_status_id = $this->request->getPost('lead_status_id');
@@ -181,6 +182,27 @@ class Clients extends Security_Controller {
             $data["owner_id"] = $this->login_user->id;
         }
     }
+
+    $owner_id_for_default = get_array_value($data, "owner_id");
+    if (!$owner_id_for_default) {
+        if ($client_id) {
+            $existing_client = $this->Clients_model->get_one($client_id);
+            if ($existing_client && $existing_client->id) {
+                $owner_id_for_default = $existing_client->owner_id;
+            }
+        } else {
+            $owner_id_for_default = $this->login_user->id;
+        }
+    }
+
+    if ($lead_source_id === "" && $owner_id_for_default) {
+        $default_lead_source_id = $this->get_default_lead_source_id_from_user_address($owner_id_for_default);
+        if ($default_lead_source_id) {
+            $lead_source_id = (string) $default_lead_source_id;
+        }
+    }
+
+    $data["lead_source_id"] = $lead_source_id !== "" ? $lead_source_id : null;
 
     $data = clean_data($data);
 
@@ -1170,6 +1192,7 @@ function view($client_id = 0, $tab = "", $folder_id = 0) {
             $view_data['can_edit_clients'] = $this->can_edit_clients($client_id);
 
             $view_data["team_members_dropdown"] = $this->get_team_members_dropdown();
+            $view_data['owner_lead_source_defaults'] = $this->get_team_member_lead_source_defaults();
             $view_data["currency_dropdown"] = $this->_get_currency_dropdown_select2_data();
             $view_data['label_suggestions'] = $this->make_labels_dropdown("client", $view_data['model_info']->labels);
             $view_data['lead_sources'] = $this->Lead_source_model->get_details()->getResult();
