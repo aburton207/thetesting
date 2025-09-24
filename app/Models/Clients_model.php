@@ -65,7 +65,7 @@ function get_details($options = array()) {
 
     $show_own_clients_only_user_id = $this->_get_clean_value($options, "show_own_clients_only_user_id");
     if ($show_own_clients_only_user_id) {
-        $where .= " AND ($clients_table.created_by=$show_own_clients_only_user_id OR $clients_table.owner_id=$show_own_clients_only_user_id)";
+        $where .= " AND $clients_table.owner_id=$show_own_clients_only_user_id";
     }
 
    
@@ -552,7 +552,7 @@ function get_details($options = array()) {
         $where = "";
         $show_own_clients_only_user_id = $this->_get_clean_value($options, "show_own_clients_only_user_id");
         if ($show_own_clients_only_user_id) {
-            $where .= " AND ($clients_table.created_by=$show_own_clients_only_user_id OR $clients_table.owner_id=$show_own_clients_only_user_id)";
+            $where .= " AND $clients_table.owner_id=$show_own_clients_only_user_id";
         }
 
         $search = $this->_get_clean_value($search);
@@ -588,7 +588,7 @@ function get_details($options = array()) {
 
         $show_own_clients_only_user_id = $this->_get_clean_value($options, "show_own_clients_only_user_id");
         if ($show_own_clients_only_user_id) {
-            $where .= " AND $clients_table.created_by=$show_own_clients_only_user_id";
+            $where .= " AND $clients_table.owner_id=$show_own_clients_only_user_id";
         }
 
         $filter = $this->_get_clean_value($options, "filter");
