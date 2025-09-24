@@ -148,7 +148,7 @@ class Users_model extends Crud_model {
 
         $show_own_clients_only_user_id = $this->_get_clean_value($options, "show_own_clients_only_user_id");
         if ($user_type == "client" && $show_own_clients_only_user_id) {
-            $where .= " AND $users_table.client_id IN(SELECT $clients_table.id FROM $clients_table WHERE $clients_table.deleted=0 AND $clients_table.created_by=$show_own_clients_only_user_id)";
+            $where .= " AND $users_table.client_id IN(SELECT $clients_table.id FROM $clients_table WHERE $clients_table.deleted=0 AND $clients_table.owner_id=$show_own_clients_only_user_id)";
         }
 
         $quick_filter = $this->_get_clean_value($options, "quick_filter");
@@ -369,7 +369,7 @@ class Users_model extends Crud_model {
 
         $show_own_clients_only_user_id = $this->_get_clean_value($options, "show_own_clients_only_user_id");
         if ($user_type == "client" && $show_own_clients_only_user_id) {
-            $where .= " AND $users_table.client_id IN(SELECT $clients_table.id FROM $clients_table WHERE $clients_table.deleted=0 AND $clients_table.created_by=$show_own_clients_only_user_id)";
+            $where .= " AND $users_table.client_id IN(SELECT $clients_table.id FROM $clients_table WHERE $clients_table.deleted=0 AND $clients_table.owner_id=$show_own_clients_only_user_id)";
         }
 
         $client_groups = $this->_get_clean_value($options, "client_groups");
@@ -395,7 +395,7 @@ class Users_model extends Crud_model {
         $where = "";
         $show_own_clients_only_user_id = $this->_get_clean_value($options, "show_own_clients_only_user_id");
         if ($show_own_clients_only_user_id) {
-            $where .= " AND $users_table.client_id IN(SELECT $clients_table.id FROM $clients_table WHERE $clients_table.deleted=0 AND $clients_table.created_by=$show_own_clients_only_user_id)";
+            $where .= " AND $users_table.client_id IN(SELECT $clients_table.id FROM $clients_table WHERE $clients_table.deleted=0 AND $clients_table.owner_id=$show_own_clients_only_user_id)";
         }
 
         $last_online = $this->_get_clean_value($options, "last_online");
