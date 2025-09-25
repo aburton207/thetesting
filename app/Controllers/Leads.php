@@ -71,8 +71,16 @@ class Leads extends Security_Controller {
 
         $view_data["view"] = $this->request->getPost('view'); //view='details' needed only when loding from the lead's details view
         $view_data['model_info'] = $this->Clients_model->get_one($lead_id);
+
+        if (!$lead_id && $this->login_user->user_type === "staff" && empty($view_data['model_info']->lead_source_id)) {
+            $default_lead_source_id = $this->get_default_lead_source_id_from_user_address();
+            if ($default_lead_source_id) {
+                $view_data['model_info']->lead_source_id = $default_lead_source_id;
+            }
+        }
         $view_data["currency_dropdown"] = $this->_get_currency_dropdown_select2_data();
         $view_data["owners_dropdown"] = $this->_get_owners_dropdown();
+        $view_data['owner_lead_source_defaults'] = $this->get_team_member_lead_source_defaults();
 
         $view_data['statuses'] = $this->Lead_status_model->get_details()->getResult();
         $view_data['sources'] = $this->Lead_source_model->get_details()->getResult();
@@ -132,6 +140,8 @@ class Leads extends Security_Controller {
         $labels = $this->request->getPost('labels');
         validate_list_of_numbers($labels);
 
+        $lead_source_id = trim((string) $this->request->getPost('lead_source_id'));
+
         $data = array(
             "company_name" => $this->request->getPost('company_name'),
             "type" => $this->request->getPost('account_type'),
@@ -148,7 +158,6 @@ class Leads extends Security_Controller {
             "currency" => $this->request->getPost('currency') ? $this->request->getPost('currency') : "",
             "is_lead" => 1,
             "lead_status_id" => $this->request->getPost('lead_status_id'),
-            "lead_source_id" => $this->request->getPost('lead_source_id'),
             "owner_id" => $this->request->getPost('owner_id') ? $this->request->getPost('owner_id') : $this->login_user->id,
             "labels" => $labels
         );
@@ -156,6 +165,28 @@ class Leads extends Security_Controller {
         if (!$client_id) {
             $data["created_date"] = get_current_utc_time();
         }
+
+        $owner_id_for_default = get_array_value($data, "owner_id");
+        if (!$owner_id_for_default) {
+            if ($client_id) {
+                $existing_lead = $this->Clients_model->get_one($client_id);
+                if ($existing_lead && $existing_lead->id) {
+                    $owner_id_for_default = $existing_lead->owner_id;
+                }
+            } else {
+                $owner_id_for_default = $this->login_user->id;
+            }
+        }
+
+        if ($lead_source_id === "" && $owner_id_for_default) {
+            $default_lead_source_id = $this->get_default_lead_source_id_from_user_address($owner_id_for_default);
+            if ($default_lead_source_id) {
+                $lead_source_id = (string) $default_lead_source_id;
+            }
+        }
+
+        $applied_lead_source_id = $lead_source_id !== "" ? $lead_source_id : null;
+        $data["lead_source_id"] = $applied_lead_source_id;
 
 
         $data = clean_data($data);
@@ -195,9 +226,8 @@ class Leads extends Security_Controller {
                 }
 
                 $lead_source_title = "";
-                $lead_source_id = $this->request->getPost('lead_source_id');
-                if ($lead_source_id) {
-                    $lead_source = $this->Lead_source_model->get_one($lead_source_id);
+                if ($applied_lead_source_id) {
+                    $lead_source = $this->Lead_source_model->get_one($applied_lead_source_id);
                     if ($lead_source && $lead_source->id) {
                         $lead_source_title = $lead_source->title;
                     }
@@ -224,7 +254,7 @@ class Leads extends Security_Controller {
                     "custom_field_values" => $custom_field_values,
                     "files_data" => array(),
                     "lead_source" => $lead_source_title,
-                    "lead_source_id" => $lead_source_id,
+                    "lead_source_id" => $applied_lead_source_id,
                     "lead_labels" => $lead_labels_text,
                     "lead_label_ids" => $labels
                 );

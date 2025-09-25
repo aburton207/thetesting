@@ -7,7 +7,10 @@
             if (!$model_info->country) {
                 $model_info->country = "Canada";
             }
-            echo view("clients/client_form_fields", ["hide_client_labels" => true]);
+            echo view("clients/client_form_fields", [
+                "hide_client_labels" => true,
+                "owner_lead_source_defaults" => isset($owner_lead_source_defaults) ? $owner_lead_source_defaults : []
+            ]);
         ?>
     </div>
 </div>

@@ -325,5 +325,94 @@
                 $(".company_name_input_section").attr("placeholder", "<?php echo app_lang('company_name'); ?>");
             }
         });
+
+        var ownerLeadSourceDefaults = <?php echo json_encode(isset($owner_lead_source_defaults) ? (object) $owner_lead_source_defaults : new stdClass()); ?>;
+
+        if (typeof window.setupOwnerLeadSourceAutoSelect !== "function") {
+            window.setupOwnerLeadSourceAutoSelect = function (options) {
+                options = options || {};
+                var defaultsMap = options.defaultsMap || {};
+                var $ownerField = options.ownerSelector ? $(options.ownerSelector) : $();
+                var $leadSourceField = options.leadSourceSelector ? $(options.leadSourceSelector) : $();
+
+                if (!$ownerField.length || !$leadSourceField.length) {
+                    return;
+                }
+
+                var isApplyingProgrammatically = false;
+                var lastAutoAppliedLeadSourceId = "";
+
+                var getDefaultForOwner = function (ownerId) {
+                    if (ownerId === undefined || ownerId === null || ownerId === "") {
+                        return "";
+                    }
+
+                    var ownerKey = ownerId.toString();
+                    if (Object.prototype.hasOwnProperty.call(defaultsMap, ownerKey)) {
+                        var mappedValue = defaultsMap[ownerKey];
+                        if (mappedValue !== undefined && mappedValue !== null && mappedValue !== "") {
+                            return mappedValue.toString();
+                        }
+                    }
+
+                    return "";
+                };
+
+                var applyDefaultLeadSource = function (ownerId) {
+                    var defaultLeadSourceId = getDefaultForOwner(ownerId);
+
+                    if (!defaultLeadSourceId) {
+                        lastAutoAppliedLeadSourceId = "";
+                        return;
+                    }
+
+                    var currentValue = $leadSourceField.val();
+                    if (!currentValue || currentValue === "" || currentValue === lastAutoAppliedLeadSourceId || currentValue === defaultLeadSourceId) {
+                        if (currentValue !== defaultLeadSourceId) {
+                            isApplyingProgrammatically = true;
+                            $leadSourceField.val(defaultLeadSourceId).trigger("change");
+                        }
+                        lastAutoAppliedLeadSourceId = defaultLeadSourceId;
+                    } else if (currentValue === defaultLeadSourceId) {
+                        lastAutoAppliedLeadSourceId = defaultLeadSourceId;
+                    } else {
+                        lastAutoAppliedLeadSourceId = "";
+                    }
+                };
+
+                var initializeState = function () {
+                    var initialOwnerId = $ownerField.val();
+                    var currentLeadSource = $leadSourceField.val();
+                    var initialDefault = getDefaultForOwner(initialOwnerId);
+
+                    if (initialDefault && (!currentLeadSource || currentLeadSource === "")) {
+                        applyDefaultLeadSource(initialOwnerId);
+                    } else if (initialDefault && currentLeadSource === initialDefault) {
+                        lastAutoAppliedLeadSourceId = initialDefault;
+                    }
+                };
+
+                $leadSourceField.on("change", function () {
+                    if (isApplyingProgrammatically) {
+                        isApplyingProgrammatically = false;
+                        return;
+                    }
+
+                    lastAutoAppliedLeadSourceId = "";
+                });
+
+                $ownerField.on("change", function () {
+                    applyDefaultLeadSource($(this).val());
+                });
+
+                initializeState();
+            };
+        }
+
+        window.setupOwnerLeadSourceAutoSelect({
+            ownerSelector: "#owner_id",
+            leadSourceSelector: "#lead_lead_source_id",
+            defaultsMap: ownerLeadSourceDefaults
+        });
     });
 </script>
