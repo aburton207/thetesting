@@ -1688,6 +1688,9 @@ function get_details($options = array()) {
 
         $where = " AND $clients_table.is_lead=0 AND $clients_table.deleted=0";
 
+        //only include organization type clients
+        $where .= " AND $clients_table.type='organization'";
+
         //only include clients which have the custom field value 273
         $where .= " AND cf_273.value IS NOT NULL";
 
@@ -1714,6 +1717,9 @@ function get_details($options = array()) {
         $cf_table = $this->db->prefixTable('custom_field_values');
 
         $where = " AND $clients_table.is_lead=0 AND $clients_table.deleted=0";
+
+        //only include organization type clients
+        $where .= " AND $clients_table.type='organization'";
 
         //only include clients which have the custom field value 273
         $where .= " AND cf_273.value IS NOT NULL";
