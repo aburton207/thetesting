@@ -1,5 +1,9 @@
 <?php echo get_reports_topbar(); ?>
-
+<style>
+    #leads-volume-chart,#leads-potential-margin-chart{
+        height:450px!important;
+    }
+</style>
 <div id="page-content" class="page-wrapper clearfix grid-button">
     <div class="card clearfix">
         <ul id="leads-reports-tabs" data-bs-toggle="ajax-tab" class="nav nav-tabs bg-white inner scrollable-tabs" role="tablist">
