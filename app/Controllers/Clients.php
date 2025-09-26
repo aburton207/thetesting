@@ -1182,6 +1182,32 @@ function view($client_id = 0, $tab = "", $folder_id = 0) {
         }
     }
 
+    public function get_lead_source_by_owner() {
+        $this->access_only_allowed_members();
+
+        $owner_id = intval($this->request->getPost('owner_id'));
+        if (!$owner_id) {
+            echo json_encode(array("success" => true, "lead_source_id" => "", "lead_source_title" => ""));
+            return;
+        }
+
+        $lead_source_id = $this->Users_model->get_lead_source_id_from_address($owner_id);
+        $lead_source_title = "";
+
+        if ($lead_source_id) {
+            $source = $this->Lead_source_model->get_one($lead_source_id);
+            if ($source && $source->id) {
+                $lead_source_title = $source->title;
+            }
+        }
+
+        echo json_encode(array(
+            "success" => true,
+            "lead_source_id" => $lead_source_id ? $lead_source_id : "",
+            "lead_source_title" => $lead_source_title
+        ));
+    }
+
     /* load contact's social links tab view */
 
     function contact_social_links_tab($contact_id = 0) {
