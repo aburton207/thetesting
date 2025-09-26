@@ -1,11 +1,30 @@
-<?php $owner_name = isset($owner_name) ? $owner_name : ""; ?>
+<?php
+$owner_name = isset($owner_name) ? $owner_name : "";
+$default_interval = isset($clients_time_series_default_interval) ? $clients_time_series_default_interval : "daily";
+$time_series_json = isset($clients_time_series) ? $clients_time_series : '{}';
+?>
 <div class="leads-monthly-charts">
     <div class="leads-day-wise-chart card-body">
         <h4 class="mb15"><?php echo !empty($owner_name) ? $owner_name . ' - ' : ''; ?><?php echo app_lang("clients"); ?></h4>
-        <div class="text-end mb-3">
-            <button id="download-leads-pdf" class="btn btn-default">
-                <i data-feather="download" class="icon-16"></i> <?php echo app_lang('download_pdf'); ?>
-            </button>
+        <div class="d-flex flex-wrap align-items-center justify-content-between mb-3 gap-2">
+            <div class="btn-group" role="group">
+                <?php
+                $interval_buttons = array(
+                    "daily" => app_lang("daily"),
+                    "weekly" => app_lang("weekly"),
+                    "monthly" => app_lang("monthly")
+                );
+                foreach ($interval_buttons as $interval => $label) {
+                    $active_class = $default_interval === $interval ? " active" : "";
+                    echo '<button type="button" class="btn btn-default converted-client-interval-btn' . $active_class . '" data-interval="' . $interval . '">' . $label . '</button>';
+                }
+                ?>
+            </div>
+            <div>
+                <button id="download-leads-pdf" class="btn btn-default">
+                    <i data-feather="download" class="icon-16"></i> <?php echo app_lang('download_pdf'); ?>
+                </button>
+            </div>
         </div>
         <canvas id="leads-day-wise-chart" style="width: 100%; height: 350px;"></canvas>
     </div>
@@ -62,13 +81,17 @@
             Chart.plugins.register(ChartDataLabels);
         }
 
-        new Chart(document.getElementById("leads-day-wise-chart"), {
+        var leadsTimeSeries = <?php echo $time_series_json; ?> || {};
+        var defaultInterval = "<?php echo $default_interval; ?>";
+        var initialSeries = leadsTimeSeries[defaultInterval] || {labels: [], data: []};
+
+        var leadsDayWiseChart = new Chart(document.getElementById("leads-day-wise-chart"), {
             type: 'line',
             data: {
-                labels: <?php echo $day_wise_labels; ?>,
+                labels: initialSeries.labels || [],
                 datasets: [{
                         label: '<?php echo app_lang("clients"); ?>',
-                        data: <?php echo $day_wise_data; ?>,
+                        data: initialSeries.data || [],
                         fill: true,
                         borderColor: '#2196f3',
                         backgroundColor: 'rgba(54, 162, 235, 0.2)',
@@ -115,6 +138,33 @@
             }
 
         });
+
+        var $intervalButtons = $(".converted-client-interval-btn");
+        var updateLeadsDayWiseChart = function (interval) {
+            if (!leadsDayWiseChart) {
+                return;
+            }
+            var series = leadsTimeSeries[interval] || {labels: [], data: []};
+            leadsDayWiseChart.data.labels = series.labels || [];
+            leadsDayWiseChart.data.datasets[0].data = series.data || [];
+            leadsDayWiseChart.update();
+        };
+
+        $intervalButtons.on("click", function () {
+            var $button = $(this),
+                interval = $button.data("interval");
+
+            if (!interval || $button.hasClass("active")) {
+                return;
+            }
+
+            $intervalButtons.removeClass("active");
+            $button.addClass("active");
+            updateLeadsDayWiseChart(interval);
+        });
+
+        $intervalButtons.filter('[data-interval="' + defaultInterval + '"]').addClass('active');
+        updateLeadsDayWiseChart(defaultInterval);
 
 
 
