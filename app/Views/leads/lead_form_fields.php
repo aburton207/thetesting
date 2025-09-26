@@ -107,7 +107,20 @@
     <div class="row">
         <label for="lead_lead_source_id" class="<?php echo $label_column; ?>"><?php echo app_lang('source'); ?></label>
         <div class="<?php echo $field_column; ?>">
-            <?php echo view('partials/lead_source_select', ['lead_sources' => $sources, 'selected' => $model_info->lead_source_id, 'id' => 'lead_lead_source_id']); ?>
+            <?php
+            $lead_source_view_data = array(
+                'selected' => $model_info->lead_source_id,
+                'id' => 'lead_lead_source_id'
+            );
+
+            if (isset($sources_dropdown)) {
+                $lead_source_view_data['sources_dropdown'] = $sources_dropdown;
+            } else {
+                $lead_source_view_data['lead_sources'] = $sources;
+            }
+
+            echo view('partials/lead_source_select', $lead_source_view_data);
+            ?>
         </div>
     </div>
 </div>

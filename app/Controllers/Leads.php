@@ -71,11 +71,25 @@ class Leads extends Security_Controller {
 
         $view_data["view"] = $this->request->getPost('view'); //view='details' needed only when loding from the lead's details view
         $view_data['model_info'] = $this->Clients_model->get_one($lead_id);
+
+        if (!$lead_id && empty($view_data['model_info']->lead_source_id)) {
+            $default_owner_id = $this->request->getPost('owner_id');
+            if (!$default_owner_id) {
+                $default_owner_id = $this->login_user->id;
+            }
+
+            $default_lead_source_id = $this->Users_model->get_lead_source_id_from_address($default_owner_id);
+            if ($default_lead_source_id) {
+                $view_data['model_info']->lead_source_id = $default_lead_source_id;
+            }
+        }
+
         $view_data["currency_dropdown"] = $this->_get_currency_dropdown_select2_data();
         $view_data["owners_dropdown"] = $this->_get_owners_dropdown();
 
         $view_data['statuses'] = $this->Lead_status_model->get_details()->getResult();
         $view_data['sources'] = $this->Lead_source_model->get_details()->getResult();
+        $view_data['sources_dropdown'] = $this->_get_sources_dropdown();
 
         //prepare groups dropdown list
         $view_data['groups_dropdown'] = $this->_get_groups_dropdown_select2_data();
@@ -733,6 +747,7 @@ class Leads extends Security_Controller {
             $view_data['model_info'] = $this->Clients_model->get_one($client_id);
             $view_data['statuses'] = $this->Lead_status_model->get_details()->getResult();
             $view_data['sources'] = $this->Lead_source_model->get_details()->getResult();
+            $view_data['sources_dropdown'] = $this->_get_sources_dropdown();
 
             $view_data["custom_fields"] = $this->Custom_fields_model->get_combined_details("leads", $client_id, $this->login_user->is_admin, $this->login_user->user_type)->getResult();
 
@@ -1996,6 +2011,32 @@ class Leads extends Security_Controller {
                 echo json_encode(array("success" => false, 'message' => app_lang('record_cannot_be_deleted')));
             }
         }
+    }
+
+    public function get_lead_source_by_owner() {
+        $this->access_only_allowed_members();
+
+        $owner_id = intval($this->request->getPost('owner_id'));
+        if (!$owner_id) {
+            echo json_encode(array("success" => true, "lead_source_id" => "", "lead_source_title" => ""));
+            return;
+        }
+
+        $lead_source_id = $this->Users_model->get_lead_source_id_from_address($owner_id);
+        $lead_source_title = "";
+
+        if ($lead_source_id) {
+            $source = $this->Lead_source_model->get_one($lead_source_id);
+            if ($source && $source->id) {
+                $lead_source_title = $source->title;
+            }
+        }
+
+        echo json_encode(array(
+            "success" => true,
+            "lead_source_id" => $lead_source_id ? $lead_source_id : "",
+            "lead_source_title" => $lead_source_title
+        ));
     }
 }
 
