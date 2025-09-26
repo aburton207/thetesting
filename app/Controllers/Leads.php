@@ -1534,6 +1534,7 @@ class Leads extends Security_Controller {
 
         $view_data['sources_dropdown'] = json_encode($this->_get_sources_dropdown());
         $view_data['owners_dropdown'] = json_encode($this->_get_owners_dropdown("filter"));
+        $view_data['lead_statuses'] = $this->Lead_status_model->get_details()->getResult();
 
         return $this->template->rander("leads/reports/converted_to_client", $view_data);
     }
@@ -1549,7 +1550,9 @@ class Leads extends Security_Controller {
             "end_date" => $this->request->getPost("end_date"),
             "owner_id" => $owner_id,
             "source_id" => $this->request->getPost("source_id"),
-            "date_range_type" => $this->request->getPost("date_range_type")
+            "date_range_type" => $this->request->getPost("date_range_type"),
+            "status_ids" => $this->request->getPost("status_id"),
+            "client_groups" => $this->allowed_client_groups
         );
 
         $view_data["owner_name"] = "";
@@ -1559,10 +1562,18 @@ class Leads extends Security_Controller {
             $view_data["owner_name"] = trim($owner->first_name . " " . $owner->last_name);
         }
 
-        $day_wise_data = $this->_converted_to_client_chart_day_wise_data($options);
+        $time_series_data = $this->_converted_to_client_chart_time_series_data($options);
 
-        $view_data["day_wise_labels"] = json_encode($day_wise_data['labels']);
-        $view_data["day_wise_data"] = json_encode($day_wise_data['data']);
+        $clients_series = get_array_value($time_series_data, "clients");
+        $daily_clients_data = get_array_value($clients_series, "daily");
+        if (!$daily_clients_data) {
+            $daily_clients_data = array("labels" => array(), "data" => array());
+        }
+
+        $view_data["day_wise_labels"] = json_encode(get_array_value($daily_clients_data, "labels"));
+        $view_data["day_wise_data"] = json_encode(get_array_value($daily_clients_data, "data"));
+        $view_data["clients_time_series"] = json_encode($time_series_data);
+        $view_data["clients_time_series_default_interval"] = "daily";
 
 
         $owner_wise_data = $this->_converted_to_client_chart_owner_wise_data($options);
@@ -1663,59 +1674,173 @@ class Leads extends Security_Controller {
         return $this->template->view("leads/reports/converted_to_client_monthly_chart", $view_data);
     }
 
-    private function _converted_to_client_chart_day_wise_data($options) {
-        $data_array = array();
-        $labels = array();
-        $datewise_converted = array();
+    private function _converted_to_client_chart_time_series_data($options) {
+        $empty_dataset = array("labels" => array(), "data" => array());
+        $empty_grouped_dataset = array(
+            "daily" => $empty_dataset,
+            "weekly" => $empty_dataset,
+            "monthly" => $empty_dataset
+        );
+
+        $time_series = array(
+            "clients" => $empty_grouped_dataset,
+            "volume" => $empty_grouped_dataset,
+            "potential_margin" => $empty_grouped_dataset
+        );
 
         $start_date = get_array_value($options, "start_date");
         $end_date = get_array_value($options, "end_date");
 
-        $db = db_connect('default');
-        $clients_table = $db->prefixTable('clients');
-        $cf_table = $db->prefixTable('custom_field_values');
-
-        $where = "";
-        if ($start_date && $end_date) {
-            $where .= " AND DATE(cf.value) BETWEEN '$start_date' AND '$end_date'";
+        if (!$start_date || !$end_date) {
+            return $time_series;
         }
 
-        $owner_id = get_array_value($options, "owner_id");
-        if ($owner_id) {
-            $where .= " AND c.owner_id=$owner_id";
-        }
-
-        $source_id = get_array_value($options, "source_id");
-        if ($source_id) {
-            $where .= " AND c.lead_source_id=$source_id";
-        }
-
-        $sql = "SELECT DATE(cf.value) AS date, COUNT(c.id) AS total_clients
-                FROM $clients_table AS c
-                LEFT JOIN $cf_table AS cf ON cf.custom_field_id=272 AND cf.related_to_type='clients' AND cf.related_to_id=c.id AND cf.deleted=0
-                WHERE c.is_lead=0 AND c.deleted=0 $where
-                GROUP BY DATE(cf.value)";
-        $converted_result = $db->query($sql)->getResult();
+        $converted_result = $this->Clients_model->get_converted_clients_time_series($options)->getResult();
 
         $start = strtotime($start_date);
         $end = strtotime($end_date);
 
+        if ($start === false || $end === false) {
+            return $time_series;
+        }
+
+        $datewise_converted = array();
+        $metrics = array("clients", "volume", "potential_margin");
         for ($current = $start; $current <= $end; $current = strtotime('+1 day', $current)) {
             $date = date("Y-m-d", $current);
-            $datewise_converted[$date] = 0;
+            $datewise_converted[$date] = array(
+                "clients" => 0,
+                "volume" => 0,
+                "potential_margin" => 0
+            );
         }
 
         foreach ($converted_result as $value) {
             $date = $value->date;
-            $datewise_converted[$date] = $value->total_clients ? $value->total_clients : 0;
+            if ($date) {
+                if (!isset($datewise_converted[$date])) {
+                    $datewise_converted[$date] = array(
+                        "clients" => 0,
+                        "volume" => 0,
+                        "potential_margin" => 0
+                    );
+                }
+
+                $datewise_converted[$date]["clients"] = $value->total_clients ? intval($value->total_clients) : 0;
+                $datewise_converted[$date]["volume"] = $value->total_volume ? floatval($value->total_volume) : 0;
+                $datewise_converted[$date]["potential_margin"] = $value->total_potential_margin ? floatval($value->total_potential_margin) : 0;
+            }
         }
 
-        foreach ($datewise_converted as $date => $total) {
-            $labels[] = date("M d", strtotime($date));
-            $data_array[] = $total;
+        $daily_labels = array();
+        $daily_data = array(
+            "clients" => array(),
+            "volume" => array(),
+            "potential_margin" => array()
+        );
+        foreach ($datewise_converted as $date => $totals) {
+            $daily_labels[] = date("M d", strtotime($date));
+            foreach ($metrics as $metric) {
+                $daily_data[$metric][] = isset($totals[$metric]) ? $totals[$metric] : 0;
+            }
+        }
+        foreach ($metrics as $metric) {
+            $time_series[$metric]["daily"] = array("labels" => $daily_labels, "data" => $daily_data[$metric]);
         }
 
-        return array("labels" => $labels, "data" => $data_array);
+        $weekly_labels = array();
+        $weekly_data = array(
+            "clients" => array(),
+            "volume" => array(),
+            "potential_margin" => array()
+        );
+        $start_date_obj = new \DateTime($start_date);
+        $end_date_obj = new \DateTime($end_date);
+        $week_iterator = clone $start_date_obj;
+        while ($week_iterator <= $end_date_obj) {
+            $week_start = clone $week_iterator;
+            $week_end = clone $week_iterator;
+            $week_end->modify('+6 days');
+            if ($week_end > $end_date_obj) {
+                $week_end = clone $end_date_obj;
+            }
+
+            $sum = array(
+                "clients" => 0,
+                "volume" => 0,
+                "potential_margin" => 0
+            );
+            $loop_date = clone $week_start;
+            while ($loop_date <= $week_end) {
+                $loop_key = $loop_date->format("Y-m-d");
+                if (isset($datewise_converted[$loop_key])) {
+                    foreach ($metrics as $metric) {
+                        $sum[$metric] += isset($datewise_converted[$loop_key][$metric]) ? $datewise_converted[$loop_key][$metric] : 0;
+                    }
+                }
+                $loop_date->modify('+1 day');
+            }
+
+            $weekly_labels[] = $week_start->format("M d") . " - " . $week_end->format("M d");
+            foreach ($metrics as $metric) {
+                $weekly_data[$metric][] = $sum[$metric];
+            }
+
+            $week_iterator = clone $week_end;
+            $week_iterator->modify('+1 day');
+        }
+        foreach ($metrics as $metric) {
+            $time_series[$metric]["weekly"] = array("labels" => $weekly_labels, "data" => $weekly_data[$metric]);
+        }
+
+        $monthly_labels = array();
+        $monthly_data = array(
+            "clients" => array(),
+            "volume" => array(),
+            "potential_margin" => array()
+        );
+        $month_iterator = new \DateTime($start_date);
+        $month_iterator->modify('first day of this month');
+        while ($month_iterator <= $end_date_obj) {
+            $month_start = clone $month_iterator;
+            if ($month_start < $start_date_obj) {
+                $month_start = clone $start_date_obj;
+            }
+
+            $month_end = clone $month_iterator;
+            $month_end->modify('last day of this month');
+            if ($month_end > $end_date_obj) {
+                $month_end = clone $end_date_obj;
+            }
+
+            $sum = array(
+                "clients" => 0,
+                "volume" => 0,
+                "potential_margin" => 0
+            );
+            $loop_date = clone $month_start;
+            while ($loop_date <= $month_end) {
+                $loop_key = $loop_date->format("Y-m-d");
+                if (isset($datewise_converted[$loop_key])) {
+                    foreach ($metrics as $metric) {
+                        $sum[$metric] += isset($datewise_converted[$loop_key][$metric]) ? $datewise_converted[$loop_key][$metric] : 0;
+                    }
+                }
+                $loop_date->modify('+1 day');
+            }
+
+            $monthly_labels[] = $month_start->format("M Y");
+            foreach ($metrics as $metric) {
+                $monthly_data[$metric][] = $sum[$metric];
+            }
+
+            $month_iterator->modify('first day of next month');
+        }
+        foreach ($metrics as $metric) {
+            $time_series[$metric]["monthly"] = array("labels" => $monthly_labels, "data" => $monthly_data[$metric]);
+        }
+
+        return $time_series;
     }
 
     private function _converted_to_client_chart_owner_wise_data($options) {

@@ -1307,6 +1307,78 @@ function get_details($options = array()) {
         return $this->db->query($sql);
     }
 
+    function get_converted_clients_time_series($options = array()) {
+        $clients_table = $this->db->prefixTable('clients');
+        $cf_table = $this->db->prefixTable('custom_field_values');
+
+        $start_date = $this->_get_clean_value($options, "start_date");
+        $end_date = $this->_get_clean_value($options, "end_date");
+
+        if (!$start_date || !$end_date) {
+            return $this->db->query("SELECT 1 WHERE 0");
+        }
+
+        $date_range_type = $this->_get_clean_value($options, "date_range_type");
+        if ($date_range_type !== "created_date_wise") {
+            $date_range_type = "conversion_date_wise";
+        }
+
+        $status_ids = get_array_value($options, "status_ids");
+        if ($status_ids && !is_array($status_ids)) {
+            $status_ids = array($status_ids);
+        }
+
+        $status_where = "";
+        if (is_array($status_ids) && count($status_ids)) {
+            $prepared_status_ids = array();
+            foreach ($status_ids as $status_id) {
+                $status_id = intval($status_id);
+                if ($status_id) {
+                    $prepared_status_ids[] = $status_id;
+                }
+            }
+
+            if ($prepared_status_ids) {
+                $status_where = " AND $clients_table.lead_status_id IN(" . implode(',', $prepared_status_ids) . ")";
+            }
+        }
+
+        $owner_id = $this->_get_clean_value($options, "owner_id");
+        $source_id = $this->_get_clean_value($options, "source_id");
+        $client_groups = get_array_value($options, "client_groups", array());
+        if ($client_groups && !is_array($client_groups)) {
+            $client_groups = explode(',', $client_groups);
+        }
+
+        $owner_where = $owner_id ? " AND $clients_table.owner_id=" . intval($owner_id) : "";
+        $source_where = $source_id ? " AND $clients_table.lead_source_id=" . intval($source_id) : "";
+
+        $conversion_join = "LEFT JOIN $cf_table AS conversion ON conversion.custom_field_id=272 AND conversion.related_to_type='clients' AND conversion.related_to_id=$clients_table.id AND conversion.deleted=0";
+        $date_expression = "DATE(conversion.value)";
+        $date_where = " AND DATE(conversion.value) BETWEEN '$start_date' AND '$end_date'";
+
+        if ($date_range_type === "created_date_wise") {
+            $date_expression = "DATE($clients_table.created_date)";
+            $date_where = " AND DATE($clients_table.created_date) BETWEEN '$start_date' AND '$end_date'";
+        }
+
+        $client_groups_where = $this->prepare_allowed_client_groups_query($clients_table, $client_groups);
+
+        $sql = "SELECT $date_expression AS date,
+                       COUNT($clients_table.id) AS total_clients,
+                       SUM(IFNULL(CAST(volume.value AS DECIMAL(18,4)), 0)) AS total_volume,
+                       SUM(IFNULL(CAST(volume.value AS DECIMAL(18,4)), 0) * IFNULL(CAST(margin.value AS DECIMAL(18,4)), 0)) AS total_potential_margin
+                FROM $clients_table
+                $conversion_join
+                LEFT JOIN $cf_table AS volume ON volume.custom_field_id=273 AND volume.related_to_type='clients' AND volume.related_to_id=$clients_table.id AND volume.deleted=0
+                LEFT JOIN $cf_table AS margin ON margin.custom_field_id=241 AND margin.related_to_type='clients' AND margin.related_to_id=$clients_table.id AND margin.deleted=0
+                WHERE $clients_table.is_lead=0 AND $clients_table.deleted=0 $date_where $owner_where $source_where $status_where $client_groups_where
+                GROUP BY $date_expression
+                ORDER BY $date_expression";
+
+        return $this->db->query($sql);
+    }
+
     function get_clients_id_and_name($options = array()) {
         $clients_table = $this->db->prefixTable('clients');
 

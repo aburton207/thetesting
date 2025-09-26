@@ -1,5 +1,9 @@
 <?php echo get_reports_topbar(); ?>
-
+<style>
+    #leads-volume-chart,#leads-potential-margin-chart{
+        height:450px!important;
+    }
+</style>
 <div id="page-content" class="page-wrapper clearfix grid-button">
     <div class="card clearfix">
         <ul id="leads-reports-tabs" data-bs-toggle="ajax-tab" class="nav nav-tabs bg-white inner scrollable-tabs" role="tablist">
@@ -38,6 +42,16 @@ $range_type_dropdown = json_encode(array(
 
     $(document).ready(function () {
         var dynamicDates = getDynamicDates();
+        var statusOptions = <?php
+            $status_dropdown = array();
+            if (!empty($lead_statuses)) {
+                foreach ($lead_statuses as $status) {
+                    $status_dropdown[] = array("text" => $status->title, "value" => $status->id);
+                }
+            }
+            echo json_encode($status_dropdown);
+        ?>;
+
         $("#converted-to-client-monthly-chart-filters").appFilters({
             source: '<?php echo_uri("leads/converted_to_client_charts_data") ?>',
             targetSelector: '#load-converted-to-client-monthly-chart',
@@ -47,6 +61,9 @@ $range_type_dropdown = json_encode(array(
                 {name: "owner_id", class: "w200", options: <?php echo $owners_dropdown; ?>},
                 {name: "source_id", class: "w200", options: <?php echo $sources_dropdown; ?>},
                 {name: "date_range_type", class: "w200", options: <?php echo $range_type_dropdown; ?>}
+            ],
+            multiSelect: [
+                {name: "status_id", text: "<?php echo app_lang('status'); ?>", options: statusOptions, class: "w200"}
             ]
         });
     });

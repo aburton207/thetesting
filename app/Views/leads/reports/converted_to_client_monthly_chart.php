@@ -1,13 +1,42 @@
-<?php $owner_name = isset($owner_name) ? $owner_name : ""; ?>
+<?php
+$owner_name = isset($owner_name) ? $owner_name : "";
+$default_interval = isset($clients_time_series_default_interval) ? $clients_time_series_default_interval : "daily";
+$time_series_json = isset($clients_time_series) ? $clients_time_series : '{}';
+?>
 <div class="leads-monthly-charts">
     <div class="leads-day-wise-chart card-body">
         <h4 class="mb15"><?php echo !empty($owner_name) ? $owner_name . ' - ' : ''; ?><?php echo app_lang("clients"); ?></h4>
-        <div class="text-end mb-3">
-            <button id="download-leads-pdf" class="btn btn-default">
-                <i data-feather="download" class="icon-16"></i> <?php echo app_lang('download_pdf'); ?>
-            </button>
+        <div class="d-flex flex-wrap align-items-center justify-content-between mb-3 gap-2">
+            <div class="btn-group" role="group">
+                <?php
+                $interval_buttons = array(
+                    "daily" => app_lang("daily"),
+                    "weekly" => app_lang("weekly"),
+                    "monthly" => app_lang("monthly")
+                );
+                foreach ($interval_buttons as $interval => $label) {
+                    $active_class = $default_interval === $interval ? " active" : "";
+                    echo '<button type="button" class="btn btn-default converted-client-interval-btn' . $active_class . '" data-interval="' . $interval . '">' . $label . '</button>';
+                }
+                ?>
+            </div>
+            <div>
+                <button id="download-leads-pdf" class="btn btn-default">
+                    <i data-feather="download" class="icon-16"></i> <?php echo app_lang('download_pdf'); ?>
+                </button>
+            </div>
         </div>
         <canvas id="leads-day-wise-chart" style="width: 100%; height: 350px;"></canvas>
+    </div>
+
+    <div class="leads-volume-chart card-body mt40">
+        <h4 class="mb15"><?php echo !empty($owner_name) ? $owner_name . ' - ' : ''; ?><?php echo app_lang("volume"); ?></h4>
+        <canvas id="leads-volume-chart" style="width: 100%; height: 350px;"></canvas>
+    </div>
+
+    <div class="leads-potential-margin-chart card-body mt40">
+        <h4 class="mb15"><?php echo !empty($owner_name) ? $owner_name . ' - ' : ''; ?><?php echo app_lang("potential_margin"); ?></h4>
+        <canvas id="leads-potential-margin-chart" style="width: 100%; height: 350px;"></canvas>
     </div>
 
     <div class="card-body source-and-owner-wise-chart mt50 b-t pt40">
@@ -62,59 +91,132 @@
             Chart.plugins.register(ChartDataLabels);
         }
 
-        new Chart(document.getElementById("leads-day-wise-chart"), {
-            type: 'line',
-            data: {
-                labels: <?php echo $day_wise_labels; ?>,
-                datasets: [{
-                        label: '<?php echo app_lang("clients"); ?>',
-                        data: <?php echo $day_wise_data; ?>,
-                        fill: true,
-                        borderColor: '#2196f3',
-                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                        borderWidth: 2
-                    }]},
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                tooltips: {
-                    callbacks: {
-                        title: function (tooltipItem, data) {
-                            return  data['labels'][tooltipItem[0]['index']];
-                        }
+        var timeSeriesBundle = <?php echo $time_series_json; ?> || {};
+        var defaultInterval = "<?php echo $default_interval; ?>";
+        var chartDefinitions = [
+            {
+                key: 'clients',
+                elementId: 'leads-day-wise-chart',
+                label: '<?php echo app_lang("clients"); ?>',
+                borderColor: '#2196f3',
+                backgroundColor: 'rgba(54, 162, 235, 0.2)'
+            },
+            {
+                key: 'volume',
+                elementId: 'leads-volume-chart',
+                label: '<?php echo app_lang("volume"); ?>',
+                borderColor: '#4caf50',
+                backgroundColor: 'rgba(76, 175, 80, 0.2)'
+            },
+            {
+                key: 'potential_margin',
+                elementId: 'leads-potential-margin-chart',
+                label: '<?php echo app_lang("potential_margin"); ?>',
+                borderColor: '#ff9800',
+                backgroundColor: 'rgba(255, 152, 0, 0.2)'
+            }
+        ];
+
+        var charts = {};
+        var seriesDefaults = {labels: [], data: []};
+
+        var sharedChartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            tooltips: {
+                callbacks: {
+                    title: function (tooltipItem, data) {
+                        return data['labels'][tooltipItem[0]['index']];
                     }
-                },
-                legend: {
-                    display: true,
-                    position: 'bottom',
-                    labels: {
-                        fontColor: "#898fa9"
-                    }
-                },
-                scales: {
-                    xAxes: [
-                        {
-                            ticks: {
-                                autoSkip: true,
-                                fontColor: "#898fa9"
-                            },
-                            gridLines: {
-                                color: 'rgba(107, 115, 148, 0.1)'
-                            }
-                        }
-                    ],
-                    yAxes: [{
-                            gridLines: {
-                                color: 'rgba(107, 115, 148, 0.1)'
-                            },
-                            ticks: {
-                                fontColor: "#898fa9"
-                            }
-                        }]
                 }
+            },
+            legend: {
+                display: true,
+                position: 'bottom',
+                labels: {
+                    fontColor: "#898fa9"
+                }
+            },
+            scales: {
+                xAxes: [
+                    {
+                        ticks: {
+                            autoSkip: true,
+                            fontColor: "#898fa9"
+                        },
+                        gridLines: {
+                            color: 'rgba(107, 115, 148, 0.1)'
+                        }
+                    }
+                ],
+                yAxes: [{
+                        gridLines: {
+                            color: 'rgba(107, 115, 148, 0.1)'
+                        },
+                        ticks: {
+                            fontColor: "#898fa9"
+                        }
+                    }]
+            }
+        };
+
+        chartDefinitions.forEach(function (definition) {
+            var ctx = document.getElementById(definition.elementId);
+            if (!ctx) {
+                return;
             }
 
+            var initialSeries = (timeSeriesBundle[definition.key] && timeSeriesBundle[definition.key][defaultInterval]) || seriesDefaults;
+            var initialLabels = Array.isArray(initialSeries.labels) ? initialSeries.labels.slice() : [];
+            var initialData = Array.isArray(initialSeries.data) ? initialSeries.data.slice() : [];
+
+            charts[definition.key] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: initialLabels,
+                    datasets: [{
+                            label: definition.label,
+                            data: initialData,
+                            fill: true,
+                            borderColor: definition.borderColor,
+                            backgroundColor: definition.backgroundColor,
+                            borderWidth: 2
+                        }]
+                },
+                options: $.extend(true, {}, sharedChartOptions)
+            });
         });
+
+        var $intervalButtons = $(".converted-client-interval-btn");
+        var updateTimeSeriesCharts = function (interval) {
+            chartDefinitions.forEach(function (definition) {
+                var chart = charts[definition.key];
+                if (!chart) {
+                    return;
+                }
+
+                var intervalSeries = (timeSeriesBundle[definition.key] && timeSeriesBundle[definition.key][interval]) || seriesDefaults;
+                chart.data.labels = Array.isArray(intervalSeries.labels) ? intervalSeries.labels.slice() : [];
+                chart.data.datasets[0].data = Array.isArray(intervalSeries.data) ? intervalSeries.data.slice() : [];
+                chart.update();
+            });
+        };
+
+        $intervalButtons.on("click", function () {
+            var $button = $(this),
+                interval = $button.data("interval");
+
+            if (!interval || $button.hasClass("active")) {
+                return;
+            }
+
+            $intervalButtons.removeClass("active");
+            $button.addClass("active");
+            updateTimeSeriesCharts(interval);
+        });
+
+        $intervalButtons.filter('[data-interval="' + defaultInterval + '"]').addClass('active');
+        updateTimeSeriesCharts(defaultInterval);
 
 
 
