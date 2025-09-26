@@ -29,6 +29,16 @@ $time_series_json = isset($clients_time_series) ? $clients_time_series : '{}';
         <canvas id="leads-day-wise-chart" style="width: 100%; height: 350px;"></canvas>
     </div>
 
+    <div class="leads-volume-chart card-body mt40">
+        <h4 class="mb15"><?php echo !empty($owner_name) ? $owner_name . ' - ' : ''; ?><?php echo app_lang("volume"); ?></h4>
+        <canvas id="leads-volume-chart" style="width: 100%; height: 350px;"></canvas>
+    </div>
+
+    <div class="leads-potential-margin-chart card-body mt40">
+        <h4 class="mb15"><?php echo !empty($owner_name) ? $owner_name . ' - ' : ''; ?><?php echo app_lang("potential_margin"); ?></h4>
+        <canvas id="leads-potential-margin-chart" style="width: 100%; height: 350px;"></canvas>
+    </div>
+
     <div class="card-body source-and-owner-wise-chart mt50 b-t pt40">
         <div class="row mb30">
             <div class="col-md-6 b-r">
@@ -81,73 +91,115 @@ $time_series_json = isset($clients_time_series) ? $clients_time_series : '{}';
             Chart.plugins.register(ChartDataLabels);
         }
 
-        var leadsTimeSeries = <?php echo $time_series_json; ?> || {};
+        var timeSeriesBundle = <?php echo $time_series_json; ?> || {};
         var defaultInterval = "<?php echo $default_interval; ?>";
-        var initialSeries = leadsTimeSeries[defaultInterval] || {labels: [], data: []};
+        var chartDefinitions = [
+            {
+                key: 'clients',
+                elementId: 'leads-day-wise-chart',
+                label: '<?php echo app_lang("clients"); ?>',
+                borderColor: '#2196f3',
+                backgroundColor: 'rgba(54, 162, 235, 0.2)'
+            },
+            {
+                key: 'volume',
+                elementId: 'leads-volume-chart',
+                label: '<?php echo app_lang("volume"); ?>',
+                borderColor: '#4caf50',
+                backgroundColor: 'rgba(76, 175, 80, 0.2)'
+            },
+            {
+                key: 'potential_margin',
+                elementId: 'leads-potential-margin-chart',
+                label: '<?php echo app_lang("potential_margin"); ?>',
+                borderColor: '#ff9800',
+                backgroundColor: 'rgba(255, 152, 0, 0.2)'
+            }
+        ];
 
-        var leadsDayWiseChart = new Chart(document.getElementById("leads-day-wise-chart"), {
-            type: 'line',
-            data: {
-                labels: initialSeries.labels || [],
-                datasets: [{
-                        label: '<?php echo app_lang("clients"); ?>',
-                        data: initialSeries.data || [],
-                        fill: true,
-                        borderColor: '#2196f3',
-                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                        borderWidth: 2
-                    }]},
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                tooltips: {
-                    callbacks: {
-                        title: function (tooltipItem, data) {
-                            return  data['labels'][tooltipItem[0]['index']];
-                        }
+        var charts = {};
+        var seriesDefaults = {labels: [], data: []};
+
+        var sharedChartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            tooltips: {
+                callbacks: {
+                    title: function (tooltipItem, data) {
+                        return data['labels'][tooltipItem[0]['index']];
                     }
-                },
-                legend: {
-                    display: true,
-                    position: 'bottom',
-                    labels: {
-                        fontColor: "#898fa9"
-                    }
-                },
-                scales: {
-                    xAxes: [
-                        {
-                            ticks: {
-                                autoSkip: true,
-                                fontColor: "#898fa9"
-                            },
-                            gridLines: {
-                                color: 'rgba(107, 115, 148, 0.1)'
-                            }
-                        }
-                    ],
-                    yAxes: [{
-                            gridLines: {
-                                color: 'rgba(107, 115, 148, 0.1)'
-                            },
-                            ticks: {
-                                fontColor: "#898fa9"
-                            }
-                        }]
                 }
+            },
+            legend: {
+                display: true,
+                position: 'bottom',
+                labels: {
+                    fontColor: "#898fa9"
+                }
+            },
+            scales: {
+                xAxes: [
+                    {
+                        ticks: {
+                            autoSkip: true,
+                            fontColor: "#898fa9"
+                        },
+                        gridLines: {
+                            color: 'rgba(107, 115, 148, 0.1)'
+                        }
+                    }
+                ],
+                yAxes: [{
+                        gridLines: {
+                            color: 'rgba(107, 115, 148, 0.1)'
+                        },
+                        ticks: {
+                            fontColor: "#898fa9"
+                        }
+                    }]
+            }
+        };
+
+        chartDefinitions.forEach(function (definition) {
+            var ctx = document.getElementById(definition.elementId);
+            if (!ctx) {
+                return;
             }
 
+            var initialSeries = (timeSeriesBundle[definition.key] && timeSeriesBundle[definition.key][defaultInterval]) || seriesDefaults;
+            var initialLabels = Array.isArray(initialSeries.labels) ? initialSeries.labels.slice() : [];
+            var initialData = Array.isArray(initialSeries.data) ? initialSeries.data.slice() : [];
+
+            charts[definition.key] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: initialLabels,
+                    datasets: [{
+                            label: definition.label,
+                            data: initialData,
+                            fill: true,
+                            borderColor: definition.borderColor,
+                            backgroundColor: definition.backgroundColor,
+                            borderWidth: 2
+                        }]
+                },
+                options: $.extend(true, {}, sharedChartOptions)
+            });
         });
 
         var $intervalButtons = $(".converted-client-interval-btn");
-        var updateLeadsDayWiseChart = function (interval) {
-            if (!leadsDayWiseChart) {
-                return;
-            }
-            var series = leadsTimeSeries[interval] || {labels: [], data: []};
-            leadsDayWiseChart.data.labels = series.labels || [];
-            leadsDayWiseChart.data.datasets[0].data = series.data || [];
-            leadsDayWiseChart.update();
+        var updateTimeSeriesCharts = function (interval) {
+            chartDefinitions.forEach(function (definition) {
+                var chart = charts[definition.key];
+                if (!chart) {
+                    return;
+                }
+
+                var intervalSeries = (timeSeriesBundle[definition.key] && timeSeriesBundle[definition.key][interval]) || seriesDefaults;
+                chart.data.labels = Array.isArray(intervalSeries.labels) ? intervalSeries.labels.slice() : [];
+                chart.data.datasets[0].data = Array.isArray(intervalSeries.data) ? intervalSeries.data.slice() : [];
+                chart.update();
+            });
         };
 
         $intervalButtons.on("click", function () {
@@ -160,11 +212,11 @@ $time_series_json = isset($clients_time_series) ? $clients_time_series : '{}';
 
             $intervalButtons.removeClass("active");
             $button.addClass("active");
-            updateLeadsDayWiseChart(interval);
+            updateTimeSeriesCharts(interval);
         });
 
         $intervalButtons.filter('[data-interval="' + defaultInterval + '"]').addClass('active');
-        updateLeadsDayWiseChart(defaultInterval);
+        updateTimeSeriesCharts(defaultInterval);
 
 
 
