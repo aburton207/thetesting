@@ -496,8 +496,49 @@ class Users_model extends Crud_model {
 
 
         $sql = "SELECT $users_table.id, CONCAT($users_table.first_name, ' ',$users_table.last_name) AS user_name
-        FROM $users_table 
+        FROM $users_table
         WHERE $users_table.deleted=0 AND $users_table.user_type='staff' AND $users_table.status='active' $where";
         return $this->db->query($sql);
+    }
+
+    /**
+     * Determine a lead source id based on the region stored in a staff
+     * member's address.
+     *
+     * @param int $user_id
+     * @return int|null
+     */
+    public function get_lead_source_id_from_address($user_id) {
+        if (!$user_id) {
+            return null;
+        }
+
+        $user = $this->get_one($user_id);
+        if (!$user || !$user->id) {
+            return null;
+        }
+
+        $address = trim($user->address);
+        if (!$address) {
+            return null;
+        }
+
+        $address = strtolower($address);
+
+        $mappings = array(
+            'atlantic' => 4,
+            'pacific' => 2,
+            'ontario' => 6,
+            'prairies' => 3,
+            'quebec' => 5
+        );
+
+        foreach ($mappings as $keyword => $source_id) {
+            if (strpos($address, $keyword) !== false) {
+                return $source_id;
+            }
+        }
+
+        return null;
     }
 }

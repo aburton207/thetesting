@@ -83,6 +83,47 @@
             $(this).trigger("submit");
         });
 
+        var $ownerField = $("#owner_id");
+        var $leadSourceField = $("#client_lead_source_id");
+        var leadSourceEndpoint = "<?php echo get_uri('clients/get_lead_source_by_owner'); ?>";
+
+        function updateLeadSourceFromOwner(ownerId, forceReset) {
+            if (!ownerId) {
+                if (forceReset && $leadSourceField.find("option[value='']").length) {
+                    $leadSourceField.val("");
+                }
+                return;
+            }
+
+            $.ajax({
+                url: leadSourceEndpoint,
+                type: "POST",
+                dataType: "json",
+                data: {owner_id: ownerId},
+                success: function (response) {
+                    if (!response || !response.success) {
+                        return;
+                    }
+
+                    if (response.lead_source_id) {
+                        $leadSourceField.val(response.lead_source_id);
+                    } else if ($leadSourceField.find("option[value='']").length) {
+                        $leadSourceField.val("");
+                    }
+                }
+            });
+        }
+
+        if ($ownerField.length && $leadSourceField.length) {
+            $ownerField.on("change", function () {
+                updateLeadSourceFromOwner($(this).val(), true);
+            });
+
+            if (!$leadSourceField.val()) {
+                updateLeadSourceFromOwner($ownerField.val(), false);
+            }
+        }
+
     });
 </script>
 

@@ -87,33 +87,11 @@ class Clients extends Security_Controller {
         $view_data['model_info'] = $this->Clients_model->get_one($client_id);
 
         // Default lead source based on the logged in staff's address when adding
-        // a new client. The address field is checked for specific region names
-        // to determine the lead source id.
+        // a new client.
         if (!$client_id && $this->login_user->user_type === "staff" && empty($view_data['model_info']->lead_source_id)) {
-            // Fetch the address from the logged-in user's profile. The
-            // login_user object returned from get_access_info() doesn't include
-            // the address field, so retrieve the complete user record when
-            // necessary to avoid undefined property notices.
-            if (property_exists($this->login_user, 'address')) {
-                $address = trim($this->login_user->address);
-            } else {
-                $full_user_info = $this->Users_model->get_one($this->login_user->id);
-                $address = trim($full_user_info->address);
-            }
-            if ($address) {
-                $address_lower = strtolower($address);
-
-                if (strpos($address_lower, 'atlantic') !== false) {
-                    $view_data['model_info']->lead_source_id = 4;
-                } elseif (strpos($address_lower, 'pacific') !== false) {
-                    $view_data['model_info']->lead_source_id = 2;
-                } elseif (strpos($address_lower, 'ontario') !== false) {
-                    $view_data['model_info']->lead_source_id = 6;
-                } elseif (strpos($address_lower, 'prairies') !== false) {
-                    $view_data['model_info']->lead_source_id = 3;
-                } elseif (strpos($address_lower, 'quebec') !== false) {
-                    $view_data['model_info']->lead_source_id = 5;
-                }
+            $default_lead_source_id = $this->Users_model->get_lead_source_id_from_address($this->login_user->id);
+            if ($default_lead_source_id) {
+                $view_data['model_info']->lead_source_id = $default_lead_source_id;
             }
         }
         $view_data["currency_dropdown"] = $this->_get_currency_dropdown_select2_data();
@@ -1202,6 +1180,32 @@ function view($client_id = 0, $tab = "", $folder_id = 0) {
 
             return $this->template->view('clients/contacts/company_info_tab', $view_data);
         }
+    }
+
+    public function get_lead_source_by_owner() {
+        $this->access_only_allowed_members();
+
+        $owner_id = intval($this->request->getPost('owner_id'));
+        if (!$owner_id) {
+            echo json_encode(array("success" => true, "lead_source_id" => "", "lead_source_title" => ""));
+            return;
+        }
+
+        $lead_source_id = $this->Users_model->get_lead_source_id_from_address($owner_id);
+        $lead_source_title = "";
+
+        if ($lead_source_id) {
+            $source = $this->Lead_source_model->get_one($lead_source_id);
+            if ($source && $source->id) {
+                $lead_source_title = $source->title;
+            }
+        }
+
+        echo json_encode(array(
+            "success" => true,
+            "lead_source_id" => $lead_source_id ? $lead_source_id : "",
+            "lead_source_title" => $lead_source_title
+        ));
     }
 
     /* load contact's social links tab view */
