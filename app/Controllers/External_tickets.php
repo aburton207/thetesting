@@ -93,6 +93,14 @@ class External_tickets extends App_Controller {
         $assigned_to = (int) $this->request->getPost('assigned_to');
         $ticket_type_id = (int) $this->request->getPost('ticket_type_id');
 
+        $ticket_type_title = '';
+        if ($ticket_type_id) {
+            $ticket_type = $this->Ticket_types_model->get_one($ticket_type_id);
+            if ($ticket_type && $ticket_type->id) {
+                $ticket_type_title = (string) $ticket_type->title;
+            }
+        }
+
         $ticket_data = array(
             "title" => $this->request->getPost('title'),
             "created_at" => $now,
@@ -134,7 +142,13 @@ class External_tickets extends App_Controller {
             //save ticket's comment
             $description = (string) $this->request->getPost('description');
 
-            $form_data = array(
+            $form_data = array();
+
+            if ($ticket_type_title) {
+                $form_data['request_type'] = $ticket_type_title;
+            }
+
+            $form_data = $form_data + array(
                 'first_name' => $first_name,
                 'last_name' => $last_name,
                 'company_name' => $company_name,
@@ -170,6 +184,15 @@ class External_tickets extends App_Controller {
                 'phone' => app_lang('phone'),
                 'lead_source' => app_lang('lead_source')
             );
+
+            if ($ticket_type_title) {
+                $request_type_label = app_lang('request_type');
+                if ($request_type_label === 'request_type') {
+                    $request_type_label = 'Request Type';
+                }
+
+                $contact_labels = array('request_type' => $request_type_label) + $contact_labels;
+            }
 
             $contact_lines = array();
             foreach ($contact_labels as $key => $label) {
@@ -245,6 +268,13 @@ class External_tickets extends App_Controller {
                     if (!empty($custom_field_values)) {
                         $notification_payload['custom_field_values'] = $custom_field_values;
                     }
+                }
+
+                if ($ticket_type_id || $ticket_type_title !== '') {
+                    $notification_payload['request_type'] = array(
+                        'id' => $ticket_type_id,
+                        'title' => $ticket_type_title
+                    );
                 }
 
                 add_auto_reply_to_ticket($ticket_id);

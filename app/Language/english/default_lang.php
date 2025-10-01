@@ -482,6 +482,7 @@ $lang["ticket_status"] = "Ticket Stage";
 $lang["add_ticket_type"] = "Add ticket type";
 $lang["ticket_type"] = "Ticket type";
 $lang["ticket_types"] = "Ticket types";
+$lang["request_type"] = "Request Type";
 $lang["edit_ticket_type"] = "Edit ticket type";
 $lang["delete_ticket_type"] = "Delete ticket type";
 

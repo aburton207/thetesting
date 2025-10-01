@@ -617,6 +617,7 @@ if (!function_exists('send_notification_emails')) {
             $parser_data["USER_NAME"] = $notification->user_name;
             $parser_data["TICKET_CONTENT"] = custom_nl2br($notification->ticket_comment_description ? $notification->ticket_comment_description : "");
             $parser_data["TICKET_URL"] = $url;
+            $parser_data["REQUEST_TYPE"] = "";
 
             if ($notification->description) {
                 $extra_data = json_decode($notification->description, true);
@@ -629,13 +630,42 @@ if (!function_exists('send_notification_emails')) {
                     $form_data = get_array_value($extra_data, 'form_data');
                     if (is_array($form_data) && !empty($form_data)) {
                         $parser_data['FORM_DATA'] = $form_data;
+                        if (!$parser_data['REQUEST_TYPE']) {
+                            $parser_data['REQUEST_TYPE'] = get_array_value($form_data, 'request_type');
+                        }
                     }
 
                     $custom_field_values = get_array_value($extra_data, 'custom_field_values');
                     if (is_array($custom_field_values) && !empty($custom_field_values)) {
                         $parser_data['CUSTOM_FIELD_VALUES'] = $custom_field_values;
                     }
+
+                    $request_type_meta = get_array_value($extra_data, 'request_type');
+                    if ($request_type_meta) {
+                        if (is_array($request_type_meta)) {
+                            $parser_data['REQUEST_TYPE'] = get_array_value($request_type_meta, 'title');
+                            if (!$parser_data['REQUEST_TYPE']) {
+                                $parser_data['REQUEST_TYPE'] = (string) get_array_value($request_type_meta, 'id');
+                            }
+                        } else if (is_string($request_type_meta)) {
+                            $parser_data['REQUEST_TYPE'] = $request_type_meta;
+                        }
+                    }
                 }
+            }
+
+            if (!$parser_data['REQUEST_TYPE']) {
+                $ticket_info = $ci->Tickets_model->get_one($notification->ticket_id);
+                if ($ticket_info && property_exists($ticket_info, 'ticket_type_id') && $ticket_info->ticket_type_id) {
+                    $ticket_type = $ci->Ticket_types_model->get_one($ticket_info->ticket_type_id);
+                    if ($ticket_type && $ticket_type->id) {
+                        $parser_data['REQUEST_TYPE'] = $ticket_type->title;
+                    }
+                }
+            }
+
+            if (!$parser_data['REQUEST_TYPE']) {
+                $parser_data['REQUEST_TYPE'] = app_lang('unspecified');
             }
 
             //add attachment
@@ -1242,6 +1272,7 @@ function parse_email_template($template, $data) {
     if (isset($data['FORM_DATA']) && is_array($data['FORM_DATA'])) {
         $form_data_rows = '';
         $custom_labels = [
+            'request_type' => 'Request Type',
             'state' => 'Province',
             'zip' => 'Postal Code',
             'lead_source' => 'Lead Source',

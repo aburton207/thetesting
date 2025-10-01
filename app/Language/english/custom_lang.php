@@ -482,6 +482,7 @@ $lang["ticket_status"] = "Service Request Stage";
 $lang["add_ticket_type"] = "Add service request type";
 $lang["ticket_type"] = "Service Request type";
 $lang["ticket_types"] = "Service Request types";
+$lang["request_type"] = "Service Request type";
 $lang["edit_ticket_type"] = "Edit service request type";
 $lang["delete_ticket_type"] = "Delete service request type";
 
