@@ -568,6 +568,32 @@ if (!function_exists('get_notification_config')) {
 
 
 
+if (!function_exists('build_ticket_subject_from_parser_data')) {
+
+    function build_ticket_subject_from_parser_data($parser_data) {
+        $request_type = trim((string) get_array_value($parser_data, 'REQUEST_TYPE'));
+        $contact_full_name = trim((string) get_array_value($parser_data, 'CONTACT_FULL_NAME'));
+
+        if ($contact_full_name === '') {
+            $first_name = trim((string) get_array_value($parser_data, 'CONTACT_FIRST_NAME'));
+            $last_name = trim((string) get_array_value($parser_data, 'CONTACT_LAST_NAME'));
+            $contact_full_name = trim($first_name . ' ' . $last_name);
+        }
+
+        $subject_parts = array();
+
+        if ($request_type !== '') {
+            $subject_parts[] = $request_type;
+        }
+
+        if ($contact_full_name !== '') {
+            $subject_parts[] = $contact_full_name;
+        }
+
+        return !empty($subject_parts) ? implode(' - ', $subject_parts) : '';
+    }
+}
+
 /*
  * Send notification emails
  */
@@ -618,6 +644,9 @@ if (!function_exists('send_notification_emails')) {
             $parser_data["TICKET_CONTENT"] = custom_nl2br($notification->ticket_comment_description ? $notification->ticket_comment_description : "");
             $parser_data["TICKET_URL"] = $url;
             $parser_data["REQUEST_TYPE"] = "";
+            $parser_data["CONTACT_FIRST_NAME"] = "";
+            $parser_data["CONTACT_LAST_NAME"] = "";
+            $parser_data["CONTACT_FULL_NAME"] = "";
 
             if ($notification->description) {
                 $extra_data = json_decode($notification->description, true);
@@ -630,6 +659,18 @@ if (!function_exists('send_notification_emails')) {
                     $form_data = get_array_value($extra_data, 'form_data');
                     if (is_array($form_data) && !empty($form_data)) {
                         $parser_data['FORM_DATA'] = $form_data;
+                        $contact_first = trim((string) get_array_value($form_data, 'first_name'));
+                        $contact_last = trim((string) get_array_value($form_data, 'last_name'));
+                        if ($contact_first !== '') {
+                            $parser_data['CONTACT_FIRST_NAME'] = $contact_first;
+                        }
+                        if ($contact_last !== '') {
+                            $parser_data['CONTACT_LAST_NAME'] = $contact_last;
+                        }
+                        $contact_full_name = trim($contact_first . ' ' . $contact_last);
+                        if ($contact_full_name !== '') {
+                            $parser_data['CONTACT_FULL_NAME'] = $contact_full_name;
+                        }
                         if (!$parser_data['REQUEST_TYPE']) {
                             $parser_data['REQUEST_TYPE'] = get_array_value($form_data, 'request_type');
                         }
@@ -662,10 +703,35 @@ if (!function_exists('send_notification_emails')) {
                         $parser_data['REQUEST_TYPE'] = $ticket_type->title;
                     }
                 }
+                if ($ticket_info) {
+                    if (!$parser_data['CONTACT_FULL_NAME'] && property_exists($ticket_info, 'creator_name') && $ticket_info->creator_name) {
+                        $parser_data['CONTACT_FULL_NAME'] = trim($ticket_info->creator_name);
+                    }
+                    if (property_exists($ticket_info, 'requested_by') && $ticket_info->requested_by && (!$parser_data['CONTACT_FIRST_NAME'] || !$parser_data['CONTACT_LAST_NAME'])) {
+                        $requester = $ci->Users_model->get_one($ticket_info->requested_by);
+                        if ($requester && $requester->id) {
+                            if (!$parser_data['CONTACT_FIRST_NAME'] && $requester->first_name) {
+                                $parser_data['CONTACT_FIRST_NAME'] = trim($requester->first_name);
+                            }
+                            if (!$parser_data['CONTACT_LAST_NAME'] && $requester->last_name) {
+                                $parser_data['CONTACT_LAST_NAME'] = trim($requester->last_name);
+                            }
+                        }
+                    }
+                }
             }
 
             if (!$parser_data['REQUEST_TYPE']) {
                 $parser_data['REQUEST_TYPE'] = app_lang('unspecified');
+            }
+
+            if (!$parser_data['CONTACT_FULL_NAME']) {
+                $first_name = trim((string) get_array_value($parser_data, 'CONTACT_FIRST_NAME'));
+                $last_name = trim((string) get_array_value($parser_data, 'CONTACT_LAST_NAME'));
+                $combined_name = trim($first_name . ' ' . $last_name);
+                if ($combined_name !== '') {
+                    $parser_data['CONTACT_FULL_NAME'] = $combined_name;
+                }
             }
 
             //add attachment
@@ -1116,6 +1182,13 @@ if (!function_exists('send_notification_emails')) {
         $parser_data["EVENT_TITLE"] = $notification->user_name . " " . sprintf(app_lang("notification_" . $notification->event), $notification->to_user_name);
         $subject = $parser->setData($parser_data)->renderString($subject_template);
 
+        if ($notification->category == "ticket" && $notification->event !== "ticket_assigned") {
+            $override_subject = build_ticket_subject_from_parser_data($parser_data);
+            if ($override_subject !== '') {
+                $subject = $override_subject;
+            }
+        }
+
         // error_log("event: " . $notification->event . PHP_EOL, 3, "notification.txt");
         // error_log("subject: " . $subject . PHP_EOL, 3, "notification.txt");
         // error_log("message: " . $message . PHP_EOL, 3, "notification.txt");
@@ -1150,6 +1223,12 @@ if (!function_exists('send_notification_emails')) {
                 $parser_data["EVENT_TITLE"] = $notification->user_name . " " . sprintf(app_lang("notification_" . $notification->event), $notification->to_user_name);
                 $subject = get_array_value($email_template, "subject_$user_language") ? get_array_value($email_template, "subject_$user_language") : get_array_value($email_template, "subject_default");
                 $subject = $parser->setData($parser_data)->renderString($subject);
+                if ($notification->category == "ticket" && $notification->event !== "ticket_assigned") {
+                    $override_subject = build_ticket_subject_from_parser_data($parser_data);
+                    if ($override_subject !== '') {
+                        $subject = $override_subject;
+                    }
+                }
                 $message = parse_email_template($message, $parser_data);
 
                 if ($user_email_address) {
@@ -1195,6 +1274,12 @@ if (!function_exists('send_notification_emails')) {
 
                     $message = $parser->setData($parser_data)->renderString($message);
                     $subject = $parser->setData($parser_data)->renderString($subject);
+                    if ($notification->category == "ticket" && $notification->event !== "ticket_assigned") {
+                        $override_subject = build_ticket_subject_from_parser_data($parser_data);
+                        if ($override_subject !== '') {
+                            $subject = $override_subject;
+                        }
+                    }
                     $message = parse_email_template($message, $parser_data);
 
                     try {

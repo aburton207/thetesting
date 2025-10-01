@@ -45,7 +45,6 @@ class External_tickets extends App_Controller {
         }
 
         $this->validate_submitted_data(array(
-            "title" => "required",
             "description" => "required",
             "email" => "required|valid_email",
             "first_name" => "required",

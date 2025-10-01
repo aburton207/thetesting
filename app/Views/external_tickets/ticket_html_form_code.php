@@ -50,7 +50,7 @@
 
     <input type="tel" name="phone" id="phone" placeholder="<?php echo app_lang('phone'); ?>" minlength="10" required="required" />
 
-    <input type="text" name="title" id="title" placeholder="<?php echo app_lang('title'); ?>" required="required" />
+    <input type="text" name="title" id="title" placeholder="<?php echo app_lang('title'); ?>" />
 
     <?php if (!empty($selected_ticket_type_id)) { ?>
         <input type="hidden" name="ticket_type_id" value="<?php echo htmlspecialchars($selected_ticket_type_id); ?>" />

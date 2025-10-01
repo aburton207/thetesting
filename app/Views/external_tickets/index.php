@@ -296,8 +296,6 @@ table.dataTable tbody td:first-child {
                         "value" => "",
                         "class" => "form-control",
                         "placeholder" => app_lang('title'),
-                        "data-rule-required" => true,
-                        "data-msg-required" => app_lang("field_required"),
                     ));
                     ?>
                 </div>
