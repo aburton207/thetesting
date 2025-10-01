@@ -2816,6 +2816,6 @@ $lang["support_only_project_related_tasks_globally_label"] = "Create only the pr
 
 $lang["name_and_company_name_error_message"] = "First name, last name, and company name can't be hidden at a time.";
 $lang["custom_field_rate"] = "Rate";
-
+$lang["contact_information"] = "Contact Information";
 
 return $lang;
