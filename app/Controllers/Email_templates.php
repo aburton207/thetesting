@@ -143,10 +143,10 @@ class Email_templates extends Security_Controller {
 
         if (get_setting("module_ticket")) {
             $templates_array["ticket"] = array(
-                "ticket_created" => array("TICKET_ID", "TICKET_TITLE", "USER_NAME", "TICKET_CONTENT", "TICKET_URL", "LOGO_URL", "SIGNATURE", "RECIPIENTS_EMAIL_ADDRESS"),
-                "ticket_commented" => array("TICKET_ID", "TICKET_TITLE", "USER_NAME", "TICKET_CONTENT", "TICKET_URL", "LOGO_URL", "SIGNATURE", "RECIPIENTS_EMAIL_ADDRESS"),
-                "ticket_closed" => array("TICKET_ID", "TICKET_TITLE", "USER_NAME", "TICKET_URL", "LOGO_URL", "SIGNATURE", "RECIPIENTS_EMAIL_ADDRESS"),
-                "ticket_reopened" => array("TICKET_ID", "TICKET_TITLE", "USER_NAME", "TICKET_URL", "SIGNATURE", "LOGO_URL", "RECIPIENTS_EMAIL_ADDRESS"),
+                "ticket_created" => array("TICKET_ID", "TICKET_TITLE", "REQUEST_TYPE", "USER_NAME", "TICKET_CONTENT", "TICKET_URL", "LOGO_URL", "SIGNATURE", "RECIPIENTS_EMAIL_ADDRESS"),
+                "ticket_commented" => array("TICKET_ID", "TICKET_TITLE", "REQUEST_TYPE", "USER_NAME", "TICKET_CONTENT", "TICKET_URL", "LOGO_URL", "SIGNATURE", "RECIPIENTS_EMAIL_ADDRESS"),
+                "ticket_closed" => array("TICKET_ID", "TICKET_TITLE", "REQUEST_TYPE", "USER_NAME", "TICKET_URL", "LOGO_URL", "SIGNATURE", "RECIPIENTS_EMAIL_ADDRESS"),
+                "ticket_reopened" => array("TICKET_ID", "TICKET_TITLE", "REQUEST_TYPE", "USER_NAME", "TICKET_URL", "SIGNATURE", "LOGO_URL", "RECIPIENTS_EMAIL_ADDRESS"),
             );
         }
 

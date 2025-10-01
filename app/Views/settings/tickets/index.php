@@ -90,6 +90,9 @@
                     <span class="ml10 <?php echo get_setting('enable_embedded_form_to_get_tickets') ? "" : "hide"; ?>" id="external_form_embedded_url">
                         <?php echo modal_anchor(get_uri("external_tickets/embedded_code_modal_form"), "<i data-feather='code' class='icon-16'></i>", array("title" => app_lang('embed'), "class" => "edit external-tickets-embedded-code")) ?>
                     </span>
+                    <span class="ml10 <?php echo get_setting('enable_embedded_form_to_get_tickets') ? "" : "hide"; ?>" id="ticket_html_form_code">
+                        <?php echo modal_anchor(get_uri("external_tickets/ticket_html_form_code_modal_form"), "<i data-feather='code' class='icon-16'></i>", array("title" => app_lang('ticket_html_form_code'), "class" => "edit external-tickets-embedded-code")) ?>
+                    </span>
                 </div>
             </div>
         </div>
@@ -125,8 +128,10 @@
         $("#enable_embedded_form_to_get_tickets").click(function () {
             if ($(this).is(":checked")) {
                 $("#external_form_embedded_url").removeClass("hide");
+                $("#ticket_html_form_code").removeClass("hide");
             } else {
                 $("#external_form_embedded_url").addClass("hide");
+                $("#ticket_html_form_code").addClass("hide");
             }
         });
 

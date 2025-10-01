@@ -482,6 +482,7 @@ $lang["ticket_status"] = "Service Request Stage";
 $lang["add_ticket_type"] = "Add service request type";
 $lang["ticket_type"] = "Service Request type";
 $lang["ticket_types"] = "Service Request types";
+$lang["request_type"] = "Service Request type";
 $lang["edit_ticket_type"] = "Edit service request type";
 $lang["delete_ticket_type"] = "Delete service request type";
 
@@ -907,6 +908,8 @@ $lang["clear"] = "Clear";
 $lang["expired"] = "Expired";
 $lang["enable_attachment"] = "Enable attachment";
 $lang["custom_fields"] = "Custom fields";
+$lang["additional_information"] = "Additional Information";
+$lang["no_additional_information_provided"] = "No additional information provided.";
 $lang["edit_field"] = "Edit field";
 $lang["delete_field"] = "Delete field";
 $lang["client_info"] = "Opportunity info";
@@ -1994,6 +1997,7 @@ $lang["field_type_time"] = "Time";
 $lang["client_can_assign_tasks"] = "Opportunity can assign objectives?";
 $lang["can_create_lead_from_public_form"] = "Can create lead from public form";
 $lang["lead_html_form_code"] = "Lead creation HTML form code";
+$lang["ticket_html_form_code"] = "Ticket submission HTML form code";
 
 $lang["enable_comments_on_estimates"] = "Enable comments on quotes";
 $lang["show_most_recent_estimate_comments_at_the_top"] = "Show most recent quote comments at the top";

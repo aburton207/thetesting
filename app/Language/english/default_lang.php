@@ -482,6 +482,7 @@ $lang["ticket_status"] = "Ticket Stage";
 $lang["add_ticket_type"] = "Add ticket type";
 $lang["ticket_type"] = "Ticket type";
 $lang["ticket_types"] = "Ticket types";
+$lang["request_type"] = "Request Type";
 $lang["edit_ticket_type"] = "Edit ticket type";
 $lang["delete_ticket_type"] = "Delete ticket type";
 
@@ -911,6 +912,8 @@ $lang["clear"] = "Clear";
 $lang["expired"] = "Expired";
 $lang["enable_attachment"] = "Enable attachment";
 $lang["custom_fields"] = "Custom fields";
+$lang["additional_information"] = "Additional Information";
+$lang["no_additional_information_provided"] = "No additional information provided.";
 $lang["edit_field"] = "Edit field";
 $lang["delete_field"] = "Delete field";
 $lang["client_info"] = "Client info";
@@ -1990,6 +1993,7 @@ $lang["field_type_time"] = "Time";
 $lang["client_can_assign_tasks"] = "Client can assign tasks?";
 $lang["can_create_lead_from_public_form"] = "Can create lead from public form";
 $lang["lead_html_form_code"] = "Lead creation HTML form code";
+$lang["ticket_html_form_code"] = "Ticket submission HTML form code";
 
 $lang["enable_comments_on_estimates"] = "Enable comments on estimates";
 $lang["show_most_recent_estimate_comments_at_the_top"] = "Show most recent estimate comments at the top";
@@ -2812,6 +2816,6 @@ $lang["support_only_project_related_tasks_globally_label"] = "Create only the pr
 
 $lang["name_and_company_name_error_message"] = "First name, last name, and company name can't be hidden at a time.";
 $lang["custom_field_rate"] = "Rate";
-
+$lang["contact_information"] = "Contact Information";
 
 return $lang;
