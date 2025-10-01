@@ -146,12 +146,58 @@ class External_tickets extends App_Controller {
         return $this->template->view('external_tickets/embedded_code_modal_form', $view_data);
     }
 
+    function ticket_html_form_code_modal_form() {
+        $view_data['ticket_html_form_code'] = $this->_ticket_html_form_code();
+        $view_data['ticket_types'] = $this->Ticket_types_model->get_all_where(array("deleted" => 0))->getResult();
+        $view_data['assignees'] = $this->Users_model->get_all_where(array("user_type" => "staff", "deleted" => 0, "status" => "active"))->getResult();
+        $view_data['labels'] = $this->Labels_model->get_details(array("context" => "ticket"))->getResult();
+        $view_data['custom_fields'] = $this->Custom_fields_model->get_details(array("related_to" => "tickets", "show_in_embedded_form" => true))->getResult();
+
+        return $this->template->view('external_tickets/ticket_html_form_code_modal_form', $view_data);
+    }
+
+    function get_ticket_html_form_code() {
+        $ticket_type_id = (int) $this->request->getPost('ticket_type_id');
+        $assignee_id = (int) $this->request->getPost('assigned_to');
+
+        validate_numeric_value($ticket_type_id);
+        validate_numeric_value($assignee_id);
+        $labels_input = $this->request->getPost('labels');
+        $custom_fields_input = $this->request->getPost('custom_fields');
+
+        $label_ids = $this->sanitizeLabelIds($labels_input);
+        $custom_field_ids = $this->sanitizeIdList($custom_fields_input);
+
+        echo $this->_ticket_html_form_code($ticket_type_id, $assignee_id, $label_ids, $custom_field_ids);
+    }
+
+    private function _ticket_html_form_code($ticket_type_id = 0, $assignee_id = 0, $label_ids = "", array $custom_field_ids = array()) {
+        validate_numeric_value($ticket_type_id);
+        validate_numeric_value($assignee_id);
+
+        $all_custom_fields = $this->Custom_fields_model->get_combined_details("tickets", 0, 0, "client")->getResult();
+
+        $view_data = array(
+            'selected_ticket_type_id' => $ticket_type_id,
+            'selected_assignee_id' => $assignee_id,
+            'selected_label_ids' => $label_ids,
+            'custom_fields' => $this->filterCustomFieldsForEmbed($all_custom_fields, $custom_field_ids),
+            'ticket_types' => $this->Ticket_types_model->get_all_where(array("deleted" => 0))->getResult()
+        );
+
+        return view('external_tickets/ticket_html_form_code', $view_data);
+    }
+
     private function sanitizeLabelIds($label_ids = "") {
         if (!$label_ids) {
             return "";
         }
 
-        $ids = preg_split('/[,-]/', $label_ids, -1, PREG_SPLIT_NO_EMPTY);
+        if (is_array($label_ids)) {
+            $ids = $label_ids;
+        } else {
+            $ids = preg_split('/[,-]/', $label_ids, -1, PREG_SPLIT_NO_EMPTY);
+        }
         $clean = array();
 
         foreach ($ids as $id) {

@@ -1990,6 +1990,7 @@ $lang["field_type_time"] = "Time";
 $lang["client_can_assign_tasks"] = "Client can assign tasks?";
 $lang["can_create_lead_from_public_form"] = "Can create lead from public form";
 $lang["lead_html_form_code"] = "Lead creation HTML form code";
+$lang["ticket_html_form_code"] = "Ticket submission HTML form code";
 
 $lang["enable_comments_on_estimates"] = "Enable comments on estimates";
 $lang["show_most_recent_estimate_comments_at_the_top"] = "Show most recent estimate comments at the top";
