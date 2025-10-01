@@ -48,7 +48,15 @@ class External_tickets extends App_Controller {
         $this->validate_submitted_data(array(
             "title" => "required",
             "description" => "required",
-            "email" => "required|valid_email"
+            "email" => "required|valid_email",
+            "first_name" => "required",
+            "last_name" => "required",
+            "address" => "required",
+            "city" => "required",
+            "state" => "required",
+            "zip" => "required",
+            "phone" => "required|min_length[10]",
+            "lead_source_id" => "required|numeric"
         ));
 
         $is_embedded_form = $this->request->getPost('is_embedded_form');
@@ -57,6 +65,18 @@ class External_tickets extends App_Controller {
         if ($redirect_url) {
             $redirect_url = clean_data($redirect_url);
         }
+
+        $first_name = trim((string) $this->request->getPost('first_name'));
+        $last_name = trim((string) $this->request->getPost('last_name'));
+        $company_name = trim((string) $this->request->getPost('company_name'));
+        $address = trim((string) $this->request->getPost('address'));
+        $city = trim((string) $this->request->getPost('city'));
+        $state = trim((string) $this->request->getPost('state'));
+        $zip = trim((string) $this->request->getPost('zip'));
+        $phone = trim((string) $this->request->getPost('phone'));
+        $lead_source_id = (int) $this->request->getPost('lead_source_id');
+
+        validate_numeric_value($lead_source_id);
 
         //check if there reCaptcha is enabled
         //if reCaptcha is enabled, check the validation
@@ -98,7 +118,8 @@ class External_tickets extends App_Controller {
             $ticket_data["client_id"] = 0;
             $ticket_data["created_by"] = 0;
             $ticket_data["requested_by"] = 0;
-            $ticket_data["creator_name"] = $this->request->getPost('name') ? $this->request->getPost('name') : "";
+            $combined_name = trim($first_name . " " . $last_name);
+            $ticket_data["creator_name"] = $combined_name ? $combined_name : "";
         }
 
         $ticket_data = clean_data($ticket_data);
@@ -110,8 +131,49 @@ class External_tickets extends App_Controller {
             save_custom_fields("tickets", $ticket_id, 0, "client");
 
             //save ticket's comment
+            $description = (string) $this->request->getPost('description');
+
+            $contact_details = array(
+                app_lang('first_name') => $first_name,
+                app_lang('last_name') => $last_name,
+                app_lang('company_name') => $company_name,
+                app_lang('email') => $email,
+                app_lang('address') => $address,
+                app_lang('city') => $city,
+                app_lang('state') => $state,
+                app_lang('zip') => $zip,
+                app_lang('phone') => $phone
+            );
+
+            if ($lead_source_id) {
+                $lead_source_label = "";
+                $lead_source = $this->Lead_source_model->get_one($lead_source_id);
+                if ($lead_source && $lead_source->id) {
+                    $lead_source_label = $lead_source->title;
+                }
+
+                $contact_details[app_lang('lead_source')] = $lead_source_label ? $lead_source_label : $lead_source_id;
+            }
+
+            $contact_lines = array();
+            foreach ($contact_details as $label => $value) {
+                if ($value !== "") {
+                    $contact_lines[] = "<strong>" . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . ":</strong> " . htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+                }
+            }
+
+            if (!empty($contact_lines)) {
+                $contact_heading = app_lang('contact_information');
+                if ($contact_heading === 'contact_information') {
+                    $contact_heading = 'Contact Information';
+                }
+
+                $contact_block = "<div><strong>" . htmlspecialchars($contact_heading, ENT_QUOTES, 'UTF-8') . "</strong></div><div>" . implode("</div><div>", $contact_lines) . "</div>";
+                $description = $contact_block . "<br /><br />" . $description;
+            }
+
             $comment_data = array(
-                "description" => $this->request->getPost('description'),
+                "description" => $description,
                 "ticket_id" => $ticket_id,
                 "created_by" => $contact_info->id ? $contact_info->id : 0,
                 "created_at" => $now

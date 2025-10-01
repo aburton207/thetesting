@@ -90,7 +90,14 @@ table.dataTable tbody td:first-child {
 <div id="page-content" class="page-wrapper clearfix">
     <div id="external-ticket-form-container">
 
-        <?php echo form_open(get_uri("external_tickets/save"), array("id" => "ticket-form", "class" => "general-form", "role" => "form")); ?>
+        <?php
+        $phone_minlength_message = app_lang('phone_minlength_error');
+        if ($phone_minlength_message === 'phone_minlength_error') {
+            $phone_minlength_message = "Phone number must be at least 10 digits.";
+        }
+
+        echo form_open(get_uri("external_tickets/save"), array("id" => "ticket-form", "class" => "general-form", "role" => "form"));
+        ?>
         <div id="new-ticket-dropzone" class="card p15 no-border clearfix post-dropzone client-info-section" style="max-width: 100%; margin: auto;">
 
 
@@ -104,6 +111,181 @@ table.dataTable tbody td:first-child {
             <?php } ?>
 
             <div class="form-group">
+                <label for="first_name"><?php echo app_lang('first_name'); ?>*</label>
+                <div>
+                    <?php
+                    echo form_input(array(
+                        "id" => "first_name",
+                        "name" => "first_name",
+                        "value" => "",
+                        "class" => "form-control",
+                        "placeholder" => app_lang('first_name'),
+                        "autofocus" => true,
+                        "data-rule-required" => true,
+                        "data-msg-required" => app_lang("field_required"),
+                    ));
+                    ?>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="last_name"><?php echo app_lang('last_name'); ?>*</label>
+                <div>
+                    <?php
+                    echo form_input(array(
+                        "id" => "last_name",
+                        "name" => "last_name",
+                        "value" => "",
+                        "class" => "form-control",
+                        "placeholder" => app_lang('last_name'),
+                        "data-rule-required" => true,
+                        "data-msg-required" => app_lang("field_required"),
+                    ));
+                    ?>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="company_name"><?php echo app_lang('company_name'); ?></label>
+                <div>
+                    <?php
+                    echo form_input(array(
+                        "id" => "company_name",
+                        "name" => "company_name",
+                        "value" => "",
+                        "class" => "form-control",
+                        "placeholder" => app_lang('company_name')
+                    ));
+                    ?>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="email"><?php echo app_lang('email'); ?>*</label>
+                <div>
+                    <?php
+                    echo form_input(array(
+                        "id" => "email",
+                        "name" => "email",
+                        "class" => "form-control p10",
+                        "placeholder" => app_lang('email'),
+                        "data-rule-email" => true,
+                        "data-msg-email" => app_lang("enter_valid_email"),
+                        "data-rule-required" => true,
+                        "data-msg-required" => app_lang("field_required"),
+                    ));
+                    ?>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="address"><?php echo app_lang('address'); ?>*</label>
+                <div>
+                    <?php
+                    echo form_input(array(
+                        "id" => "address",
+                        "name" => "address",
+                        "class" => "form-control",
+                        "placeholder" => app_lang('address'),
+                        "autocomplete" => "off",
+                        "data-autofill" => "new-address",
+                        "aria-autocomplete" => "list",
+                        "data-rule-required" => true,
+                        "data-msg-required" => app_lang("field_required"),
+                    ));
+                    ?>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="city"><?php echo app_lang('city'); ?>*</label>
+                <div>
+                    <?php
+                    echo form_input(array(
+                        "id" => "city",
+                        "name" => "city",
+                        "class" => "form-control",
+                        "placeholder" => app_lang('city'),
+                        "data-rule-required" => true,
+                        "data-msg-required" => app_lang("field_required"),
+                    ));
+                    ?>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="state"><?php echo app_lang('state'); ?>*</label>
+                <div>
+                    <select id="state" name="state" class="form-control select2" data-rule-required="true" data-msg-required="<?php echo app_lang('field_required'); ?>">
+                        <option value="">- Select Province -</option>
+                        <option value="New Brunswick">New Brunswick</option>
+                        <option value="Nova Scotia">Nova Scotia</option>
+                        <option value="Prince Edward Island">Prince Edward Island</option>
+                        <option value="Quebec">Quebec</option>
+                        <option value="Ontario">Ontario</option>
+                        <option value="Manitoba">Manitoba</option>
+                        <option value="Northwest Territories">Northwest Territories</option>
+                        <option value="British Columbia">British Columbia</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="zip"><?php echo app_lang('zip'); ?>*</label>
+                <div>
+                    <?php
+                    echo form_input(array(
+                        "id" => "zip",
+                        "name" => "zip",
+                        "class" => "form-control",
+                        "placeholder" => app_lang('zip'),
+                        "data-rule-required" => true,
+                        "data-msg-required" => app_lang("field_required"),
+                    ));
+                    ?>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="lead_source_id"><?php echo app_lang('lead_source'); ?>*</label>
+                <div>
+                    <select
+                        name="lead_source_id"
+                        id="lead_source_id"
+                        class="form-control select2"
+                        data-rule-required="true"
+                        data-msg-required="<?php echo app_lang("field_required"); ?>"
+                    >
+                        <option value="">- Select -</option>
+                        <option value="1">CA_Eastern ROC</option>
+                        <option value="2">CA_Pacific</option>
+                        <option value="3">CA_Prairies</option>
+                        <option value="4">CA_</option>
+                        <option value="5">CA_Quebec</option>
+                        <option value="6">CA_Ontario</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="phone"><?php echo app_lang('phone'); ?>*</label>
+                <div>
+                    <?php
+                    echo form_input(array(
+                        "id" => "phone",
+                        "name" => "phone",
+                        "class" => "form-control",
+                        "placeholder" => app_lang('phone'),
+                        "data-rule-required" => true,
+                        "data-msg-required" => app_lang("field_required"),
+                        "data-rule-minlength" => 10,
+                        "data-msg-minlength" => $phone_minlength_message,
+                    ));
+                    ?>
+                </div>
+            </div>
+
+            <div class="form-group">
                 <label for="title"><?php echo app_lang('title'); ?></label>
                 <div>
                     <?php
@@ -113,7 +295,6 @@ table.dataTable tbody td:first-child {
                         "value" => "",
                         "class" => "form-control",
                         "placeholder" => app_lang('title'),
-                        "autofocus" => true,
                         "data-rule-required" => true,
                         "data-msg-required" => app_lang("field_required"),
                     ));
@@ -133,42 +314,9 @@ table.dataTable tbody td:first-child {
                     </div>
                 </div>
             <?php } ?>
-    <div class="form-group">
-                <label for="email"><?php echo app_lang('your_email'); ?></label>
-                <div>
-                    <?php
-                    echo form_input(array(
-                        "id" => "email",
-                        "name" => "email",
-                        "class" => "form-control p10",
-                        "autofocus" => true,
-                        "placeholder" => app_lang('email'),
-                        "data-rule-email" => true,
-                        "data-msg-email" => app_lang("enter_valid_email"),
-                        "data-rule-required" => true,
-                        "data-msg-required" => app_lang("field_required"),
-                    ));
-                    ?>
-                </div>
-            </div>
 
-            <div class="form-group">
-                <label for="name"><?php echo app_lang('your_name'); ?></label>
-                <div>
-                    <?php
-                    echo form_input(array(
-                        "id" => "name",
-                        "name" => "name",
-                        "value" => "",
-                        "class" => "form-control",
-                        "placeholder" => app_lang('name'),
-                    ));
-                    ?>
-                </div>
-            </div>
-      
 
-            <?php echo view("custom_fields/form/prepare_context_fields", array("custom_fields" => $custom_fields, "label_column" => "", "field_column" => "")); ?> 
+            <?php echo view("custom_fields/form/prepare_context_fields", array("custom_fields" => $custom_fields, "label_column" => "", "field_column" => "")); ?>
 
               <div class="form-group">
                 <label for="description"><?php echo app_lang('description'); ?></label>
@@ -233,9 +381,76 @@ table.dataTable tbody td:first-child {
         });
 
         setTimeout(function () {
-            $("#title").focus();
+            $("#first_name").focus();
         }, 200);
 
         $("#ticket-form .select2").select2();
+
+        var addressInput = $("#address");
+        addressInput.attr('autocomplete', 'new-address');
+        addressInput.on('focus', function () {
+            $(this).attr('autocomplete', 'new-address');
+        });
+
+        $("#state, #city").on("change keyup", updateLeadSource);
+        updateLeadSource();
+
+        function updateLeadSource() {
+            var provinceVal = $("#state").val();
+
+            if (!provinceVal) {
+                $("#lead_source_id").val("").trigger("change");
+                return;
+            }
+
+            var sourceMap = {
+                "New Brunswick": 1,
+                "Nova Scotia": 1,
+                "Prince Edward Island": 1,
+                "Quebec": 5,
+                "Ontario": 6,
+                "Manitoba": 3,
+                "Northwest Territories": 3,
+                "British Columbia": 3
+            };
+
+            if (provinceVal === "British Columbia") {
+                var bcCitiesKeywords = [
+                    "victoria",
+                    "vancouver",
+                    "richmond",
+                    "burnaby",
+                    "surrey",
+                    "kelowna",
+                    "kamloops"
+                ];
+
+                var cityVal = $("#city").val().trim().toLowerCase();
+                var matchedKeyword = bcCitiesKeywords.some(function (keyword) {
+                    return cityVal.indexOf(keyword) !== -1;
+                });
+
+                if (matchedKeyword) {
+                    $("#lead_source_id").val("2").trigger("change");
+                    return;
+                }
+            }
+
+            var mappedSource = sourceMap[provinceVal] || "";
+            $("#lead_source_id").val(mappedSource).trigger("change");
+        }
     });
 </script>
+
+<?php $googleMapsApiKey = get_setting('google_maps_api_key'); ?>
+<?php if ($googleMapsApiKey) { ?>
+    <script src="<?php echo base_url('assets/js/google_address_autocomplete.js'); ?>"></script>
+    <script>
+        function googleMapsReady() {
+            if (window.initAddressAutocomplete) {
+                window.initAddressAutocomplete(document);
+            }
+        }
+    </script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=<?php echo $googleMapsApiKey; ?>&libraries=places&v=beta&callback=googleMapsReady&loading=async"></script>
+<?php } ?>

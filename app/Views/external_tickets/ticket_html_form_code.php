@@ -11,6 +11,44 @@
         <input type="hidden" name="labels" value="<?php echo htmlspecialchars($selected_label_ids); ?>" />
     <?php } ?>
 
+    <input type="text" name="first_name" id="first_name" placeholder="<?php echo app_lang('first_name'); ?>" required="required" />
+
+    <input type="text" name="last_name" id="last_name" placeholder="<?php echo app_lang('last_name'); ?>" required="required" />
+
+    <input type="text" name="company_name" id="company_name" placeholder="<?php echo app_lang('company_name'); ?>" />
+
+    <input type="email" name="email" id="email" placeholder="<?php echo app_lang('email'); ?>" autocomplete="off" required="required" />
+
+    <input type="text" name="address" id="address" placeholder="<?php echo app_lang('address'); ?>" autocomplete="off" required="required" />
+
+    <input type="text" name="city" id="city" placeholder="<?php echo app_lang('city'); ?>" required="required" />
+
+    <select name="state" id="state" required="required">
+        <option value="">- Select Province -</option>
+        <option value="New Brunswick">New Brunswick</option>
+        <option value="Nova Scotia">Nova Scotia</option>
+        <option value="Prince Edward Island">Prince Edward Island</option>
+        <option value="Quebec">Quebec</option>
+        <option value="Ontario">Ontario</option>
+        <option value="Manitoba">Manitoba</option>
+        <option value="Northwest Territories">Northwest Territories</option>
+        <option value="British Columbia">British Columbia</option>
+    </select>
+
+    <input type="text" name="zip" id="zip" placeholder="<?php echo app_lang('zip'); ?>" required="required" />
+
+    <select name="lead_source_id" id="lead_source_id" required="required">
+        <option value="">- Select -</option>
+        <option value="1">CA_Eastern ROC</option>
+        <option value="2">CA_Pacific</option>
+        <option value="3">CA_Prairies</option>
+        <option value="4">CA_</option>
+        <option value="5">CA_Quebec</option>
+        <option value="6">CA_Ontario</option>
+    </select>
+
+    <input type="tel" name="phone" id="phone" placeholder="<?php echo app_lang('phone'); ?>" minlength="10" required="required" />
+
     <input type="text" name="title" id="title" placeholder="<?php echo app_lang('title'); ?>" required="required" />
 
     <?php if (!empty($selected_ticket_type_id)) { ?>
@@ -23,10 +61,6 @@
             <?php }} ?>
         </select>
     <?php } ?>
-
-    <input type="email" name="email" id="email" placeholder="<?php echo app_lang('your_email'); ?>" autocomplete="off" required="required" />
-
-    <input type="text" name="name" id="name" placeholder="<?php echo app_lang('your_name'); ?>" />
 
     <?php if (!empty($custom_fields)) {
         foreach ($custom_fields as $field) {
