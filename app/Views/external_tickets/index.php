@@ -106,7 +106,8 @@ table.dataTable tbody td:first-child {
             <?php
             $default_assignee_id = !empty($selected_assignee_id) ? htmlspecialchars($selected_assignee_id) : "";
             ?>
-            <input type="hidden" name="assigned_to" id="assigned_to" value="<?php echo $default_assignee_id; ?>" data-default-value="<?php echo $default_assignee_id; ?>" />
+            <input type="hidden" name="assigned_to" id="assigned_to" value="<?php echo $default_assignee_id; ?>" data-default-value="<?php echo $default_assignee_id; ?>" data-owner-auto="1" />
+            <input type="hidden" name="auto_assign_owner" id="auto_assign_owner" value="1" />
             <?php if (!empty($selected_label_ids)) { ?>
                 <input type="hidden" name="labels" value="<?php echo htmlspecialchars($selected_label_ids); ?>" />
             <?php } ?>
@@ -400,14 +401,32 @@ table.dataTable tbody td:first-child {
         };
 
         var $assignedTo = $("#assigned_to");
+        var $autoAssign = $("#auto_assign_owner");
         var defaultAssignee = "";
         if ($assignedTo.length) {
             var storedDefault = $assignedTo.attr("data-default-value");
             defaultAssignee = typeof storedDefault !== "undefined" ? storedDefault : ($assignedTo.val() || "");
         }
 
+        var shouldAutoAssign = $assignedTo.length > 0;
+
+        if ($assignedTo.length) {
+            var ownerAutoAttr = $assignedTo.attr("data-owner-auto");
+            if (typeof ownerAutoAttr !== "undefined" && ownerAutoAttr === "0") {
+                shouldAutoAssign = false;
+            }
+        }
+
+        if ($autoAssign.length) {
+            if ($autoAssign.val() === "0") {
+                shouldAutoAssign = false;
+            }
+
+            $autoAssign.val(shouldAutoAssign ? "1" : "0");
+        }
+
         function updateAssignedOwner(leadSourceId) {
-            if (!$assignedTo.length) {
+            if (!$assignedTo.length || !shouldAutoAssign) {
                 return;
             }
 

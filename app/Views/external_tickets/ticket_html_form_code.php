@@ -6,7 +6,8 @@
     <?php
     $default_assignee_id = !empty($selected_assignee_id) ? htmlspecialchars($selected_assignee_id) : "";
     ?>
-    <input type="hidden" name="assigned_to" id="assigned_to" value="<?php echo $default_assignee_id; ?>" data-default-value="<?php echo $default_assignee_id; ?>" />
+    <input type="hidden" name="assigned_to" id="assigned_to" value="<?php echo $default_assignee_id; ?>" data-default-value="<?php echo $default_assignee_id; ?>" data-owner-auto="1" />
+    <input type="hidden" name="auto_assign_owner" id="auto_assign_owner" value="1" />
 
     <?php if (!empty($selected_label_ids)) { ?>
         <input type="hidden" name="labels" value="<?php echo htmlspecialchars($selected_label_ids); ?>" />
@@ -120,8 +121,26 @@
     var cityField = document.getElementById('city');
     var leadSourceField = document.getElementById('lead_source_id');
     var assignedField = document.getElementById('assigned_to');
+    var autoAssignField = document.getElementById('auto_assign_owner');
 
     var defaultAssignee = assignedField ? (assignedField.getAttribute('data-default-value') || assignedField.value || '') : '';
+
+    var shouldAutoAssign = !!assignedField;
+
+    if (assignedField) {
+        var ownerAutoAttr = assignedField.getAttribute('data-owner-auto');
+        if (ownerAutoAttr === '0') {
+            shouldAutoAssign = false;
+        }
+    }
+
+    if (autoAssignField) {
+        if (autoAssignField.value === '0') {
+            shouldAutoAssign = false;
+        }
+
+        autoAssignField.value = shouldAutoAssign ? '1' : '0';
+    }
 
     var ownerMap = {
         '2': '254',
@@ -159,7 +178,7 @@
     ];
 
     function applyOwner(leadSourceId) {
-        if (!assignedField) {
+        if (!assignedField || !shouldAutoAssign) {
             return;
         }
 

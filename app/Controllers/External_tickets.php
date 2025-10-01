@@ -90,6 +90,9 @@ class External_tickets extends App_Controller {
         validate_list_of_numbers($labels);
 
         $assigned_to = (int) $this->request->getPost('assigned_to');
+        $auto_assign_owner_input = $this->request->getPost('auto_assign_owner');
+        $auto_assign_owner_input = is_null($auto_assign_owner_input) ? '' : trim((string) $auto_assign_owner_input);
+        $should_auto_assign_owner = $auto_assign_owner_input === '0' ? false : true;
 
         $lead_source_owner_map = array(
             2 => 254,
@@ -99,7 +102,7 @@ class External_tickets extends App_Controller {
             6 => 252
         );
 
-        if (isset($lead_source_owner_map[$lead_source_id])) {
+        if ($should_auto_assign_owner && isset($lead_source_owner_map[$lead_source_id])) {
             $assigned_to = $lead_source_owner_map[$lead_source_id];
         }
         $ticket_type_id = (int) $this->request->getPost('ticket_type_id');
