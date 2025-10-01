@@ -28,8 +28,7 @@ class External_tickets extends App_Controller {
         $ticket_types_dropdown = $this->Ticket_types_model->get_dropdown_list(array("title"), "id", $where);
         $view_data['ticket_types_dropdown'] = $ticket_types_dropdown;
 
-        $all_custom_fields = $this->Custom_fields_model->get_combined_details("tickets", 0, 0, "client")->getResult();
-        $view_data["custom_fields"] = $this->filterCustomFieldsForEmbed($all_custom_fields, $custom_field_ids);
+        $view_data["custom_fields"] = $this->filterCustomFieldsForEmbed($this->getEmbeddableTicketCustomFields(), $custom_field_ids);
 
         $view_data['selected_ticket_type_id'] = $ticket_type_id;
         $view_data['selected_assignee_id'] = $assignee_id;
@@ -222,7 +221,7 @@ class External_tickets extends App_Controller {
         $view_data['ticket_types'] = $this->Ticket_types_model->get_all_where(array("deleted" => 0))->getResult();
         $view_data['assignees'] = $this->Users_model->get_all_where(array("user_type" => "staff", "deleted" => 0, "status" => "active"))->getResult();
         $view_data['labels'] = $this->Labels_model->get_details(array("context" => "ticket"))->getResult();
-        $view_data['custom_fields'] = $this->Custom_fields_model->get_details(array("related_to" => "tickets", "show_in_embedded_form" => true))->getResult();
+        $view_data['custom_fields'] = $this->getEmbeddableTicketCustomFields();
 
         return $this->template->view('external_tickets/embedded_code_modal_form', $view_data);
     }
@@ -232,7 +231,7 @@ class External_tickets extends App_Controller {
         $view_data['ticket_types'] = $this->Ticket_types_model->get_all_where(array("deleted" => 0))->getResult();
         $view_data['assignees'] = $this->Users_model->get_all_where(array("user_type" => "staff", "deleted" => 0, "status" => "active"))->getResult();
         $view_data['labels'] = $this->Labels_model->get_details(array("context" => "ticket"))->getResult();
-        $view_data['custom_fields'] = $this->Custom_fields_model->get_details(array("related_to" => "tickets", "show_in_embedded_form" => true))->getResult();
+        $view_data['custom_fields'] = $this->getEmbeddableTicketCustomFields();
 
         return $this->template->view('external_tickets/ticket_html_form_code_modal_form', $view_data);
     }
@@ -256,13 +255,11 @@ class External_tickets extends App_Controller {
         validate_numeric_value($ticket_type_id);
         validate_numeric_value($assignee_id);
 
-        $all_custom_fields = $this->Custom_fields_model->get_combined_details("tickets", 0, 0, "client")->getResult();
-
         $view_data = array(
             'selected_ticket_type_id' => $ticket_type_id,
             'selected_assignee_id' => $assignee_id,
             'selected_label_ids' => $label_ids,
-            'custom_fields' => $this->filterCustomFieldsForEmbed($all_custom_fields, $custom_field_ids),
+            'custom_fields' => $this->filterCustomFieldsForEmbed($this->getEmbeddableTicketCustomFields(), $custom_field_ids),
             'ticket_types' => $this->Ticket_types_model->get_all_where(array("deleted" => 0))->getResult()
         );
 
@@ -318,6 +315,26 @@ class External_tickets extends App_Controller {
         return array_values(array_unique($clean));
     }
 
+    private function getEmbeddableTicketCustomFields(): array {
+        $fields = $this->Custom_fields_model->get_combined_details("tickets", 0, 0, "client")->getResult();
+
+        if (!is_array($fields)) {
+            return array();
+        }
+
+        $unique = array();
+
+        foreach ($fields as $field) {
+            if (!isset($field->id)) {
+                continue;
+            }
+
+            $unique[(int) $field->id] = $field;
+        }
+
+        return array_values($unique);
+    }
+
     private function filterCustomFieldsForEmbed($fields, array $selected_ids = array()) {
         if (!is_array($fields)) {
             return array();
@@ -325,19 +342,28 @@ class External_tickets extends App_Controller {
 
         $filtered = array();
         $has_selection = !empty($selected_ids);
+        $selected_lookup = array();
+
+        if ($has_selection) {
+            foreach ($selected_ids as $id) {
+                $selected_lookup[(int) $id] = true;
+            }
+        }
 
         foreach ($fields as $field) {
             if (!isset($field->id)) {
                 continue;
             }
 
-            $allow_in_embed = isset($field->show_in_embedded_form) ? (int) $field->show_in_embedded_form === 1 : true;
+            $field_id = (int) $field->id;
+            $is_selected = $has_selection && isset($selected_lookup[$field_id]);
+            $allow_in_embed = !isset($field->show_in_embedded_form) || (int) $field->show_in_embedded_form === 1;
 
-            if (!$allow_in_embed) {
-                continue;
-            }
-
-            if ($has_selection && !in_array((int) $field->id, $selected_ids)) {
+            if ($has_selection) {
+                if (!$is_selected) {
+                    continue;
+                }
+            } elseif (!$allow_in_embed) {
                 continue;
             }
 
