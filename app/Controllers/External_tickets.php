@@ -10,18 +10,31 @@ class External_tickets extends App_Controller {
         parent::__construct();
     }
 
-    function index() { //embedded
+    function index($ticket_type_id = 0, $assignee_id = 0, $label_ids = "") { //embedded
         if (!get_setting("enable_embedded_form_to_get_tickets")) {
             show_404();
         }
+
+        validate_numeric_value($ticket_type_id);
+        validate_numeric_value($assignee_id);
+
+        $label_ids = $this->sanitizeLabelIds($label_ids);
+        $custom_field_ids = $this->sanitizeIdList($this->request->getGet('custom_fields'));
 
         $view_data['topbar'] = false;
         $view_data['left_menu'] = false;
 
         $where = array();
-        $view_data['ticket_types_dropdown'] = $this->Ticket_types_model->get_dropdown_list(array("title"), "id", $where);
+        $ticket_types_dropdown = $this->Ticket_types_model->get_dropdown_list(array("title"), "id", $where);
+        $view_data['ticket_types_dropdown'] = $ticket_types_dropdown;
 
-        $view_data["custom_fields"] = $this->Custom_fields_model->get_combined_details("tickets", 0, 0, "client")->getResult();
+        $all_custom_fields = $this->Custom_fields_model->get_combined_details("tickets", 0, 0, "client")->getResult();
+        $view_data["custom_fields"] = $this->filterCustomFieldsForEmbed($all_custom_fields, $custom_field_ids);
+
+        $view_data['selected_ticket_type_id'] = $ticket_type_id;
+        $view_data['selected_assignee_id'] = $assignee_id;
+        $view_data['selected_label_ids'] = $label_ids;
+        $view_data['selected_custom_field_ids'] = $custom_field_ids;
 
         return $this->template->rander("external_tickets/index", $view_data);
     }
@@ -45,11 +58,20 @@ class External_tickets extends App_Controller {
 
         $now = get_current_utc_time();
 
+        $labels = $this->request->getPost('labels');
+        $labels = $labels ? $labels : "";
+        validate_list_of_numbers($labels);
+
+        $assigned_to = (int) $this->request->getPost('assigned_to');
+        $ticket_type_id = (int) $this->request->getPost('ticket_type_id');
+
         $ticket_data = array(
             "title" => $this->request->getPost('title'),
             "created_at" => $now,
             "last_activity_at" => $now,
-            "ticket_type_id" => $this->request->getPost('ticket_type_id')
+            "ticket_type_id" => $ticket_type_id,
+            "labels" => $labels,
+            "assigned_to" => $assigned_to ? $assigned_to : 0
         );
 
         //match with the existing client
@@ -116,8 +138,86 @@ class External_tickets extends App_Controller {
             $view_data['embedded'] = "Please save the settings first to see the code.";
         }
 
+        $view_data['ticket_types'] = $this->Ticket_types_model->get_all_where(array("deleted" => 0))->getResult();
+        $view_data['assignees'] = $this->Users_model->get_all_where(array("user_type" => "staff", "deleted" => 0, "status" => "active"))->getResult();
+        $view_data['labels'] = $this->Labels_model->get_details(array("context" => "ticket"))->getResult();
+        $view_data['custom_fields'] = $this->Custom_fields_model->get_details(array("related_to" => "tickets", "show_in_embedded_form" => true))->getResult();
 
         return $this->template->view('external_tickets/embedded_code_modal_form', $view_data);
+    }
+
+    private function sanitizeLabelIds($label_ids = "") {
+        if (!$label_ids) {
+            return "";
+        }
+
+        $ids = preg_split('/[,-]/', $label_ids, -1, PREG_SPLIT_NO_EMPTY);
+        $clean = array();
+
+        foreach ($ids as $id) {
+            $id = trim($id);
+            if ($id === "") {
+                continue;
+            }
+            if (is_numeric($id)) {
+                $clean[] = (int) $id;
+            }
+        }
+
+        $clean = array_values(array_unique($clean));
+
+        return $clean ? implode(',', $clean) : "";
+    }
+
+    private function sanitizeIdList($value): array {
+        if (!$value) {
+            return array();
+        }
+
+        if (is_array($value)) {
+            $raw_ids = $value;
+        } else {
+            $raw_ids = preg_split('/[,]/', (string) $value, -1, PREG_SPLIT_NO_EMPTY);
+        }
+
+        $clean = array();
+
+        foreach ($raw_ids as $id) {
+            if (is_numeric($id)) {
+                $clean[] = (int) $id;
+            }
+        }
+
+        return array_values(array_unique($clean));
+    }
+
+    private function filterCustomFieldsForEmbed($fields, array $selected_ids = array()) {
+        if (!is_array($fields)) {
+            return array();
+        }
+
+        $filtered = array();
+        $has_selection = !empty($selected_ids);
+
+        foreach ($fields as $field) {
+            if (!isset($field->id)) {
+                continue;
+            }
+
+            $allow_in_embed = isset($field->show_in_embedded_form) ? (int) $field->show_in_embedded_form === 1 : true;
+
+            if (!$allow_in_embed) {
+                continue;
+            }
+
+            if ($has_selection && !in_array((int) $field->id, $selected_ids)) {
+                continue;
+            }
+
+            $filtered[] = $field;
+        }
+
+        return $filtered;
     }
 }
 

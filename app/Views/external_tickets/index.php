@@ -94,6 +94,14 @@ table.dataTable tbody td:first-child {
         <div id="new-ticket-dropzone" class="card p15 no-border clearfix post-dropzone client-info-section" style="max-width: 100%; margin: auto;">
 
 
+            <input type="hidden" name="is_embedded_form" value="1" />
+            <?php if (!empty($selected_assignee_id)) { ?>
+                <input type="hidden" name="assigned_to" value="<?php echo htmlspecialchars($selected_assignee_id); ?>" />
+            <?php } ?>
+            <?php if (!empty($selected_label_ids)) { ?>
+                <input type="hidden" name="labels" value="<?php echo htmlspecialchars($selected_label_ids); ?>" />
+            <?php } ?>
+
             <div class="form-group">
                 <label for="title"><?php echo app_lang('title'); ?></label>
                 <div>
@@ -112,14 +120,18 @@ table.dataTable tbody td:first-child {
                 </div>
             </div>
 
-            <div class="form-group">
-                <label for="ticket_type_id"><?php echo app_lang('ticket_type'); ?></label>
-                <div>
-                    <?php
-                    echo form_dropdown("ticket_type_id", $ticket_types_dropdown, "", "class='select2'");
-                    ?>
+            <?php if (!empty($selected_ticket_type_id)) { ?>
+                <input type="hidden" name="ticket_type_id" value="<?php echo htmlspecialchars($selected_ticket_type_id); ?>" />
+            <?php } else { ?>
+                <div class="form-group">
+                    <label for="ticket_type_id"><?php echo app_lang('ticket_type'); ?></label>
+                    <div>
+                        <?php
+                        echo form_dropdown("ticket_type_id", $ticket_types_dropdown, "", "class='select2'");
+                        ?>
+                    </div>
                 </div>
-            </div>
+            <?php } ?>
     <div class="form-group">
                 <label for="email"><?php echo app_lang('your_email'); ?></label>
                 <div>
