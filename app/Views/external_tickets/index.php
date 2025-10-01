@@ -103,9 +103,10 @@ table.dataTable tbody td:first-child {
 
             <input type="hidden" name="is_embedded_form" value="1" />
             <input type="hidden" name="redirect_to" value="https://www.avenirenergy.ca/avenir-energy-thank-you" />
-            <?php if (!empty($selected_assignee_id)) { ?>
-                <input type="hidden" name="assigned_to" value="<?php echo htmlspecialchars($selected_assignee_id); ?>" />
-            <?php } ?>
+            <?php
+            $default_assignee_id = !empty($selected_assignee_id) ? htmlspecialchars($selected_assignee_id) : "";
+            ?>
+            <input type="hidden" name="assigned_to" id="assigned_to" value="<?php echo $default_assignee_id; ?>" data-default-value="<?php echo $default_assignee_id; ?>" />
             <?php if (!empty($selected_label_ids)) { ?>
                 <input type="hidden" name="labels" value="<?php echo htmlspecialchars($selected_label_ids); ?>" />
             <?php } ?>
@@ -260,7 +261,7 @@ table.dataTable tbody td:first-child {
                         <option value="1">CA_Eastern ROC</option>
                         <option value="2">CA_Pacific</option>
                         <option value="3">CA_Prairies</option>
-                        <option value="4">CA_</option>
+                        <option value="4">CA_Atlantic</option>
                         <option value="5">CA_Quebec</option>
                         <option value="6">CA_Ontario</option>
                     </select>
@@ -392,6 +393,33 @@ table.dataTable tbody td:first-child {
             $(this).attr('autocomplete', 'new-address');
         });
 
+        var ownerMap = {
+            "2": "254",
+            "3": "253",
+            "4": "251",
+            "6": "252"
+        };
+
+        var $assignedTo = $("#assigned_to");
+        var defaultAssignee = "";
+        if ($assignedTo.length) {
+            var storedDefault = $assignedTo.attr("data-default-value");
+            defaultAssignee = typeof storedDefault !== "undefined" ? storedDefault : ($assignedTo.val() || "");
+        }
+
+        function updateAssignedOwner(leadSourceId) {
+            if (!$assignedTo.length) {
+                return;
+            }
+
+            var mappedOwner = ownerMap.hasOwnProperty(leadSourceId) ? ownerMap[leadSourceId] : "";
+            if (mappedOwner) {
+                $assignedTo.val(mappedOwner);
+            } else {
+                $assignedTo.val(defaultAssignee);
+            }
+        }
+
         $("#state, #city").on("change keyup", updateLeadSource);
         updateLeadSource();
 
@@ -400,13 +428,14 @@ table.dataTable tbody td:first-child {
 
             if (!provinceVal) {
                 $("#lead_source_id").val("").trigger("change");
+                updateAssignedOwner("");
                 return;
             }
 
             var sourceMap = {
-                "New Brunswick": 1,
-                "Nova Scotia": 1,
-                "Prince Edward Island": 1,
+                "New Brunswick": 4,
+                "Nova Scotia": 4,
+                "Prince Edward Island": 4,
                 "Quebec": 5,
                 "Ontario": 6,
                 "Manitoba": 3,
@@ -416,13 +445,19 @@ table.dataTable tbody td:first-child {
 
             if (provinceVal === "British Columbia") {
                 var bcCitiesKeywords = [
-                    "victoria",
-                    "vancouver",
-                    "richmond",
-                    "burnaby",
-                    "surrey",
-                    "kelowna",
-                    "kamloops"
+                    "vancouver", "burnaby", "richmond", "surrey", "delta", "new westminster",
+                    "langley", "white rock", "maple ridge", "pitt meadows", "coquitlam",
+                    "port coquitlam", "port moody", "north vancouver", "west vancouver",
+                    "belcarra", "anmore", "bowen island", "lions bay",
+                    "abbotsford", "chilliwack", "mission", "kent", "agassiz",
+                    "harrison hot springs", "hope",
+                    "sechelt", "gibsons",
+                    "victoria", "saanich", "oak bay", "esquimalt", "view royal", "colwood",
+                    "langford", "metchosin", "highlands", "sooke", "central saanich", "north saanich",
+                    "sidney", "duncan", "north cowichan", "lake cowichan", "ladysmith", "nanaimo",
+                    "lantzville", "parksville", "qualicum beach", "port alberni", "tofino",
+                    "ucluelet", "courtenay", "comox", "cumberland", "campbell river", "gold river",
+                    "tahsis", "zeballos", "port hardy", "port mcneill", "port alice", "alert bay"
                 ];
 
                 var cityVal = $("#city").val().trim().toLowerCase();
@@ -432,13 +467,21 @@ table.dataTable tbody td:first-child {
 
                 if (matchedKeyword) {
                     $("#lead_source_id").val("2").trigger("change");
+                    updateAssignedOwner("2");
                     return;
                 }
             }
 
             var mappedSource = sourceMap[provinceVal] || "";
             $("#lead_source_id").val(mappedSource).trigger("change");
+            updateAssignedOwner(mappedSource);
         }
+
+        $("#lead_source_id").on("change", function () {
+            updateAssignedOwner($(this).val());
+        });
+
+        updateAssignedOwner($("#lead_source_id").val());
     });
 </script>
 
