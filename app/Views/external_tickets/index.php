@@ -403,12 +403,16 @@ table.dataTable tbody td:first-child {
         var $assignedTo = $("#assigned_to");
         var $autoAssign = $("#auto_assign_owner");
         var defaultAssignee = "";
+        var hasDefaultAssignee = false;
         if ($assignedTo.length) {
             var storedDefault = $assignedTo.attr("data-default-value");
             defaultAssignee = typeof storedDefault !== "undefined" ? storedDefault : ($assignedTo.val() || "");
+            if (typeof defaultAssignee !== "undefined" && defaultAssignee !== null && $.trim(defaultAssignee) !== "") {
+                hasDefaultAssignee = true;
+            }
         }
 
-        var shouldAutoAssign = $assignedTo.length > 0;
+        var shouldAutoAssign = $assignedTo.length > 0 && !hasDefaultAssignee;
 
         if ($assignedTo.length) {
             var ownerAutoAttr = $assignedTo.attr("data-owner-auto");

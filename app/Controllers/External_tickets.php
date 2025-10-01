@@ -102,7 +102,9 @@ class External_tickets extends App_Controller {
             6 => 252
         );
 
-        if ($should_auto_assign_owner && isset($lead_source_owner_map[$lead_source_id])) {
+        $has_manual_assignee = $assigned_to ? true : false;
+
+        if ($should_auto_assign_owner && !$has_manual_assignee && isset($lead_source_owner_map[$lead_source_id])) {
             $assigned_to = $lead_source_owner_map[$lead_source_id];
         }
         $ticket_type_id = (int) $this->request->getPost('ticket_type_id');

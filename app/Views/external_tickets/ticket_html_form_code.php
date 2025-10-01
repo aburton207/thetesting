@@ -123,9 +123,23 @@
     var assignedField = document.getElementById('assigned_to');
     var autoAssignField = document.getElementById('auto_assign_owner');
 
-    var defaultAssignee = assignedField ? (assignedField.getAttribute('data-default-value') || assignedField.value || '') : '';
+    var defaultAssignee = '';
+    var hasDefaultAssignee = false;
 
-    var shouldAutoAssign = !!assignedField;
+    if (assignedField) {
+        var storedDefault = assignedField.getAttribute('data-default-value');
+        if (storedDefault !== null && typeof storedDefault !== 'undefined' && storedDefault !== '') {
+            defaultAssignee = storedDefault;
+        } else if (assignedField.value) {
+            defaultAssignee = assignedField.value;
+        }
+
+        if (defaultAssignee !== null && typeof defaultAssignee !== 'undefined' && defaultAssignee !== '') {
+            hasDefaultAssignee = true;
+        }
+    }
+
+    var shouldAutoAssign = !!assignedField && !hasDefaultAssignee;
 
     if (assignedField) {
         var ownerAutoAttr = assignedField.getAttribute('data-owner-auto');
