@@ -102,6 +102,8 @@ class External_tickets extends App_Controller {
             "assigned_to" => $assigned_to ? $assigned_to : 0
         );
 
+        $submitted_custom_fields = $this->collectSubmittedCustomFieldValues();
+
         //match with the existing client
         $email = $this->request->getPost('email');
         $contact_info = $this->Users_model->get_one_where(array("email" => $email, "user_type" => "client", "deleted" => 0));
@@ -132,16 +134,16 @@ class External_tickets extends App_Controller {
             //save ticket's comment
             $description = (string) $this->request->getPost('description');
 
-            $contact_details = array(
-                app_lang('first_name') => $first_name,
-                app_lang('last_name') => $last_name,
-                app_lang('company_name') => $company_name,
-                app_lang('email') => $email,
-                app_lang('address') => $address,
-                app_lang('city') => $city,
-                app_lang('state') => $state,
-                app_lang('zip') => $zip,
-                app_lang('phone') => $phone
+            $form_data = array(
+                'first_name' => $first_name,
+                'last_name' => $last_name,
+                'company_name' => $company_name,
+                'email' => $email,
+                'address' => $address,
+                'city' => $city,
+                'state' => $state,
+                'zip' => $zip,
+                'phone' => $phone
             );
 
             if ($lead_source_id) {
@@ -151,16 +153,35 @@ class External_tickets extends App_Controller {
                     $lead_source_label = $lead_source->title;
                 }
 
-                $contact_details[app_lang('lead_source')] = $lead_source_label ? $lead_source_label : $lead_source_id;
+                $form_data['lead_source'] = $lead_source_label ? $lead_source_label : $lead_source_id;
             }
+
+            $form_data = $this->filterEmptyFormData($form_data);
+
+            $contact_labels = array(
+                'first_name' => app_lang('first_name'),
+                'last_name' => app_lang('last_name'),
+                'company_name' => app_lang('company_name'),
+                'email' => app_lang('email'),
+                'address' => app_lang('address'),
+                'city' => app_lang('city'),
+                'state' => app_lang('state'),
+                'zip' => app_lang('zip'),
+                'phone' => app_lang('phone'),
+                'lead_source' => app_lang('lead_source')
+            );
 
             $contact_lines = array();
-            foreach ($contact_details as $label => $value) {
-                if ($value !== "") {
-                    $contact_lines[] = "<strong>" . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . ":</strong> " . htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+            foreach ($contact_labels as $key => $label) {
+                if (!isset($form_data[$key])) {
+                    continue;
                 }
+
+                $value = $form_data[$key];
+                $contact_lines[] = "<strong>" . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . ":</strong> " . nl2br(htmlspecialchars($value, ENT_QUOTES, 'UTF-8'));
             }
 
+            $sections = array();
             if (!empty($contact_lines)) {
                 $contact_heading = app_lang('contact_information');
                 if ($contact_heading === 'contact_information') {
@@ -168,7 +189,28 @@ class External_tickets extends App_Controller {
                 }
 
                 $contact_block = "<div><strong>" . htmlspecialchars($contact_heading, ENT_QUOTES, 'UTF-8') . "</strong></div><div>" . implode("</div><div>", $contact_lines) . "</div>";
-                $description = $contact_block . "<br /><br />" . $description;
+                $sections[] = $contact_block;
+            }
+
+            if (!empty($submitted_custom_fields)) {
+                $custom_lines = array();
+                foreach ($submitted_custom_fields as $field) {
+                    $custom_lines[] = "<strong>" . htmlspecialchars($field['label'], ENT_QUOTES, 'UTF-8') . ":</strong> " . nl2br(htmlspecialchars($field['value'], ENT_QUOTES, 'UTF-8'));
+                }
+
+                if (!empty($custom_lines)) {
+                    $custom_heading = app_lang('custom_fields');
+                    if ($custom_heading === 'custom_fields') {
+                        $custom_heading = 'Custom Fields';
+                    }
+
+                    $custom_block = "<div><strong>" . htmlspecialchars($custom_heading, ENT_QUOTES, 'UTF-8') . "</strong></div><div>" . implode("</div><div>", $custom_lines) . "</div>";
+                    $sections[] = $custom_block;
+                }
+            }
+
+            if (!empty($sections)) {
+                $description = implode("<br /><br />", $sections) . "<br /><br />" . $description;
             }
 
             $comment_data = array(
@@ -186,9 +228,38 @@ class External_tickets extends App_Controller {
             $ticket_comment_id = $this->Ticket_comments_model->ci_save($comment_data);
 
             if ($ticket_id && $ticket_comment_id) {
+                $notification_payload = array();
+                if (!empty($form_data)) {
+                    $notification_payload['form_data'] = $form_data;
+                }
+
+                if (!empty($submitted_custom_fields)) {
+                    $custom_field_values = array();
+                    foreach ($submitted_custom_fields as $field) {
+                        $custom_field_values[] = array(
+                            'title' => $field['label'],
+                            'value' => $field['value']
+                        );
+                    }
+
+                    if (!empty($custom_field_values)) {
+                        $notification_payload['custom_field_values'] = $custom_field_values;
+                    }
+                }
+
                 add_auto_reply_to_ticket($ticket_id);
 
-                log_notification("ticket_created", array("ticket_id" => $ticket_id, "ticket_comment_id" => $ticket_comment_id, "exclude_ticket_creator" => true), $contact_info->id ? $contact_info->id : "0");
+                $notification_options = array(
+                    "ticket_id" => $ticket_id,
+                    "ticket_comment_id" => $ticket_comment_id,
+                    "exclude_ticket_creator" => true
+                );
+
+                if (!empty($notification_payload)) {
+                    $notification_options['description'] = json_encode($notification_payload, JSON_UNESCAPED_UNICODE);
+                }
+
+                log_notification("ticket_created", $notification_options, $contact_info->id ? $contact_info->id : "0");
 
                 if ($redirect_url && !$this->request->isAJAX()) {
                     return redirect()->to($redirect_url);
@@ -368,6 +439,104 @@ class External_tickets extends App_Controller {
             }
 
             $filtered[] = $field;
+        }
+
+        return $filtered;
+    }
+
+    private function collectSubmittedCustomFieldValues(): array {
+        $fields = $this->getEmbeddableTicketCustomFields();
+
+        if (!is_array($fields) || empty($fields)) {
+            return array();
+        }
+
+        $values = array();
+
+        foreach ($fields as $field) {
+            if (!isset($field->id)) {
+                continue;
+            }
+
+            $field_name = 'custom_field_' . $field->id;
+            $raw_value = $this->request->getPost($field_name);
+
+            if ($raw_value === null) {
+                continue;
+            }
+
+            $normalized = $this->normalizeCustomFieldValue($raw_value);
+
+            if ($normalized === '') {
+                continue;
+            }
+
+            $label = $field->title_language_key ? app_lang($field->title_language_key) : $field->title;
+
+            if ($label === '') {
+                $label = 'Field ' . $field->id;
+            }
+
+            $values[] = array(
+                'label' => $label,
+                'value' => $normalized
+            );
+        }
+
+        return $values;
+    }
+
+    private function normalizeCustomFieldValue($value): string {
+        if (is_array($value)) {
+            $pieces = array();
+            foreach ($value as $item) {
+                $normalized = $this->normalizeCustomFieldValue($item);
+                if ($normalized !== '') {
+                    $pieces[] = $normalized;
+                }
+            }
+
+            return $pieces ? implode(', ', $pieces) : '';
+        }
+
+        if ($value === null) {
+            return '';
+        }
+
+        if (is_bool($value)) {
+            return $value ? app_lang('yes') : app_lang('no');
+        }
+
+        if (is_scalar($value)) {
+            return trim((string) $value);
+        }
+
+        return '';
+    }
+
+    private function filterEmptyFormData(array $form_data): array {
+        $filtered = array();
+
+        foreach ($form_data as $key => $value) {
+            if ($value === null) {
+                continue;
+            }
+
+            if (is_bool($value)) {
+                $filtered[$key] = $value ? app_lang('yes') : app_lang('no');
+                continue;
+            }
+
+            if (is_scalar($value)) {
+                $string_value = (string) $value;
+                $trimmed = trim($string_value);
+
+                if ($trimmed === '' && $string_value !== '0') {
+                    continue;
+                }
+
+                $filtered[$key] = $trimmed;
+            }
         }
 
         return $filtered;

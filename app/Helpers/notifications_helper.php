@@ -618,6 +618,26 @@ if (!function_exists('send_notification_emails')) {
             $parser_data["TICKET_CONTENT"] = custom_nl2br($notification->ticket_comment_description ? $notification->ticket_comment_description : "");
             $parser_data["TICKET_URL"] = $url;
 
+            if ($notification->description) {
+                $extra_data = json_decode($notification->description, true);
+
+                if (!$extra_data && json_last_error() !== JSON_ERROR_NONE) {
+                    $extra_data = json_decode(stripslashes($notification->description), true);
+                }
+
+                if (is_array($extra_data)) {
+                    $form_data = get_array_value($extra_data, 'form_data');
+                    if (is_array($form_data) && !empty($form_data)) {
+                        $parser_data['FORM_DATA'] = $form_data;
+                    }
+
+                    $custom_field_values = get_array_value($extra_data, 'custom_field_values');
+                    if (is_array($custom_field_values) && !empty($custom_field_values)) {
+                        $parser_data['CUSTOM_FIELD_VALUES'] = $custom_field_values;
+                    }
+                }
+            }
+
             //add attachment
             if ($notification->ticket_comment_id) {
                 $comments_options = array("id" => $notification->ticket_comment_id);
