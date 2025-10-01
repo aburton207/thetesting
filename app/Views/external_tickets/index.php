@@ -95,6 +95,7 @@ table.dataTable tbody td:first-child {
 
 
             <input type="hidden" name="is_embedded_form" value="1" />
+            <input type="hidden" name="redirect_to" value="https://www.avenirenergy.ca/avenir-energy-thank-you" />
             <?php if (!empty($selected_assignee_id)) { ?>
                 <input type="hidden" name="assigned_to" value="<?php echo htmlspecialchars($selected_assignee_id); ?>" />
             <?php } ?>
@@ -219,6 +220,12 @@ table.dataTable tbody td:first-child {
             },
             onSuccess: function (result) {
                 appLoader.hide();
+
+                if (result.redirect_url) {
+                    window.top.location.href = result.redirect_url;
+                    return;
+                }
+
                 $("#external-ticket-form-container").html("");
                 appAlert.success(result.message, {container: "#external-ticket-form-container", animate: false});
                 $('.scrollable-page').scrollTop(0); //scroll to top

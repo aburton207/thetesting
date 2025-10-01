@@ -51,10 +51,19 @@ class External_tickets extends App_Controller {
             "email" => "required|valid_email"
         ));
 
+        $is_embedded_form = $this->request->getPost('is_embedded_form');
+        $redirect_url = $this->request->getPost('redirect_to');
+
+        if ($redirect_url) {
+            $redirect_url = clean_data($redirect_url);
+        }
+
         //check if there reCaptcha is enabled
         //if reCaptcha is enabled, check the validation
-        $ReCAPTCHA = new ReCAPTCHA();
-        $ReCAPTCHA->validate_recaptcha();
+        if (!$is_embedded_form) {
+            $ReCAPTCHA = new ReCAPTCHA();
+            $ReCAPTCHA->validate_recaptcha();
+        }
 
         $now = get_current_utc_time();
 
@@ -120,7 +129,17 @@ class External_tickets extends App_Controller {
 
                 log_notification("ticket_created", array("ticket_id" => $ticket_id, "ticket_comment_id" => $ticket_comment_id, "exclude_ticket_creator" => true), $contact_info->id ? $contact_info->id : "0");
 
-                echo json_encode(array("success" => true, 'message' => app_lang('ticket_submission_message')));
+                if ($redirect_url && !$this->request->isAJAX()) {
+                    return redirect()->to($redirect_url);
+                }
+
+                $response = array("success" => true, 'message' => app_lang('ticket_submission_message'));
+
+                if ($redirect_url) {
+                    $response['redirect_url'] = $redirect_url;
+                }
+
+                echo json_encode($response);
 
                 return true;
             }

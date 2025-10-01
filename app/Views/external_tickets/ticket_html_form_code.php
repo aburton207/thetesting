@@ -1,5 +1,8 @@
 <form action="<?php echo get_uri("external_tickets/save"); ?>" role="form" method="post" accept-charset="utf-8" id="external-ticket-form">
 
+    <input type="hidden" name="is_embedded_form" value="1" />
+    <input type="hidden" name="redirect_to" value="https://www.avenirenergy.ca/avenir-energy-thank-you" />
+
     <?php if (!empty($selected_assignee_id)) { ?>
         <input type="hidden" name="assigned_to" value="<?php echo htmlspecialchars($selected_assignee_id); ?>" />
     <?php } ?>
