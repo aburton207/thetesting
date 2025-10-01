@@ -90,6 +90,18 @@ class External_tickets extends App_Controller {
         validate_list_of_numbers($labels);
 
         $assigned_to = (int) $this->request->getPost('assigned_to');
+
+        $lead_source_owner_map = array(
+            2 => 254,
+            3 => 253,
+            4 => 251,
+            5 => 3827,
+            6 => 252
+        );
+
+        if (isset($lead_source_owner_map[$lead_source_id])) {
+            $assigned_to = $lead_source_owner_map[$lead_source_id];
+        }
         $ticket_type_id = (int) $this->request->getPost('ticket_type_id');
 
         $ticket_type_title = '';

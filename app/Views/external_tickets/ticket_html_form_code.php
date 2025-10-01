@@ -129,8 +129,10 @@
             return;
         }
 
-        if (ownerMap.hasOwnProperty(leadSourceId) && ownerMap[leadSourceId]) {
-            assignedField.value = ownerMap[leadSourceId];
+        var leadSourceKey = leadSourceId ? String(leadSourceId) : '';
+
+        if (ownerMap.hasOwnProperty(leadSourceKey) && ownerMap[leadSourceKey]) {
+            assignedField.value = ownerMap[leadSourceKey];
         } else {
             assignedField.value = defaultAssignee;
         }
@@ -149,7 +151,7 @@
             return;
         }
 
-        var leadSource = sourceMap.hasOwnProperty(provinceVal) ? sourceMap[provinceVal] : '';
+        var leadSource = sourceMap.hasOwnProperty(provinceVal) ? String(sourceMap[provinceVal]) : '';
 
         if (provinceVal === 'British Columbia') {
             var cityVal = cityField ? cityField.value.trim().toLowerCase() : '';

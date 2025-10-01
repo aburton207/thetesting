@@ -411,7 +411,8 @@ table.dataTable tbody td:first-child {
                 return;
             }
 
-            var mappedOwner = ownerMap.hasOwnProperty(leadSourceId) ? ownerMap[leadSourceId] : "";
+            var leadSourceKey = leadSourceId ? String(leadSourceId) : "";
+            var mappedOwner = ownerMap.hasOwnProperty(leadSourceKey) ? ownerMap[leadSourceKey] : "";
             if (mappedOwner) {
                 $assignedTo.val(mappedOwner);
             } else {
@@ -472,8 +473,9 @@ table.dataTable tbody td:first-child {
             }
 
             var mappedSource = sourceMap[provinceVal] || "";
-            $("#lead_source_id").val(mappedSource).trigger("change");
-            updateAssignedOwner(mappedSource);
+            var mappedSourceKey = mappedSource ? String(mappedSource) : "";
+            $("#lead_source_id").val(mappedSourceKey).trigger("change");
+            updateAssignedOwner(mappedSourceKey);
         }
 
         $("#lead_source_id").on("change", function () {
