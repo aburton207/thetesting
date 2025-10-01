@@ -1284,7 +1284,11 @@ function parse_email_template($template, $data) {
     } else {
         $template = preg_replace('/{CUSTOM_FIELD_VALUES}.*?{\/CUSTOM_FIELD_VALUES}/s', '', $template);
         $template = str_replace('{CUSTOM_FIELD_VALUES}', '', $template);
-        $template = str_replace('{NO_CUSTOM_FIELDS}', '<tr><td colspan="2">No custom fields provided.</td></tr>', $template);
+        $no_additional_information = app_lang('no_additional_information_provided');
+        if ($no_additional_information === 'no_additional_information_provided') {
+            $no_additional_information = 'No additional information provided.';
+        }
+        $template = str_replace('{NO_CUSTOM_FIELDS}', '<tr><td colspan="2">' . $no_additional_information . '</td></tr>', $template);
     }
 
     // Handle FILES_DATA loop

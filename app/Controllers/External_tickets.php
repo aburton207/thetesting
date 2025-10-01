@@ -199,9 +199,9 @@ class External_tickets extends App_Controller {
                 }
 
                 if (!empty($custom_lines)) {
-                    $custom_heading = app_lang('custom_fields');
-                    if ($custom_heading === 'custom_fields') {
-                        $custom_heading = 'Custom Fields';
+                    $custom_heading = app_lang('additional_information');
+                    if ($custom_heading === 'additional_information') {
+                        $custom_heading = 'Additional Information';
                     }
 
                     $custom_block = "<div><strong>" . htmlspecialchars($custom_heading, ENT_QUOTES, 'UTF-8') . "</strong></div><div>" . implode("</div><div>", $custom_lines) . "</div>";
