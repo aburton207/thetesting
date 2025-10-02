@@ -106,6 +106,38 @@ class Clients extends Security_Controller {
         return $this->template->view('clients/modal_form', $view_data);
     }
 
+    /* render mobile-friendly client creation form */
+
+    public function mobile_form() {
+        $this->access_only_allowed_members();
+
+        $ticket_id = $this->request->getGet('ticket_id');
+        if ($ticket_id) {
+            validate_numeric_value($ticket_id);
+        }
+
+        $view_data = array();
+        $view_data['ticket_id'] = $ticket_id;
+        $view_data['default_country'] = $this->login_user->country ? $this->login_user->country : "Canada";
+        $view_data['default_lead_status_id'] = $this->Lead_status_model->get_first_status();
+        $view_data['lead_source_id'] = $this->Users_model->get_lead_source_id_from_address($this->login_user->id);
+        $view_data['sources_dropdown'] = $this->_get_sources_dropdown();
+        $view_data['owner_id'] = $this->login_user->id;
+        $view_data['can_edit_owner'] = false;
+        $view_data['owners_dropdown'] = array();
+
+        if ($this->login_user->is_admin || get_array_value($this->login_user->permissions, "client") === "all") {
+            $owner_options = array();
+            foreach ($this->_get_owners_dropdown() as $owner) {
+                $owner_options[$owner['id']] = $owner['text'];
+            }
+            $view_data['owners_dropdown'] = $owner_options;
+            $view_data['can_edit_owner'] = true;
+        }
+
+        return $this->template->rander('clients/mobile_form', $view_data);
+    }
+
     /* insert or update a client */
 
    function save() {
@@ -209,6 +241,122 @@ class Clients extends Security_Controller {
         echo json_encode(array("success" => false, 'message' => app_lang('error_occurred')));
     }
 }
+
+    /* save client data submitted from the mobile form */
+
+    public function save_mobile() {
+        $this->access_only_allowed_members();
+
+        $this->validate_submitted_data(array(
+            "first_name" => "required",
+            "last_name" => "required",
+            "email" => "required|valid_email"
+        ));
+
+        $ticket_id = $this->request->getPost('ticket_id');
+        if ($ticket_id) {
+            validate_numeric_value($ticket_id);
+        }
+
+        $owner_id = $this->request->getPost('owner_id');
+        if ($owner_id) {
+            validate_numeric_value($owner_id);
+            $owner_id = intval($owner_id);
+        }
+
+        $lead_source_id = $this->request->getPost('lead_source_id');
+        if ($lead_source_id) {
+            validate_numeric_value($lead_source_id);
+            $lead_source_id = intval($lead_source_id);
+        } else {
+            $lead_source_id = null;
+        }
+
+        $first_name = trim($this->request->getPost('first_name'));
+        $last_name = trim($this->request->getPost('last_name'));
+        $email = trim($this->request->getPost('email'));
+        $company_name_input = trim($this->request->getPost('company_name'));
+        $company_name = $company_name_input ? $company_name_input : trim($first_name . " " . $last_name);
+
+        $lead_status_id = $this->request->getPost('lead_status_id');
+        if ($lead_status_id) {
+            validate_numeric_value($lead_status_id);
+            $lead_status_id = intval($lead_status_id);
+        } else {
+            $lead_status_id = $this->Lead_status_model->get_first_status();
+        }
+
+        $client_data = array(
+            "company_name" => $company_name,
+            "type" => $company_name_input ? "organization" : "person",
+            "address" => $this->request->getPost('address'),
+            "city" => $this->request->getPost('city'),
+            "state" => $this->request->getPost('state'),
+            "zip" => $this->request->getPost('zip'),
+            "country" => $this->request->getPost('country') ? $this->request->getPost('country') : "Canada",
+            "phone" => $this->request->getPost('phone'),
+            "lead_source_id" => $lead_source_id,
+            "lead_status_id" => $lead_status_id,
+            "created_date" => get_current_utc_time()
+        );
+
+        if ($this->login_user->is_admin || get_array_value($this->login_user->permissions, "client") === "all") {
+            if ($owner_id) {
+                $client_data["owner_id"] = $owner_id;
+            }
+        } else {
+            $client_data["owner_id"] = $this->login_user->id;
+        }
+
+        if (!get_array_value($client_data, "owner_id")) {
+            $client_data["owner_id"] = $this->login_user->id;
+        }
+
+        $client_data = clean_data($client_data);
+
+        if (get_setting("disallow_duplicate_client_company_name") == "1" && $this->Clients_model->is_duplicate_company_name($client_data["company_name"])) {
+            echo json_encode(array("success" => false, "message" => app_lang("account_already_exists_for_your_company_name")));
+            return;
+        }
+
+        $client_id = $this->Clients_model->ci_save($client_data);
+        if (!$client_id) {
+            echo json_encode(array("success" => false, 'message' => app_lang('error_occurred')));
+            return;
+        }
+
+        $contact_data = array(
+            "client_id" => $client_id,
+            "first_name" => $first_name,
+            "last_name" => $last_name,
+            "email" => $email,
+            "phone" => $this->request->getPost('phone'),
+            "user_type" => "client",
+            "is_primary_contact" => 1,
+            "client_permissions" => "all",
+            "created_at" => get_current_utc_time(),
+            "status" => "active"
+        );
+
+        $contact_data = clean_data($contact_data);
+        $contact_id = $this->Users_model->ci_save($contact_data);
+        if (!$contact_id) {
+            $this->Clients_model->delete_permanently($client_id);
+            echo json_encode(array("success" => false, 'message' => app_lang('error_occurred')));
+            return;
+        }
+
+        if ($ticket_id) {
+            $this->Tickets_model->ci_save(array("client_id" => $client_id), $ticket_id);
+        }
+
+        echo json_encode(array(
+            "success" => true,
+            "message" => app_lang('record_saved'),
+            "id" => $client_id,
+            "redirect_url" => get_uri('clients/view/' . $client_id)
+        ));
+    }
 
     /* delete or undo a client */
 

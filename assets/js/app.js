@@ -43,6 +43,14 @@ $(document).ready(function () {
 
     $('body').on('click', '[data-act=ajax-modal]', function (e) {
 
+        if (typeof isMobile === "function" && isMobile()) {
+            var mobileUrl = $(this).attr('data-mobile-url');
+            if (mobileUrl) {
+                window.location.href = mobileUrl;
+                return false;
+            }
+        }
+
         if ($(this).closest("td.all").length > 0) {
             $(this).closest("td.all").trigger("click");
         }
