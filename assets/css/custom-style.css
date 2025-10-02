@@ -11,6 +11,70 @@
     border: 1px solid #0E4C80;
 }
 
+.dashboard-view .dashboard-quick-widget-row {
+    margin-bottom: 25px;
+}
+
+.dashboard-quick-widget-link {
+    display: block;
+}
+
+.dashboard-quick-widget {
+    border-radius: 12px;
+    border: 1px solid rgba(14, 76, 128, 0.15);
+    box-shadow: 0 8px 18px rgba(14, 76, 128, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dashboard-quick-widget .card-body {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 20px;
+}
+
+.dashboard-quick-widget-icon {
+    width: 54px;
+    height: 54px;
+    border-radius: 12px;
+    background: #0E4C80;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    flex-shrink: 0;
+}
+
+.dashboard-quick-widget-icon .icon,
+.dashboard-quick-widget-icon i,
+.dashboard-quick-widget-icon svg {
+    width: 24px;
+    height: 24px;
+    stroke-width: 2px;
+    color: inherit;
+}
+
+.dashboard-quick-widget-text h6 {
+    margin: 0 0 4px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #0E4C80 !important;
+}
+
+.dashboard-quick-widget-text span {
+    display: inline-block;
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: rgba(14, 76, 128, 0.75) !important;
+}
+
+.dashboard-quick-widget-link:hover .dashboard-quick-widget,
+.dashboard-quick-widget-link:focus .dashboard-quick-widget {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(14, 76, 128, 0.18);
+}
+
 #leads-day-wise-chart {
     height: 700px !important;
     width: 100% !important;
@@ -58,6 +122,18 @@
 
     .quick-add-dropdown .quick-add-desktop-only {
         display: none !important;
+    }
+
+    .dashboard-view .dashboard-quick-widget-row {
+        margin-bottom: 20px;
+    }
+
+    .dashboard-quick-widget-text h6 {
+        font-size: 1rem;
+    }
+
+    .dashboard-quick-widget-text span {
+        font-size: 0.8rem;
     }
 
     .dashboard-mobile-quick-actions {
