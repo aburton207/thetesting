@@ -1,7 +1,8 @@
 .cart-grid-item .cart-grid-item-image {
-    height: 356px!important;}
-    
-    .text-danger {
+    height: 356px !important;
+}
+
+.text-danger {
     color: #0E4C80 !important;
 }
 
@@ -10,4 +11,35 @@
     border: 1px solid #0E4C80;
 }
 
-#leads-day-wise-chart{height:700px!important; width:100%!important;}
+#leads-day-wise-chart {
+    height: 700px !important;
+    width: 100% !important;
+}
+
+@media (max-width: 575.98px) {
+    #ajaxModal .modal-dialog.mobile-friendly-modal {
+        margin: 0;
+        max-width: 100%;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: stretch;
+    }
+
+    #ajaxModal .modal-dialog.mobile-friendly-modal .modal-content {
+        border-radius: 0;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    #ajaxModal .modal-dialog.mobile-friendly-modal .modal-body {
+        flex: 1 1 auto;
+        overflow-y: auto;
+    }
+
+    #ajaxModal .modal-dialog.mobile-friendly-modal .modal-header,
+    #ajaxModal .modal-dialog.mobile-friendly-modal .modal-footer {
+        flex-shrink: 0;
+    }
+}
