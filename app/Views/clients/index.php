@@ -16,7 +16,15 @@
 
                 if ($can_edit_clients) {
                     echo modal_anchor(get_uri("clients/import_modal_form"), "<i data-feather='upload' class='icon-16'></i> " . app_lang('import_clients'), array("class" => "btn btn-default", "title" => app_lang('import_clients'), "id" => "import-btn"));
-                    echo modal_anchor(get_uri("clients/modal_form"), "<i data-feather='plus-circle' class='icon-16'></i> " . app_lang('add_client'), array("class" => "btn btn-default", "title" => app_lang('add_client')));
+                    echo modal_anchor(
+                        get_uri("clients/modal_form"),
+                        "<i data-feather='plus-circle' class='icon-16'></i> " . app_lang('add_client'),
+                        array(
+                            "class" => "btn btn-default",
+                            "title" => app_lang('add_client'),
+                            "data-mobile-url" => get_uri("clients/mobile_form")
+                        )
+                    );
                 }
                 ?>
             </div>
