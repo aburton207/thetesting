@@ -31,73 +31,20 @@ $can_manage_leads = get_setting("module_lead") == "1" && ($login_user->is_admin 
         </div>
     <?php } ?>
 
-    <?php if ($can_manage_clients || $can_manage_leads) {
-        $quick_add_label = app_lang('quick_add');
+    <?php
+    $is_custom_dashboard = isset($dashboard_type) && $dashboard_type === "custom";
+    if (($can_manage_clients || $can_manage_leads) && $is_custom_dashboard) {
     ?>
         <div class="row dashboard-quick-widget-row">
-            <?php if ($can_manage_leads) {
-                $add_lead_label = app_lang('add_lead');
-                $lead_widget_html = <<<HTML
-<div class="card dashboard-quick-widget">
-    <div class="card-body">
-        <div class="dashboard-quick-widget-icon">
-            <i data-feather="user-plus" class="icon"></i>
-        </div>
-        <div class="dashboard-quick-widget-text">
-            <h6>{$add_lead_label}</h6>
-            <span>{$quick_add_label}</span>
-        </div>
-    </div>
-</div>
-HTML;
-            ?>
+            <?php if ($can_manage_leads) { ?>
                 <div class="col-12 col-sm-6 col-lg-3 widget-container">
-                    <?php
-                    echo modal_anchor(
-                        get_uri("leads/modal_form"),
-                        $lead_widget_html,
-                        array(
-                            "class" => "white-link dashboard-quick-widget-link",
-                            "title" => $add_lead_label,
-                            "aria-label" => $add_lead_label,
-                            "role" => "button",
-                            "data-modal-class" => "mobile-friendly-modal"
-                        )
-                    );
-                    ?>
+                    <?php echo dashboard_quick_add_lead_widget(); ?>
                 </div>
             <?php } ?>
 
-            <?php if ($can_manage_clients) {
-                $add_client_label = app_lang('add_client');
-                $client_widget_html = <<<HTML
-<div class="card dashboard-quick-widget">
-    <div class="card-body">
-        <div class="dashboard-quick-widget-icon">
-            <i data-feather="user-check" class="icon"></i>
-        </div>
-        <div class="dashboard-quick-widget-text">
-            <h6>{$add_client_label}</h6>
-            <span>{$quick_add_label}</span>
-        </div>
-    </div>
-</div>
-HTML;
-            ?>
+            <?php if ($can_manage_clients) { ?>
                 <div class="col-12 col-sm-6 col-lg-3 widget-container">
-                    <?php
-                    echo modal_anchor(
-                        get_uri("clients/modal_form"),
-                        $client_widget_html,
-                        array(
-                            "class" => "white-link dashboard-quick-widget-link",
-                            "title" => $add_client_label,
-                            "aria-label" => $add_client_label,
-                            "role" => "button",
-                            "data-modal-class" => "mobile-friendly-modal"
-                        )
-                    );
-                    ?>
+                    <?php echo dashboard_quick_add_client_widget(); ?>
                 </div>
             <?php } ?>
         </div>
