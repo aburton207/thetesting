@@ -200,6 +200,21 @@ class Dashboard extends Security_Controller {
             $widget["total_contacts"] = true;
         }
 
+        $permissions = $this->login_user->permissions;
+        $client_permission = get_array_value($permissions, "client");
+        $lead_permission = get_array_value($permissions, "lead");
+
+        $can_manage_clients = $this->login_user->is_admin || ($this->login_user->user_type === "staff" && $client_permission && $client_permission !== "read_only" && $client_permission !== "no");
+        $can_manage_leads = $show_lead && ($this->login_user->is_admin || ($this->login_user->user_type === "staff" && $lead_permission && $lead_permission !== "read_only" && $lead_permission !== "no"));
+
+        if ($can_manage_leads) {
+            $widget["quick_add_lead"] = true;
+        }
+
+        if ($can_manage_clients) {
+            $widget["quick_add_client"] = true;
+        }
+
         if ($show_lead && ($this->login_user->is_admin || $access_leads->access_type)) {
             $widget["total_leads"] = true;
             $widget["leads_overview"] = true;
@@ -439,6 +454,7 @@ class Dashboard extends Security_Controller {
     private function _get_admin_and_team_dashboard_widgets() {
 
         $widgets = $this->_check_widgets_permissions();
+        $quick_add_row = $this->_get_quick_add_row_of_admin_and_team_dashboard($widgets);
         $first_row = $this->_get_first_row_of_admin_and_team_dashboard($widgets);
 
         $row_columns = $this->_get_second_and_third_row_of_admin_and_team_dashboard_widget_columns($widgets);
@@ -448,15 +464,45 @@ class Dashboard extends Security_Controller {
         $fourth_row = $this->_get_fourth_row_of_admin_and_team_dashboard($widgets);
         $fifth_row = $this->_get_fifth_row_of_admin_and_team_dashboard($widgets);
 
-        $row_widgets = array(
+        $row_widgets = array();
+
+        if ($quick_add_row) {
+            $row_widgets[] = $quick_add_row;
+        }
+
+        $row_widgets = array_merge($row_widgets, array(
             $first_row,
             $second_row,
             $third_row,
             $fourth_row,
             $fifth_row
-        );
+        ));
 
         return $row_widgets;
+    }
+
+    private function _get_quick_add_row_of_admin_and_team_dashboard($widgets) {
+
+        $columns = array();
+
+        if (get_array_value($widgets, "quick_add_lead")) {
+            $columns[] = array("quick_add_lead");
+        }
+
+        if (get_array_value($widgets, "quick_add_client")) {
+            $columns[] = array("quick_add_client");
+        }
+
+        if (!$columns) {
+            return null;
+        }
+
+        $ratio = count($columns) === 2 ? "6-6" : "12";
+
+        return array(
+            "columns" => $columns,
+            "ratio" => $ratio
+        );
     }
 
     private function _get_first_row_of_admin_and_team_dashboard($widgets) {
@@ -1090,6 +1136,10 @@ class Dashboard extends Security_Controller {
                 return all_tasks_kanban_widget();
             } else if ($widget == "todo_list") {
                 return todo_list_widget();
+            } else if ($widget == "quick_add_lead") {
+                return dashboard_quick_add_lead_widget();
+            } else if ($widget == "quick_add_client") {
+                return dashboard_quick_add_client_widget();
             } else if ($widget == "open_projects") {
                 return open_projects_widget("");
             } else if ($widget == "completed_projects") {

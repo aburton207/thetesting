@@ -1,6 +1,54 @@
 <?php echo view("dashboards/install_pwa"); ?>
 
+<?php
+$permissions = $login_user->permissions;
+$client_permission = get_array_value($permissions, "client");
+$can_manage_clients = $login_user->is_admin || ($login_user->user_type === "staff" && $client_permission && $client_permission !== "read_only" && $client_permission !== "no");
+
+$lead_permission = get_array_value($permissions, "lead");
+$can_manage_leads = get_setting("module_lead") == "1" && ($login_user->is_admin || ($login_user->user_type === "staff" && $lead_permission && $lead_permission !== "read_only" && $lead_permission !== "no"));
+?>
+
 <div id="page-content" class="page-wrapper clearfix dashboard-view">
+
+    <?php if ($can_manage_clients || $can_manage_leads) { ?>
+        <div class="dashboard-mobile-quick-actions d-sm-none mb-3">
+            <?php if ($can_manage_leads) { ?>
+                <?php echo modal_anchor(get_uri("leads/modal_form"), app_lang('add_lead'), array(
+                    "class" => "btn btn-info dashboard-mobile-quick-btn w-100",
+                    "title" => app_lang('add_lead'),
+                    "data-modal-class" => "mobile-friendly-modal"
+                )); ?>
+            <?php } ?>
+
+            <?php if ($can_manage_clients) { ?>
+                <?php echo modal_anchor(get_uri("clients/modal_form"), app_lang('add_client'), array(
+                    "class" => "btn btn-info dashboard-mobile-quick-btn w-100",
+                    "title" => app_lang('add_client'),
+                    "data-modal-class" => "mobile-friendly-modal"
+                )); ?>
+            <?php } ?>
+        </div>
+    <?php } ?>
+
+    <?php
+    $is_custom_dashboard = isset($dashboard_type) && $dashboard_type === "custom";
+    if (($can_manage_clients || $can_manage_leads) && $is_custom_dashboard) {
+    ?>
+        <div class="row dashboard-quick-widget-row">
+            <?php if ($can_manage_leads) { ?>
+                <div class="col-12 col-sm-6 col-lg-3 widget-container">
+                    <?php echo dashboard_quick_add_lead_widget(); ?>
+                </div>
+            <?php } ?>
+
+            <?php if ($can_manage_clients) { ?>
+                <div class="col-12 col-sm-6 col-lg-3 widget-container">
+                    <?php echo dashboard_quick_add_client_widget(); ?>
+                </div>
+            <?php } ?>
+        </div>
+    <?php } ?>
 
     <?php
     if (count($dashboards)) {

@@ -192,6 +192,57 @@ if (!function_exists('events_today_widget')) {
     }
 }
 
+if (!function_exists('dashboard_quick_add_widget_card')) {
+
+    function dashboard_quick_add_widget_card($title, $subtitle, $icon) {
+        $title = htmlspecialchars($title);
+        $subtitle = htmlspecialchars($subtitle);
+        $icon = htmlspecialchars($icon);
+
+        return "<div class=\"card dashboard-quick-widget\"><div class=\"card-body\"><div class=\"dashboard-quick-widget-icon\"><i data-feather=\"{$icon}\" class=\"icon\"></i></div><div class=\"dashboard-quick-widget-text\"><h6>{$title}</h6><span>{$subtitle}</span></div></div></div>";
+    }
+}
+
+if (!function_exists('dashboard_quick_add_lead_widget')) {
+
+    function dashboard_quick_add_lead_widget() {
+        $add_lead_label = app_lang('add_lead');
+        $quick_add_label = app_lang('quick_add');
+
+        return modal_anchor(
+            get_uri("leads/modal_form"),
+            dashboard_quick_add_widget_card($add_lead_label, $quick_add_label, "user-plus"),
+            array(
+                "class" => "white-link dashboard-quick-widget-link",
+                "title" => $add_lead_label,
+                "aria-label" => $add_lead_label,
+                "role" => "button",
+                "data-modal-class" => "mobile-friendly-modal"
+            )
+        );
+    }
+}
+
+if (!function_exists('dashboard_quick_add_client_widget')) {
+
+    function dashboard_quick_add_client_widget() {
+        $add_client_label = app_lang('add_client');
+        $quick_add_label = app_lang('quick_add');
+
+        return modal_anchor(
+            get_uri("clients/modal_form"),
+            dashboard_quick_add_widget_card($add_client_label, $quick_add_label, "user-check"),
+            array(
+                "class" => "white-link dashboard-quick-widget-link",
+                "title" => $add_client_label,
+                "aria-label" => $add_client_label,
+                "role" => "button",
+                "data-modal-class" => "mobile-friendly-modal"
+            )
+        );
+    }
+}
+
 
 /**
  * get new posts widget
