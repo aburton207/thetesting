@@ -42,4 +42,21 @@
     #ajaxModal .modal-dialog.mobile-friendly-modal .modal-footer {
         flex-shrink: 0;
     }
+
+    .quick-add-dropdown .quick-add-mobile-actions {
+        padding: 15px 20px 5px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .quick-add-dropdown .quick-add-mobile-btn {
+        border-radius: 8px;
+        font-weight: 600;
+        text-transform: capitalize;
+    }
+
+    .quick-add-dropdown .quick-add-desktop-only {
+        display: none !important;
+    }
 }

@@ -10,23 +10,36 @@ $lead_permission = get_array_value($permissions, "lead");
 $can_manage_leads = get_setting("module_lead") == "1" && ($login_user->is_admin || ($login_user->user_type === "staff" && $lead_permission && $lead_permission !== "read_only" && $lead_permission !== "no"));
 
 $links = "";
+$mobile_primary_links = "";
 
 if ($can_manage_clients) {
     $links .= modal_anchor(get_uri("clients/modal_form"), app_lang('add_client'), array(
-        "class" => "dropdown-item clearfix",
+        "class" => "dropdown-item clearfix quick-add-desktop-only",
         "title" => app_lang('add_client'),
         "id" => "js-quick-add-client",
+        "data-modal-class" => "mobile-friendly-modal"
+    ));
+
+    $mobile_primary_links .= modal_anchor(get_uri("clients/modal_form"), app_lang('add_client'), array(
+        "class" => "btn btn-info quick-add-mobile-btn w-100",
+        "title" => app_lang('add_client'),
         "data-modal-class" => "mobile-friendly-modal"
     ));
 }
 
 if ($can_manage_leads) {
     $links .= modal_anchor(get_uri("leads/modal_form"), app_lang('add_lead'), array(
-        "class" => "dropdown-item clearfix",
+        "class" => "dropdown-item clearfix quick-add-desktop-only",
         "title" => app_lang('add_lead'),
         "id" => "js-quick-add-lead",
         "data-modal-class" => "mobile-friendly-modal"
     ));
+
+    $mobile_primary_links = modal_anchor(get_uri("leads/modal_form"), app_lang('add_lead'), array(
+        "class" => "btn btn-info quick-add-mobile-btn w-100",
+        "title" => app_lang('add_lead'),
+        "data-modal-class" => "mobile-friendly-modal"
+    )) . $mobile_primary_links;
 }
 
 if (($login_user->user_type == "staff") || ($login_user->user_type == "client" && can_client_access($login_user->client_permissions, "project", false))) {
@@ -68,6 +81,11 @@ if ($links) {
         <?php echo js_anchor("<i data-feather='plus-circle' class='icon'></i>", array("id" => "quick-add-icon", "class" => "nav-link dropdown-toggle", "data-bs-toggle" => "dropdown")); ?>
 
         <ul class="dropdown-menu dropdown-menu-end quick-add-dropdown">
+            <?php if ($mobile_primary_links) { ?>
+                <li class="quick-add-mobile-actions d-sm-none">
+                    <?php echo $mobile_primary_links; ?>
+                </li>
+            <?php } ?>
             <li>
                 <?php echo $links; ?></li>
         </ul>
