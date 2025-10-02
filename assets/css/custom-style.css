@@ -59,4 +59,16 @@
     .quick-add-dropdown .quick-add-desktop-only {
         display: none !important;
     }
+
+    .dashboard-mobile-quick-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .dashboard-mobile-quick-btn {
+        border-radius: 8px;
+        font-weight: 600;
+        text-transform: capitalize;
+    }
 }
