@@ -33,22 +33,59 @@ class Lead_reports extends Security_Controller {
         $no_label_all_time_count = intval(get_array_value($summary, "no_label_all_time_count", 0));
 
         $rows = array();
+        $filtered_total_sum = 0;
+        $all_time_total_sum = 0;
+
         if ($label_counts) {
             foreach ($label_counts as $label_info) {
                 $total = isset($label_info->total_count) ? intval($label_info->total_count) : 0;
                 $all_time_total = isset($label_info->all_time_count) ? intval($label_info->all_time_count) : 0;
+
+                if ($total === 0 && $all_time_total === 0) {
+                    continue;
+                }
 
                 $rows[] = array(
                     $label_info->label_title,
                     to_decimal_format($total),
                     to_decimal_format($all_time_total)
                 );
+
+                $filtered_total_sum += $total;
+                $all_time_total_sum += $all_time_total;
             }
         }
 
-        $rows[] = array(app_lang("no_label"), to_decimal_format($no_label_count), to_decimal_format($no_label_all_time_count));
+        if ($no_label_count > 0 || $no_label_all_time_count > 0) {
+            $rows[] = array(
+                app_lang("no_label"),
+                to_decimal_format($no_label_count),
+                to_decimal_format($no_label_all_time_count)
+            );
 
-        echo json_encode(array("data" => $rows));
+            $filtered_total_sum += $no_label_count;
+            $all_time_total_sum += $no_label_all_time_count;
+        }
+
+        $response = array(
+            "data" => $rows,
+            "total_filtered" => to_decimal_format($filtered_total_sum),
+            "total_all_time" => to_decimal_format($all_time_total_sum),
+            "date_range_label" => $this->_get_date_range_label($filters["start_date"], $filters["end_date"])
+        );
+
+        echo json_encode($response);
+    }
+
+    private function _get_date_range_label($start_date, $end_date) {
+        $start_date = $start_date ? trim($start_date) : "";
+        $end_date = $end_date ? trim($end_date) : "";
+
+        if ($start_date && $end_date) {
+            return \format_to_date($start_date, false) . " - " . \format_to_date($end_date, false);
+        }
+
+        return "";
     }
 
     private function _get_sources_dropdown($selected_source_value = null) {
