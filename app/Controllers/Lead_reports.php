@@ -224,6 +224,14 @@ class Lead_reports extends Security_Controller {
             $filter_params = $this->request->getGet("filter_params");
         }
 
+        if ($filter_params === null) {
+            $filter_params = $this->request->getPost("filterParams");
+        }
+
+        if ($filter_params === null) {
+            $filter_params = $this->request->getGet("filterParams");
+        }
+
         if ($filter_params === null || $filter_params === "") {
             return array();
         }
@@ -245,42 +253,61 @@ class Lead_reports extends Security_Controller {
     }
 
     private function _normalize_campaign_filter_values($value) {
-        if ($value === null || $value === "") {
-            return array();
-        }
+        $normalized = array();
 
-        if (is_array($value)) {
-            $normalized = array();
-            foreach ($value as $item) {
-                if ($item === null) {
-                    continue;
+        $append_value = function ($item) use (&$normalized, &$append_value) {
+            if ($item === null) {
+                return;
+            }
+
+            if (is_array($item)) {
+                foreach ($item as $sub_item) {
+                    $append_value($sub_item);
+                }
+                return;
+            }
+
+            if (is_string($item)) {
+                $item = trim($item);
+
+                if ($item === '') {
+                    return;
                 }
 
-                if (is_string($item)) {
-                    $item = trim($item);
+                $decoded = json_decode($item, true);
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    $append_value($decoded);
+                    return;
+                }
+
+                if (strpos($item, ',') !== false) {
+                    $parts = array_map('trim', explode(',', $item));
+                    $append_value($parts);
+                    return;
                 }
 
                 $normalized[] = $item;
+                return;
             }
 
-            return array_values(array_unique($normalized));
+            if ($item === '') {
+                return;
+            }
+
+            $normalized[] = (string) $item;
+        };
+
+        $append_value($value);
+
+        if (empty($normalized)) {
+            return array();
         }
 
-        if (is_string($value)) {
-            $decoded = json_decode($value, true);
-            if (json_last_error() === JSON_ERROR_NONE) {
-                return $this->_normalize_campaign_filter_values($decoded);
-            }
+        $normalized = array_map(function ($item) {
+            return is_string($item) ? $item : (string) $item;
+        }, $normalized);
 
-            if (strpos($value, ",") !== false) {
-                $parts = explode(",", $value);
-                return $this->_normalize_campaign_filter_values($parts);
-            }
-
-            return array($value);
-        }
-
-        return array($value);
+        return array_values(array_unique($normalized));
     }
 
     private function _validate_lead_access() {

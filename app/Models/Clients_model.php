@@ -952,15 +952,11 @@ function get_details($options = array()) {
                 . "    WHERE clients.deleted=0 AND clients.is_lead=0";
 
         $campaign_filter = "";
+        $campaign_params = array();
         if (!empty($campaign_values)) {
-            $escaped = array();
-            foreach ($campaign_values as $value) {
-                $escaped[] = $this->db->escape($value);
-            }
-
-            if (!empty($escaped)) {
-                $campaign_filter = "WHERE TRIM(IFNULL(combined_records.campaign, '')) IN (" . implode(',', $escaped) . ")";
-            }
+            $placeholders = implode(',', array_fill(0, count($campaign_values), '?'));
+            $campaign_filter = "WHERE TRIM(IFNULL(combined_records.campaign, '')) IN ($placeholders)";
+            $campaign_params = $campaign_values;
         }
 
         $aggregated_sql = "SELECT TRIM(IFNULL(combined_records.campaign, '')) AS campaign,"
@@ -971,7 +967,7 @@ function get_details($options = array()) {
                 . "    $campaign_filter"
                 . "    GROUP BY TRIM(IFNULL(combined_records.campaign, '')), combined_records.lead_status_id";
 
-        $aggregated = $this->db->query($aggregated_sql)->getResult();
+        $aggregated = $this->db->query($aggregated_sql, $campaign_params)->getResult();
 
         $status_definitions = $this->get_campaign_pipeline_status_definitions();
         $status_keys = array();
@@ -1081,15 +1077,11 @@ function get_details($options = array()) {
                 . "    WHERE clients.deleted=0 AND clients.is_lead=0";
 
         $campaign_filter = "";
+        $campaign_params = array();
         if (!empty($campaign_values)) {
-            $escaped = array();
-            foreach ($campaign_values as $value) {
-                $escaped[] = $this->db->escape($value);
-            }
-
-            if (!empty($escaped)) {
-                $campaign_filter = "WHERE TRIM(IFNULL(combined_records.campaign, '')) IN (" . implode(',', $escaped) . ")";
-            }
+            $placeholders = implode(',', array_fill(0, count($campaign_values), '?'));
+            $campaign_filter = "WHERE TRIM(IFNULL(combined_records.campaign, '')) IN ($placeholders)";
+            $campaign_params = $campaign_values;
         }
 
         $grouped_sql = "SELECT TRIM(IFNULL(combined_records.campaign, '')) AS campaign,"
@@ -1119,7 +1111,7 @@ function get_details($options = array()) {
                 . "             status_sort ASC,"
                 . "             status_title ASC";
 
-        $results = $this->db->query($sql)->getResult();
+        $results = $this->db->query($sql, $campaign_params)->getResult();
 
         $status_definitions = $this->get_campaign_pipeline_status_definitions();
         $status_keys = array();
@@ -1297,28 +1289,57 @@ function get_details($options = array()) {
     }
 
     private function _prepare_campaign_filter_values($campaign_option) {
-        if ($campaign_option === null || $campaign_option === '') {
+        $values = array();
+
+        $collect_values = function ($item) use (&$values, &$collect_values) {
+            if ($item === null) {
+                return;
+            }
+
+            if (is_array($item)) {
+                foreach ($item as $sub_item) {
+                    $collect_values($sub_item);
+                }
+                return;
+            }
+
+            if (is_string($item)) {
+                $item = trim($item);
+
+                if ($item === '') {
+                    return;
+                }
+
+                $decoded = json_decode($item, true);
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    $collect_values($decoded);
+                    return;
+                }
+
+                if (strpos($item, ',') !== false) {
+                    $collect_values(array_map('trim', explode(',', $item)));
+                    return;
+                }
+
+                $values[] = $item;
+                return;
+            }
+
+            $item = trim((string) $item);
+            if ($item === '') {
+                return;
+            }
+
+            $values[] = $item;
+        };
+
+        $collect_values($campaign_option);
+
+        if (empty($values)) {
             return array();
         }
 
-        if (is_array($campaign_option)) {
-            $values = array();
-            foreach ($campaign_option as $value) {
-                if ($value === null) {
-                    continue;
-                }
-
-                if (is_string($value)) {
-                    $value = trim($value);
-                }
-
-                $values[] = $value;
-            }
-
-            return array_values(array_unique($values));
-        }
-
-        return array($campaign_option);
+        return array_values(array_unique($values));
     }
 
     private function _normalize_status_reference($title) {
