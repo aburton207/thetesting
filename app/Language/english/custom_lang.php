@@ -1653,6 +1653,14 @@ $lang["can_update_only_assigned_tasks_status"] = "Can update only assigned objec
 
 $lang["import_leads"] = "Import leads";
 $lang["import_lead_error_contact_name"] = "Contact first name and last name is both required to add a lead contact.";
+$lang["import_meta_lead_only_qualified_stage"] = "Only the Qualified stage can be imported for Meta leads.";
+$lang["lead_import_format"] = "Import format";
+$lang["lead_import_format_standard"] = "Standard template";
+$lang["lead_import_format_meta"] = "Meta leads template";
+$lang["lead_import_meta_lead_type"] = "Meta lead type";
+$lang["lead_import_meta_person"] = "Person";
+$lang["lead_import_meta_organization"] = "Organization";
+$lang["lead_import_meta_help_text"] = "Meta lead imports preserve the Created column as the lead's created date, map the Form column to Custom Field 238, set the owner to 309, and only import leads in the Qualified stage.";
 
 $lang["deadline_must_be_equal_or_greater_than_start_date"] = "Deadline must be equal or greater than Start date.";
 

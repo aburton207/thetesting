@@ -6,17 +6,169 @@ use App\Libraries\Excel_import;
 
 class Leads extends Security_Controller {
 
-    use Excel_import;
+    use Excel_import {
+        import_modal_form as trait_import_modal_form;
+        validate_import_file_data as trait_validate_import_file_data;
+        save_from_excel_file as trait_save_from_excel_file;
+    }
 
     private $lead_statuses_id_by_title = array();
     private $lead_sources_id_by_title = array();
     private $lead_owners_id_by_name = array();
+    private $import_format = "default";
+    private $meta_lead_type = "person";
+
+    private $meta_province_source_map = array(
+        "NB" => 4,
+        "NS" => 4,
+        "PE" => 4,
+        "QC" => 5,
+        "ON" => 6,
+        "MB" => 3,
+        "NT" => 3,
+        "BC" => 3,
+        "SK" => 3,
+        "AB" => 3,
+        "YT" => 3,
+        "NU" => 3
+    );
+
+    private $meta_bc_cities_keywords = array(
+        'vancouver', 'burnaby', 'richmond', 'surrey', 'delta', 'new westminster',
+        'langley', 'white rock', 'maple ridge', 'pitt meadows', 'coquitlam',
+        'port coquitlam', 'port moody', 'north vancouver', 'west vancouver',
+        'belcarra', 'anmore', 'bowen island', 'lions bay',
+        'abbotsford', 'chilliwack', 'mission', 'kent', 'agassiz',
+        'harrison hot springs', 'hope',
+        'sechelt', 'gibsons',
+        'victoria', 'saanich', 'oak bay', 'esquimalt', 'view royal', 'colwood',
+        'langford', 'metchosin', 'highlands', 'sooke', 'central saanich', 'north saanich',
+        'sidney', 'duncan', 'north cowichan', 'lake cowichan', 'ladysmith', 'nanaimo',
+        'lantzville', 'parksville', 'qualicum beach', 'port alberni', 'tofino',
+        'ucluelet', 'courtenay', 'comox', 'cumberland', 'campbell river', 'gold river',
+        'tahsis', 'zeballos', 'port hardy', 'port mcneill', 'port alice', 'alert bay'
+    );
+
+    private $meta_custom_field_id = 238;
 
     function __construct() {
         parent::__construct();
 
         //check permission to access this module
         $this->init_permission_checker("lead");
+    }
+
+    private function _set_import_preferences_from_request() {
+        $format = $this->request->getPost('import_format');
+        $format = $format === "meta" ? "meta" : "default";
+        $this->import_format = $format;
+
+        $meta_lead_type = $this->request->getPost('meta_lead_type');
+        $meta_lead_type = $meta_lead_type === "organization" ? "organization" : "person";
+        $this->meta_lead_type = $meta_lead_type;
+    }
+
+    private function _is_meta_import() {
+        return $this->import_format === "meta";
+    }
+
+    private function _get_or_create_lead_status_id($status_title) {
+        if (!$status_title) {
+            return null;
+        }
+
+        $status_title = trim($status_title);
+        $possible_keys = array($status_title, strtolower($status_title));
+
+        foreach ($possible_keys as $key) {
+            $status_id = get_array_value($this->lead_statuses_id_by_title, $key);
+            if ($status_id) {
+                return $status_id;
+            }
+        }
+
+        $max_sort_value = $this->Lead_status_model->get_max_sort_value();
+        $status_data = array("title" => $status_title, "color" => "#f1c40f", "sort" => ($max_sort_value * 1 + 1));
+        $saved_status_id = $this->Lead_status_model->ci_save($status_data);
+        $this->lead_statuses_id_by_title[$status_title] = $saved_status_id;
+        $this->lead_statuses_id_by_title[strtolower($status_title)] = $saved_status_id;
+        return $saved_status_id;
+    }
+
+    private function _get_meta_lead_source_id($province, $city) {
+        if (!$province) {
+            return null;
+        }
+
+        $province_code = strtoupper(trim($province));
+        $city_value = strtolower(trim($city));
+
+        if ($province_code === "BC" && $city_value) {
+            foreach ($this->meta_bc_cities_keywords as $keyword) {
+                if (strpos($city_value, $keyword) !== false) {
+                    return 2;
+                }
+            }
+        }
+
+        $source_id = get_array_value($this->meta_province_source_map, $province_code);
+        return $source_id ? (int) $source_id : null;
+    }
+
+    private function _split_meta_contact_name($name) {
+        $name = trim($name);
+        if (!$name) {
+            return array("first_name" => "", "last_name" => "");
+        }
+
+        $parts = preg_split('/\s+/', $name);
+        if (!$parts || count($parts) === 0) {
+            return array("first_name" => $name, "last_name" => "");
+        }
+
+        if (count($parts) === 1) {
+            return array("first_name" => $parts[0], "last_name" => "");
+        }
+
+        $last_name = array_pop($parts);
+        $first_name = trim(implode(' ', $parts));
+
+        return array("first_name" => $first_name, "last_name" => $last_name);
+    }
+
+    private function _prepare_meta_created_date($value) {
+        $value = trim($value);
+        if (!$value) {
+            return null;
+        }
+
+        $timezone = get_setting("timezone") ? get_setting("timezone") : "UTC";
+        $timezone_object = new \DateTimeZone($timezone);
+        $formats = array('m/d/Y g:ia', 'm/d/Y g:i a', 'm/d/Y g:iA', 'n/j/Y g:ia', 'Y-m-d H:i:s');
+
+        foreach ($formats as $format) {
+            $date = \DateTime::createFromFormat($format, $value, $timezone_object);
+            if ($date instanceof \DateTime) {
+                $date->setTimezone(new \DateTimeZone('UTC'));
+                return $date->format('Y-m-d H:i:s');
+            }
+        }
+
+        $timestamp = strtotime($value);
+        if ($timestamp) {
+            $date = new \DateTime('@' . $timestamp);
+            $date->setTimezone(new \DateTimeZone('UTC'));
+            return $date->format('Y-m-d H:i:s');
+        }
+
+        return null;
+    }
+
+    function import_modal_form() {
+        $this->_validate_excel_import_access();
+        $view_data["controller_slag"] = $this->_get_controller_slag();
+        $view_data["default_meta_lead_type"] = $this->meta_lead_type;
+        return $this->template->view("leads/import_leads_modal_form", $view_data);
     }
 
     private function validate_lead_access($lead_id) {
@@ -1359,6 +1511,32 @@ class Leads extends Security_Controller {
     }
 
     private function _get_headers_for_import() {
+        if ($this->_is_meta_import()) {
+            $stage_validation = function ($value) {
+                if (!$value) {
+                    return array("error" => app_lang("field_required"));
+                }
+
+                if (trim(strtolower($value)) !== "qualified") {
+                    return array("error" => app_lang("import_meta_lead_only_qualified_stage"));
+                }
+            };
+
+            return array(
+                array("name" => "created", "required" => true),
+                array("name" => "name", "required" => true, "required_message" => app_lang("import_error_name_field_required")),
+                array("name" => "city"),
+                array("name" => "province"),
+                array("name" => "email"),
+                array("name" => "source"),
+                array("name" => "form"),
+                array("name" => "channel"),
+                array("name" => "stage", "required" => true, "custom_validation" => $stage_validation),
+                array("name" => "owner"),
+                array("name" => "phone")
+            );
+        }
+
         return array(
             array("name" => "name", "required" => true, "required_message" => app_lang("import_error_name_field_required")),
             array("name" => "type", "required" => true, "required_message" => app_lang("import_error_type_field_required"), "custom_validation" => function ($type, $row_data) {
@@ -1391,6 +1569,16 @@ class Leads extends Security_Controller {
         );
     }
 
+    function validate_import_file_data($check_on_submit = false) {
+        $this->_set_import_preferences_from_request();
+        return $this->trait_validate_import_file_data($check_on_submit);
+    }
+
+    function save_from_excel_file() {
+        $this->_set_import_preferences_from_request();
+        return $this->trait_save_from_excel_file();
+    }
+
     function download_sample_excel_file() {
         $this->access_only_allowed_members();
         return $this->download_app_files(get_setting("system_file_path"), serialize(array(array("file_name" => "import-leads-sample.xlsx"))));
@@ -1402,6 +1590,7 @@ class Leads extends Security_Controller {
         $lead_statuses_id_by_title = array();
         foreach ($lead_statuses as $status) {
             $lead_statuses_id_by_title[$status->title] = $status->id;
+            $lead_statuses_id_by_title[strtolower($status->title)] = $status->id;
         }
 
 
@@ -1409,6 +1598,7 @@ class Leads extends Security_Controller {
         $lead_sources_id_by_title = array();
         foreach ($lead_sources as $source) {
             $lead_sources_id_by_title[$source->title] = $source->id;
+            $lead_sources_id_by_title[strtolower($source->title)] = $source->id;
         }
 
 
@@ -1416,6 +1606,7 @@ class Leads extends Security_Controller {
         $lead_owners_id_by_name = array();
         foreach ($lead_owners as $owner) {
             $lead_owners_id_by_name[$owner->user_name] = $owner->id;
+            $lead_owners_id_by_name[strtolower($owner->user_name)] = $owner->id;
         }
 
         $this->lead_statuses_id_by_title = $lead_statuses_id_by_title;
@@ -1431,6 +1622,10 @@ class Leads extends Security_Controller {
         $lead_contact_data = get_array_value($lead_data_array, "lead_contact_data");
         $custom_field_values_array = get_array_value($lead_data_array, "custom_field_values_array");
 
+        if (get_array_value($lead_data_array, "skip_row")) {
+            return true;
+        }
+
         //couldn't prepare valid data
         if (!($lead_data && count($lead_data) > 1)) {
             return false;
@@ -1441,8 +1636,13 @@ class Leads extends Security_Controller {
         }
 
         //found information about lead, add some additional info
-        $lead_data["created_date"] = $now;
-        $lead_contact_data["created_at"] = $now;
+        if (!isset($lead_data["created_date"])) {
+            $lead_data["created_date"] = $now;
+        }
+
+        if (!isset($lead_contact_data["created_at"])) {
+            $lead_contact_data["created_at"] = $now;
+        }
 
         //save lead data
         $saved_id = $this->Clients_model->ci_save($lead_data);
@@ -1460,6 +1660,10 @@ class Leads extends Security_Controller {
     }
 
     private function _prepare_lead_data($row_data) {
+
+        if ($this->_is_meta_import()) {
+            return $this->_prepare_meta_lead_data($row_data);
+        }
 
         $lead_data = array("is_lead" => 1);
         $lead_contact_data = array("user_type" => "lead", "is_primary_contact" => 1);
@@ -1483,17 +1687,9 @@ class Leads extends Security_Controller {
             } else if ($column_name == "contact_email") {
                 $lead_contact_data["email"] = $value;
             } else if ($column_name == "status") {
-                //get existing status, if not create new one and add the id
-
-                $status_id = get_array_value($this->lead_statuses_id_by_title, $value);
+                $status_id = $this->_get_or_create_lead_status_id($value);
                 if ($status_id) {
                     $lead_data["lead_status_id"] = $status_id;
-                } else {
-                    $max_sort_value = $this->Lead_status_model->get_max_sort_value();
-                    $status_data = array("title" => $value, "color" => "#f1c40f", "sort" => ($max_sort_value * 1 + 1));
-                    $saved_status_id = $this->Lead_status_model->ci_save($status_data);
-                    $lead_data["lead_status_id"] = $saved_status_id;
-                    $this->lead_statuses_id_by_title[$value] = $saved_status_id;
                 }
             } else if ($column_name == "owner") {
                 $owner_id = get_array_value($this->lead_owners_id_by_name, $value);
@@ -1520,6 +1716,72 @@ class Leads extends Security_Controller {
             } else {
                 $lead_data[$column_name] = $value;
             }
+        }
+
+        return array(
+            "lead_data" => $lead_data,
+            "lead_contact_data" => $lead_contact_data,
+            "custom_field_values_array" => $custom_field_values_array
+        );
+    }
+
+    private function _prepare_meta_lead_data($row_data) {
+
+        $lead_data = array("is_lead" => 1, "type" => $this->meta_lead_type);
+        $lead_contact_data = array("user_type" => "lead", "is_primary_contact" => 1);
+        $custom_field_values_array = array();
+        $city_value = "";
+
+        foreach ($row_data as $column_index => $value) {
+            if ($value === null || $value === "") {
+                continue;
+            }
+
+            $column_name = $this->_get_column_name($column_index);
+
+            if ($column_name == "created") {
+                $created_date = $this->_prepare_meta_created_date($value);
+                if ($created_date) {
+                    $lead_data["created_date"] = $created_date;
+                    $lead_contact_data["created_at"] = $created_date;
+                }
+            } else if ($column_name == "name") {
+                $lead_data["company_name"] = $value;
+                $name_parts = $this->_split_meta_contact_name($value);
+                if ($name_parts["first_name"]) {
+                    $lead_contact_data["first_name"] = $name_parts["first_name"];
+                }
+                if ($name_parts["last_name"]) {
+                    $lead_contact_data["last_name"] = $name_parts["last_name"];
+                }
+            } else if ($column_name == "city") {
+                $lead_data["city"] = $value;
+                $city_value = $value;
+            } else if ($column_name == "province") {
+                $lead_data["state"] = strtoupper(trim($value));
+                $lead_source_id = $this->_get_meta_lead_source_id($value, $city_value);
+                if ($lead_source_id) {
+                    $lead_data["lead_source_id"] = $lead_source_id;
+                }
+            } else if ($column_name == "email") {
+                $lead_contact_data["email"] = $value;
+            } else if ($column_name == "form") {
+                $custom_field_values_array[$this->meta_custom_field_id] = $value;
+            } else if ($column_name == "stage") {
+                $status_id = $this->_get_or_create_lead_status_id($value);
+                if ($status_id) {
+                    $lead_data["lead_status_id"] = $status_id;
+                }
+            } else if ($column_name == "phone") {
+                $lead_data["phone"] = $value;
+                $lead_contact_data["phone"] = $value;
+            }
+        }
+
+        $lead_data["owner_id"] = 309;
+
+        if (!get_array_value($lead_data, "lead_status_id")) {
+            return array("skip_row" => true);
         }
 
         return array(
