@@ -1049,8 +1049,6 @@ function get_details($options = array()) {
 
     function get_campaign_pipeline_breakdown($options = array()) {
         $clients_table = $this->db->prefixTable('clients');
-        $users_table = $this->db->prefixTable('users');
-        $lead_status_table = $this->db->prefixTable('lead_status');
         $custom_field_values_table = $this->db->prefixTable('custom_field_values');
 
         $campaign_values = $this->_prepare_campaign_filter_values(get_array_value($options, "campaign"));
@@ -1059,8 +1057,6 @@ function get_details($options = array()) {
         $client_source_custom_field_id = self::CLIENT_SOURCE_CUSTOM_FIELD_ID;
 
         $combined_records_sql = "SELECT leads.owner_id,"
-                . "       leads.lead_status_id,"
-                . "       'lead' AS record_type,"
                 . "       TRIM(lead_cf.value) AS campaign"
                 . "    FROM $clients_table AS leads"
                 . "    LEFT JOIN $custom_field_values_table AS lead_cf ON lead_cf.related_to_type='leads'"
@@ -1068,8 +1064,6 @@ function get_details($options = array()) {
                 . "    WHERE leads.deleted=0 AND leads.is_lead=1 "
                 . "UNION ALL "
                 . "    SELECT clients.owner_id,"
-                . "       clients.lead_status_id,"
-                . "       'client' AS record_type,"
                 . "       TRIM(client_cf.value) AS campaign"
                 . "    FROM $clients_table AS clients"
                 . "    LEFT JOIN $custom_field_values_table AS client_cf ON client_cf.related_to_type='clients'"
@@ -1084,52 +1078,16 @@ function get_details($options = array()) {
             $campaign_params = $campaign_values;
         }
 
-        $grouped_sql = "SELECT TRIM(IFNULL(combined_records.campaign, '')) AS campaign,"
-                . "       combined_records.owner_id,"
-                . "       combined_records.lead_status_id,"
-                . "       SUM(CASE WHEN combined_records.record_type='lead' THEN 1 ELSE 0 END) AS leads_count,"
-                . "       SUM(CASE WHEN combined_records.record_type='client' THEN 1 ELSE 0 END) AS clients_count"
+        $assigned_user_id = 309;
+
+        $sql = "SELECT TRIM(IFNULL(combined_records.campaign, '')) AS campaign,"
+                . "       SUM(CASE WHEN combined_records.owner_id IS NULL OR combined_records.owner_id = $assigned_user_id THEN 1 ELSE 0 END) AS unassigned_count,"
+                . "       SUM(CASE WHEN combined_records.owner_id IS NOT NULL AND combined_records.owner_id <> $assigned_user_id THEN 1 ELSE 0 END) AS assigned_count"
                 . "    FROM ($combined_records_sql) AS combined_records"
                 . "    $campaign_filter"
-                . "    GROUP BY TRIM(IFNULL(combined_records.campaign, '')), combined_records.owner_id, combined_records.lead_status_id";
-
-        $sql = "SELECT grouped.campaign,"
-                . "       grouped.owner_id,"
-                . "       grouped.lead_status_id,"
-                . "       grouped.leads_count,"
-                . "       grouped.clients_count,"
-                . "       users.first_name,"
-                . "       users.last_name,"
-                . "       statuses.title AS status_title,"
-                . "       statuses.sort AS status_sort"
-                . "    FROM ($grouped_sql) AS grouped"
-                . "    LEFT JOIN $users_table AS users ON users.id = grouped.owner_id"
-                . "    LEFT JOIN $lead_status_table AS statuses ON statuses.id = grouped.lead_status_id"
-                . "    ORDER BY grouped.campaign ASC,"
-                . "             users.first_name ASC,"
-                . "             users.last_name ASC,"
-                . "             status_sort ASC,"
-                . "             status_title ASC";
+                . "    GROUP BY TRIM(IFNULL(combined_records.campaign, ''))";
 
         $results = $this->db->query($sql, $campaign_params)->getResult();
-
-        $status_definitions = $this->get_campaign_pipeline_status_definitions();
-        $status_keys = array();
-        $status_id_map = array();
-
-        if ($status_definitions) {
-            foreach ($status_definitions as $definition) {
-                $key = get_array_value($definition, 'key');
-                if ($key) {
-                    $status_keys[] = $key;
-                }
-
-                $status_id = get_array_value($definition, 'lead_status_id');
-                if ($status_id) {
-                    $status_id_map[intval($status_id)] = $key;
-                }
-            }
-        }
 
         $campaign_map = array();
 
@@ -1138,57 +1096,16 @@ function get_details($options = array()) {
                 $campaign_value = trim(get_array_value((array) $row, 'campaign', ''));
                 $campaign_label = $campaign_value !== '' ? $campaign_value : app_lang('not_specified');
 
-                if (!isset($campaign_map[$campaign_value])) {
-                    $campaign_map[$campaign_value] = array(
-                        'value' => $campaign_value,
-                        'label' => $campaign_label,
-                        'owners' => array(),
-                        'totals' => array(
-                            'counts' => array_fill_keys($status_keys, 0),
-                            'total' => 0
-                        )
-                    );
-                }
+                $assigned = intval(get_array_value((array) $row, 'assigned_count', 0));
+                $unassigned = intval(get_array_value((array) $row, 'unassigned_count', 0));
 
-                $owner_id = $row->owner_id !== null ? intval($row->owner_id) : 0;
-                $owner_key = 'owner_' . $owner_id;
-                $owner_name = trim(trim(get_array_value((array) $row, 'first_name', '')) . ' ' . trim(get_array_value((array) $row, 'last_name', '')));
-                if ($owner_name === '') {
-                    $owner_name = app_lang('not_specified');
-                }
-
-                if (!isset($campaign_map[$campaign_value]['owners'][$owner_key])) {
-                    $campaign_map[$campaign_value]['owners'][$owner_key] = array(
-                        'owner_id' => $row->owner_id !== null ? intval($row->owner_id) : null,
-                        'owner_name' => $owner_name,
-                        'counts' => array_fill_keys($status_keys, 0),
-                        'total' => 0
-                    );
-                }
-
-                $status_key = 'not_specified';
-                if ($row->lead_status_id !== null) {
-                    $status_id = intval($row->lead_status_id);
-                    if (isset($status_id_map[$status_id])) {
-                        $status_key = $status_id_map[$status_id];
-                    }
-                }
-
-                if (!isset($campaign_map[$campaign_value]['owners'][$owner_key]['counts'][$status_key])) {
-                    $campaign_map[$campaign_value]['owners'][$owner_key]['counts'][$status_key] = 0;
-                }
-
-                if (!isset($campaign_map[$campaign_value]['totals']['counts'][$status_key])) {
-                    $campaign_map[$campaign_value]['totals']['counts'][$status_key] = 0;
-                }
-
-                $count = intval(get_array_value((array) $row, 'leads_count', 0)) + intval(get_array_value((array) $row, 'clients_count', 0));
-
-                $campaign_map[$campaign_value]['owners'][$owner_key]['counts'][$status_key] += $count;
-                $campaign_map[$campaign_value]['owners'][$owner_key]['total'] += $count;
-
-                $campaign_map[$campaign_value]['totals']['counts'][$status_key] += $count;
-                $campaign_map[$campaign_value]['totals']['total'] += $count;
+                $campaign_map[$campaign_value] = array(
+                    'value' => $campaign_value,
+                    'label' => $campaign_label,
+                    'assigned' => $assigned,
+                    'unassigned' => $unassigned,
+                    'total' => $assigned + $unassigned
+                );
             }
         }
 
@@ -1199,39 +1116,23 @@ function get_details($options = array()) {
                     $campaign_map[$selected_value] = array(
                         'value' => $selected_value,
                         'label' => $selected_value !== '' ? $selected_value : app_lang('not_specified'),
-                        'owners' => array(),
-                        'totals' => array(
-                            'counts' => array_fill_keys($status_keys, 0),
-                            'total' => 0
-                        )
+                        'assigned' => 0,
+                        'unassigned' => 0,
+                        'total' => 0
                     );
                 }
             }
         }
 
-        $campaigns = array();
+        $campaigns = array_values($campaign_map);
 
-        if ($campaign_map) {
-            foreach ($campaign_map as $campaign_info) {
-                $owners = array_values($campaign_info['owners']);
-
-                if ($owners) {
-                    usort($owners, function ($a, $b) {
-                        return strcasecmp(get_array_value($a, 'owner_name', ''), get_array_value($b, 'owner_name', ''));
-                    });
-                }
-
-                $campaign_info['owners'] = $owners;
-                $campaigns[] = $campaign_info;
-            }
-
+        if ($campaigns) {
             usort($campaigns, function ($a, $b) {
                 return strcasecmp(get_array_value($a, 'label', ''), get_array_value($b, 'label', ''));
             });
         }
 
         return array(
-            'status_definitions' => $status_definitions,
             'campaigns' => $campaigns
         );
     }

@@ -143,11 +143,25 @@ class Lead_reports extends Security_Controller {
         $this->_validate_lead_access();
 
         $campaigns = $this->_normalize_campaign_filter_values($this->_get_filter_value("campaign"));
-        $response = $this->Clients_model->get_campaign_pipeline_breakdown(array(
+        $breakdown = $this->Clients_model->get_campaign_pipeline_breakdown(array(
                     "campaign" => $campaigns
         ));
 
-        echo json_encode($response);
+        $rows = array();
+        $campaign_rows = get_array_value($breakdown, "campaigns", array());
+
+        if ($campaign_rows) {
+            foreach ($campaign_rows as $campaign_row) {
+                $rows[] = array(
+                    get_array_value($campaign_row, "label", app_lang("not_specified")),
+                    to_decimal_format(intval(get_array_value($campaign_row, "assigned", 0))),
+                    to_decimal_format(intval(get_array_value($campaign_row, "unassigned", 0))),
+                    to_decimal_format(intval(get_array_value($campaign_row, "total", 0)))
+                );
+            }
+        }
+
+        echo json_encode(array("data" => $rows));
     }
 
     private function _get_date_range_label($start_date, $end_date) {

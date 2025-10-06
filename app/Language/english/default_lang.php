@@ -2819,7 +2819,9 @@ $lang["short_ticket_templates"] = "Templates";
 $lang["campaign"] = "Campaign";
 $lang["campaign_pipeline"] = "Campaign pipeline";
 $lang["campaign_pipeline_summary"] = "Campaign pipeline summary";
-$lang["campaign_pipeline_breakdown"] = "Campaign pipeline breakdown";
+$lang["campaign_pipeline_breakdown"] = "Assigned vs unassigned per campaign";
+$lang["assigned_reps"] = "Assigned reps";
+$lang["unassigned_reps"] = "Unassigned reps";
 
 /* Version 3.8.2 */
 $lang["skype"] = "CC";

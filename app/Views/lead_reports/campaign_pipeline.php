@@ -21,7 +21,9 @@
     <div class="card clearfix mt20">
         <div class="p20">
             <h4 class="card-title"><?php echo app_lang("campaign_pipeline_breakdown"); ?></h4>
-            <div id="campaign-pipeline-breakdown-wrapper" class="clearfix"></div>
+            <div class="table-responsive">
+                <table id="campaign-assignment-table" class="display" width="100%"></table>
+            </div>
         </div>
     </div>
 </div>
@@ -97,135 +99,31 @@
             summation: summarySummation
         });
 
-        var $breakdownWrapper = $("#campaign-pipeline-breakdown-wrapper");
+        var $assignmentTable = $("#campaign-assignment-table");
 
-        var loadBreakdown = function () {
-            var requestData = {campaign: JSON.stringify(selectedCampaigns)};
-
-            $breakdownWrapper.find('table').each(function () {
-                if ($.fn.DataTable && $.fn.DataTable.isDataTable(this)) {
-                    $(this).DataTable().destroy();
-                }
-            });
-
-            $breakdownWrapper.empty();
-
-            appLoader.show();
-
-            $.ajax({
-                url: '<?php echo_uri("lead_reports/campaign_pipeline_breakdown_list"); ?>',
-                type: 'POST',
-                dataType: 'json',
-                data: requestData,
-                success: function (response) {
-                    appLoader.hide();
-
-                    if (response && response.status_definitions) {
-                        statusColumns = response.status_definitions;
-                    }
-
-                    var campaigns = (response && response.campaigns) ? response.campaigns : [];
-
-                    if (!campaigns.length) {
-                        $breakdownWrapper.append('<div class="text-center text-off p20">' + appLang('no_data_found') + '</div>');
-                        return;
-                    }
-
-                    $.each(campaigns, function (index, campaign) {
-                        var tableId = 'campaign-breakdown-table-' + index;
-                        var $card = $('<div class="card clearfix mb15"></div>');
-                        var $cardBody = $('<div class="p20"></div>').appendTo($card);
-                        $('<h5 class="card-title"></h5>').text(campaign.label || '').appendTo($cardBody);
-
-                        var $tableWrapper = $('<div class="table-responsive"></div>').appendTo($cardBody);
-                        var $table = $('<table class="display" width="100%"></table>').attr('id', tableId).appendTo($tableWrapper);
-
-                        var columns = [{title: "<?php echo app_lang('owner'); ?>", className: 'all'}];
-                        var exportColumns = [0];
-                        var tableData = [];
-
-                        if (statusColumns.length) {
-                            $.each(statusColumns, function (statusIndex, column) {
-                                columns.push({title: column.title, className: 'text-right'});
-                                exportColumns.push(exportColumns.length);
-                            });
-                        }
-
-                        columns.push({title: "<?php echo app_lang('total'); ?>", className: 'text-right'});
-                        exportColumns.push(exportColumns.length);
-
-                        var owners = campaign.owners || [];
-                        if (owners.length) {
-                            $.each(owners, function (ownerIndex, owner) {
-                                var row = [owner.owner_name || appLang('not_specified')];
-
-                                if (statusColumns.length) {
-                                    $.each(statusColumns, function (statusIndex, column) {
-                                var counts = owner.counts || {};
-                                var value = counts.hasOwnProperty(column.key) ? counts[column.key] : 0;
-                                row.push(formatNumber(value));
-                            });
-                        }
-
-                        row.push(formatNumber(owner.total || 0));
-                        tableData.push(row);
-                    });
-                }
-
-                var totals = campaign.totals || {counts: {}};
-                var $tfootRow = $('<tr></tr>');
-                $tfootRow.append($('<th></th>').text(appLang('total')));
-
-                if (statusColumns.length) {
-                    $.each(statusColumns, function (statusIndex, column) {
-                        var value = (totals.counts && totals.counts.hasOwnProperty(column.key)) ? totals.counts[column.key] : 0;
-                        $tfootRow.append($('<th class="text-right"></th>').text(formatNumber(value)));
-                    });
-                }
-
-                $tfootRow.append($('<th class="text-right"></th>').text(formatNumber(totals.total || 0)));
-
-                        var $tfoot = $('<tfoot></tfoot>').append($tfootRow);
-                        $table.append($tfoot);
-
-                        $breakdownWrapper.append($card);
-
-                        if ($.fn.DataTable) {
-                            $table.DataTable({
-                                data: tableData,
-                                columns: columns,
-                                paging: false,
-                                searching: false,
-                                ordering: false,
-                                info: false,
-                                dom: 'Bfrtip',
-                                buttons: [
-                                    {
-                                        extend: 'excel',
-                                        text: "<?php echo app_lang('export_to_excel'); ?>",
-                                        title: (campaign.label || '') + ' - <?php echo app_lang("campaign_pipeline_breakdown"); ?>',
-                                        exportOptions: {
-                                            columns: exportColumns
-                                        }
-                                    }
-                                ]
-                            });
-                        }
-                    });
-                },
-                error: function () {
-                    appLoader.hide();
-                    $breakdownWrapper.append('<div class="text-center text-danger p20">' + appLang('something_went_wrong') + '</div>');
-                }
-            });
-        };
-
-        loadBreakdown();
+        $assignmentTable.appTable({
+            source: '<?php echo_uri("lead_reports/campaign_pipeline_breakdown_list"); ?>',
+            filterParams: {campaign: JSON.stringify(selectedCampaigns)},
+            columns: [
+                {title: "<?php echo app_lang('campaign'); ?>", "class": "all"},
+                {title: "<?php echo app_lang('assigned_reps'); ?>", "class": "text-right"},
+                {title: "<?php echo app_lang('unassigned_reps'); ?>", "class": "text-right"},
+                {title: "<?php echo app_lang('total'); ?>", "class": "text-right"}
+            ],
+            order: [],
+            printColumns: [0, 1, 2, 3],
+            xlsColumns: [0, 1, 2, 3],
+            summation: [
+                {column: 1, dataType: 'number'},
+                {column: 2, dataType: 'number'},
+                {column: 3, dataType: 'number'}
+            ]
+        });
 
         $campaignFilter.on("change", function () {
             selectedCampaigns = $(this).val() || [];
             $summaryTable.appTable({reload: true, filterParams: {campaign: JSON.stringify(selectedCampaigns)}});
-            loadBreakdown();
+            $assignmentTable.appTable({reload: true, filterParams: {campaign: JSON.stringify(selectedCampaigns)}});
         });
     });
 </script>
