@@ -877,7 +877,7 @@ function get_details($options = array()) {
 
         $where_sql = "WHERE " . implode(" AND ", $filter_clauses);
 
-        $source_join = "LEFT JOIN $custom_field_values_table AS source_cf ON source_cf.related_to_type='clients' AND source_cf.related_to_id=leads.id AND source_cf.deleted=0 AND source_cf.custom_field_id=" . self::LEAD_SOURCE_CUSTOM_FIELD_ID;
+        $source_join = "LEFT JOIN $custom_field_values_table AS source_cf ON source_cf.related_to_type='leads' AND source_cf.related_to_id=leads.id AND source_cf.deleted=0 AND source_cf.custom_field_id=" . self::LEAD_SOURCE_CUSTOM_FIELD_ID;
 
         $filtered_leads_subquery = "SELECT leads.id, leads.labels
             FROM $clients_table AS leads
