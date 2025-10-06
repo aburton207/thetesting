@@ -5,8 +5,8 @@ namespace App\Models;
 class Clients_model extends Crud_model {
 
     protected $table = null;
-    public const LEAD_SOURCE_CUSTOM_FIELD_ID = 138;
-    public const CLIENT_SOURCE_CUSTOM_FIELD_ID = 165;
+    public const LEAD_SOURCE_CUSTOM_FIELD_ID = 238;
+    public const CLIENT_SOURCE_CUSTOM_FIELD_ID = 265;
 
     function __construct() {
         $this->table = 'clients';
@@ -1058,8 +1058,8 @@ function get_details($options = array()) {
                 . "    FROM $clients_table AS leads"
                 . "    LEFT JOIN $custom_field_values_table AS lead_cf ON lead_cf.related_to_type='leads'"
                 . "        AND lead_cf.related_to_id=leads.id AND lead_cf.deleted=0 AND lead_cf.custom_field_id=$lead_source_custom_field_id"
-                . "    WHERE leads.deleted=0 AND leads.is_lead=1"
-                . "UNION ALL"
+                . "    WHERE leads.deleted=0 AND leads.is_lead=1 "
+                . "UNION ALL "
                 . "    SELECT clients.owner_id,"
                 . "       clients.lead_status_id,"
                 . "       'client' AS record_type,"

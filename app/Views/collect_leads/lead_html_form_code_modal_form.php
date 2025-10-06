@@ -46,15 +46,15 @@
             <?php if (!empty($source_custom_field_label)) { ?>
             <div class="form-group">
                 <div class="row">
-                    <label for="custom_field_138" class="col-md-3"><?php echo $source_custom_field_label; ?></label>
+                    <label for="custom_field_238" class="col-md-3"><?php echo $source_custom_field_label; ?></label>
                     <div class="col-md-9">
                         <?php
                         if (!empty($source_custom_field_has_options)) {
-                            echo form_dropdown('custom_field_138', $source_custom_field_options, '', "class='select2' id='custom_field_138'");
+                            echo form_dropdown('custom_field_238', $source_custom_field_options, '', "class='select2' id='custom_field_238'");
                         } else {
                             echo form_input(array(
-                                "id" => "custom_field_138",
-                                "name" => "custom_field_138",
+                                "id" => "custom_field_238",
+                                "name" => "custom_field_238",
                                 "class" => "form-control",
                                 "placeholder" => $source_custom_field_label
                             ));
@@ -98,7 +98,7 @@
         var formId = "";
         var customFieldValue = "";
         var customFieldOverride = false;
-        var $customField = $("#custom_field_138");
+        var $customField = $("#custom_field_238");
 
         if ($customField.length) {
             customFieldValue = $customField.val() || "";
@@ -116,7 +116,7 @@
             };
 
             if (shouldIncludeCustomField()) {
-                postData.custom_field_138 = customFieldValue;
+                postData.custom_field_238 = customFieldValue;
             }
 
             $.ajax({
