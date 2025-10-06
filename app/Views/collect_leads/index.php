@@ -88,8 +88,8 @@ table.dataTable tbody td:first-child {
             <?php if (!empty($lead_labels)) { ?>
                 <input type="hidden" name="lead_labels" value="<?php echo $lead_labels; ?>" />
             <?php } ?>
-            <?php if (isset($custom_field_265_value) && $custom_field_265_value !== "") { ?>
-                <input type="hidden" name="custom_field_265" value="<?php echo htmlspecialchars($custom_field_265_value); ?>" />
+            <?php if (isset($custom_field_138_value) && $custom_field_138_value !== "") { ?>
+                <input type="hidden" name="custom_field_138" value="<?php echo htmlspecialchars($custom_field_138_value); ?>" />
             <?php } ?>
 
             <!-- 3) Gather hidden fields list, if applicable -->

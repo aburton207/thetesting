@@ -1660,7 +1660,7 @@ $lang["lead_import_format_meta"] = "Meta leads template";
 $lang["lead_import_meta_lead_type"] = "Meta lead type";
 $lang["lead_import_meta_person"] = "Person";
 $lang["lead_import_meta_organization"] = "Organization";
-$lang["lead_import_meta_help_text"] = "Meta lead imports preserve the Created column as the lead's created date, map the Form column to Custom Field 238, set the owner to 309, and only import leads in the Qualified stage.";
+$lang["lead_import_meta_help_text"] = "Meta lead imports preserve the Created column as the lead's created date, map the Form column to Custom Field 138, set the owner to 309, and only import leads in the Qualified stage.";
 
 $lang["deadline_must_be_equal_or_greater_than_start_date"] = "Deadline must be equal or greater than Start date.";
 
@@ -2813,6 +2813,10 @@ $lang["converted_to_client_report"] = "Converted to opportunity report";
 $lang["client_conversion_timeline"] = "Opportunity conversion timeline";
 $lang["rep_conversion_rates"] = "Rep conversion rates";
 $lang["lead_label_summary"] = "Lead label summary";
+$lang["campaign"] = "Campaign";
+$lang["campaign_pipeline"] = "Campaign pipeline";
+$lang["campaign_pipeline_summary"] = "Campaign pipeline summary";
+$lang["campaign_pipeline_breakdown"] = "Campaign pipeline breakdown";
 $lang["no_label"] = "No label";
 $lang["all_time"] = "All Time";
 

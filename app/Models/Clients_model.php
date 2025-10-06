@@ -5,8 +5,8 @@ namespace App\Models;
 class Clients_model extends Crud_model {
 
     protected $table = null;
-    private const LEAD_SOURCE_CUSTOM_FIELD_ID = 238;
-    private const CLIENT_SOURCE_CUSTOM_FIELD_ID = 265;
+    public const LEAD_SOURCE_CUSTOM_FIELD_ID = 138;
+    public const CLIENT_SOURCE_CUSTOM_FIELD_ID = 165;
 
     function __construct() {
         $this->table = 'clients';
@@ -923,6 +923,185 @@ function get_details($options = array()) {
             "no_label_count" => $no_label_count,
             "no_label_all_time_count" => $no_label_all_time_count
         );
+    }
+
+    function get_campaign_pipeline_summary($options = array()) {
+        $clients_table = $this->db->prefixTable('clients');
+        $lead_status_table = $this->db->prefixTable('lead_status');
+        $custom_field_values_table = $this->db->prefixTable('custom_field_values');
+
+        $campaign = $this->_get_clean_value($options, "campaign");
+        if (is_string($campaign)) {
+            $campaign = trim($campaign);
+        }
+
+        $lead_source_custom_field_id = self::LEAD_SOURCE_CUSTOM_FIELD_ID;
+        $client_source_custom_field_id = self::CLIENT_SOURCE_CUSTOM_FIELD_ID;
+
+        $combined_records_sql = "SELECT leads.lead_status_id, 'lead' AS record_type, TRIM(lead_cf.value) AS campaign"
+                . "        FROM $clients_table AS leads"
+                . "        LEFT JOIN $custom_field_values_table AS lead_cf ON lead_cf.related_to_type='leads'"
+                . "            AND lead_cf.related_to_id=leads.id AND lead_cf.deleted=0 AND lead_cf.custom_field_id=$lead_source_custom_field_id"
+                . "        WHERE leads.deleted=0 AND leads.is_lead=1"
+                . "    UNION ALL"
+                . "        SELECT clients.lead_status_id, 'client' AS record_type, TRIM(client_cf.value) AS campaign"
+                . "        FROM $clients_table AS clients"
+                . "        LEFT JOIN $custom_field_values_table AS client_cf ON client_cf.related_to_type='clients'"
+                . "            AND client_cf.related_to_id=clients.id AND client_cf.deleted=0 AND client_cf.custom_field_id=$client_source_custom_field_id"
+                . "        WHERE clients.deleted=0 AND clients.is_lead=0";
+
+        $campaign_filter = "";
+        if ($campaign !== null && $campaign !== "") {
+            $campaign_filter = "WHERE TRIM(IFNULL(combined_records.campaign, ''))=" . $this->db->escape($campaign);
+        }
+
+        $aggregated_sql = "SELECT combined_records.lead_status_id,"
+                . "       SUM(CASE WHEN combined_records.record_type='lead' THEN 1 ELSE 0 END) AS leads_count,"
+                . "       SUM(CASE WHEN combined_records.record_type='client' THEN 1 ELSE 0 END) AS clients_count"
+                . "    FROM ($combined_records_sql) AS combined_records"
+                . "    $campaign_filter"
+                . "    GROUP BY combined_records.lead_status_id";
+
+        $aggregated = $this->db->query($aggregated_sql)->getResult();
+
+        $statuses = $this->db->table($lead_status_table)
+                ->select('id, title, color, sort')
+                ->where('deleted', 0)
+                ->orderBy('sort', 'ASC')
+                ->get()
+                ->getResult();
+
+        $valid_status_ids = array();
+        if ($statuses) {
+            foreach ($statuses as $status) {
+                $valid_status_ids[$status->id] = true;
+            }
+        }
+
+        $counts_map = array();
+        $total_leads = 0;
+        $total_clients = 0;
+        $no_status_leads = 0;
+        $no_status_clients = 0;
+
+        if ($aggregated) {
+            foreach ($aggregated as $row) {
+                $lead_count = isset($row->leads_count) ? intval($row->leads_count) : 0;
+                $client_count = isset($row->clients_count) ? intval($row->clients_count) : 0;
+
+                $total_leads += $lead_count;
+                $total_clients += $client_count;
+
+                if ($row->lead_status_id !== null && isset($valid_status_ids[$row->lead_status_id])) {
+                    $counts_map[$row->lead_status_id] = array(
+                        'leads_count' => $lead_count,
+                        'clients_count' => $client_count
+                    );
+                } else {
+                    $no_status_leads += $lead_count;
+                    $no_status_clients += $client_count;
+                }
+            }
+        }
+
+        $rows = array();
+        if ($statuses) {
+            foreach ($statuses as $status) {
+                $lead_count = 0;
+                $client_count = 0;
+                if (isset($counts_map[$status->id])) {
+                    $lead_count = intval(get_array_value($counts_map[$status->id], 'leads_count'));
+                    $client_count = intval(get_array_value($counts_map[$status->id], 'clients_count'));
+                }
+
+                $rows[] = array(
+                    'status_id' => $status->id,
+                    'status_title' => $status->title,
+                    'status_color' => $status->color,
+                    'leads_count' => $lead_count,
+                    'clients_count' => $client_count
+                );
+            }
+        }
+
+        return array(
+            'rows' => $rows,
+            'no_status' => array(
+                'leads' => $no_status_leads,
+                'clients' => $no_status_clients
+            ),
+            'totals' => array(
+                'leads' => $total_leads,
+                'clients' => $total_clients
+            )
+        );
+    }
+
+    function get_campaign_pipeline_breakdown($options = array()) {
+        $clients_table = $this->db->prefixTable('clients');
+        $users_table = $this->db->prefixTable('users');
+        $lead_status_table = $this->db->prefixTable('lead_status');
+        $custom_field_values_table = $this->db->prefixTable('custom_field_values');
+
+        $campaign = $this->_get_clean_value($options, "campaign");
+        if (is_string($campaign)) {
+            $campaign = trim($campaign);
+        }
+
+        $lead_source_custom_field_id = self::LEAD_SOURCE_CUSTOM_FIELD_ID;
+        $client_source_custom_field_id = self::CLIENT_SOURCE_CUSTOM_FIELD_ID;
+
+        $combined_records_sql = "SELECT leads.owner_id,"
+                . "       leads.lead_status_id,"
+                . "       'lead' AS record_type,"
+                . "       TRIM(lead_cf.value) AS campaign"
+                . "    FROM $clients_table AS leads"
+                . "    LEFT JOIN $custom_field_values_table AS lead_cf ON lead_cf.related_to_type='leads'"
+                . "        AND lead_cf.related_to_id=leads.id AND lead_cf.deleted=0 AND lead_cf.custom_field_id=$lead_source_custom_field_id"
+                . "    WHERE leads.deleted=0 AND leads.is_lead=1"
+                . "UNION ALL"
+                . "    SELECT clients.owner_id,"
+                . "       clients.lead_status_id,"
+                . "       'client' AS record_type,"
+                . "       TRIM(client_cf.value) AS campaign"
+                . "    FROM $clients_table AS clients"
+                . "    LEFT JOIN $custom_field_values_table AS client_cf ON client_cf.related_to_type='clients'"
+                . "        AND client_cf.related_to_id=clients.id AND client_cf.deleted=0 AND client_cf.custom_field_id=$client_source_custom_field_id"
+                . "    WHERE clients.deleted=0 AND clients.is_lead=0";
+
+        $campaign_filter = "";
+        if ($campaign !== null && $campaign !== "") {
+            $campaign_filter = "WHERE TRIM(IFNULL(combined_records.campaign, ''))=" . $this->db->escape($campaign);
+        }
+
+        $grouped_sql = "SELECT TRIM(IFNULL(combined_records.campaign, '')) AS campaign,"
+                . "       combined_records.owner_id,"
+                . "       combined_records.lead_status_id,"
+                . "       SUM(CASE WHEN combined_records.record_type='lead' THEN 1 ELSE 0 END) AS leads_count,"
+                . "       SUM(CASE WHEN combined_records.record_type='client' THEN 1 ELSE 0 END) AS clients_count"
+                . "    FROM ($combined_records_sql) AS combined_records"
+                . "    $campaign_filter"
+                . "    GROUP BY TRIM(IFNULL(combined_records.campaign, '')), combined_records.owner_id, combined_records.lead_status_id";
+
+        $sql = "SELECT grouped.campaign,"
+                . "       grouped.owner_id,"
+                . "       grouped.lead_status_id,"
+                . "       grouped.leads_count,"
+                . "       grouped.clients_count,"
+                . "       users.first_name,"
+                . "       users.last_name,"
+                . "       statuses.title AS status_title,"
+                . "       statuses.sort AS status_sort"
+                . "    FROM ($grouped_sql) AS grouped"
+                . "    LEFT JOIN $users_table AS users ON users.id = grouped.owner_id"
+                . "    LEFT JOIN $lead_status_table AS statuses ON statuses.id = grouped.lead_status_id"
+                . "    ORDER BY grouped.campaign ASC,"
+                . "             users.first_name ASC,"
+                . "             users.last_name ASC,"
+                . "             status_sort ASC,"
+                . "             status_title ASC";
+
+        return $this->db->query($sql);
     }
 
     function get_converted_to_client_statistics($options = array()) {
