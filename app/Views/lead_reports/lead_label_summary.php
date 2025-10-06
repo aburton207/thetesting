@@ -20,11 +20,12 @@
             ],
             columns: [
                 {title: "<?php echo app_lang('label'); ?>", class: "all"},
-                {title: "<?php echo app_lang('total_leads'); ?>", class: "text-right"}
+                {title: "<?php echo app_lang('total_leads'); ?>", class: "text-right"},
+                {title: "<?php echo app_lang('all_time'); ?>", class: "text-right"}
             ],
             order: [[1, "desc"]],
-            printColumns: [0, 1],
-            xlsColumns: [0, 1]
+            printColumns: [0, 1, 2],
+            xlsColumns: [0, 1, 2]
         });
     });
 </script>

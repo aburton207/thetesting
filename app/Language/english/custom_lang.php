@@ -2806,6 +2806,7 @@ $lang["client_conversion_timeline"] = "Opportunity conversion timeline";
 $lang["rep_conversion_rates"] = "Rep conversion rates";
 $lang["lead_label_summary"] = "Lead label summary";
 $lang["no_label"] = "No label";
+$lang["all_time"] = "All Time";
 
 $lang["opportunities_graphs"] = "Opportunities Graphs";
 $lang["opportunity_data_reports"] = "Opportunity Data Reports";

@@ -861,33 +861,43 @@ function get_details($options = array()) {
             $source_value = trim($source_value);
         }
 
-        $filter_clauses = array("leads.deleted=0", "leads.is_lead=1");
+        $base_clauses = array("leads.deleted=0", "leads.is_lead=1");
+
+        if ($source_value !== null && $source_value !== "") {
+            $base_clauses[] = "TRIM(IFNULL(source_cf.value, ''))=" . $this->db->escape($source_value);
+        }
+
+        $filtered_clauses = $base_clauses;
 
         if ($start_date) {
-            $filter_clauses[] = "DATE(leads.created_date)>=" . $this->db->escape($start_date);
+            $filtered_clauses[] = "DATE(leads.created_date)>=" . $this->db->escape($start_date);
         }
 
         if ($end_date) {
-            $filter_clauses[] = "DATE(leads.created_date)<=" . $this->db->escape($end_date);
+            $filtered_clauses[] = "DATE(leads.created_date)<=" . $this->db->escape($end_date);
         }
 
-        if ($source_value !== null && $source_value !== "") {
-            $filter_clauses[] = "TRIM(IFNULL(source_cf.value, ''))=" . $this->db->escape($source_value);
-        }
-
-        $where_sql = "WHERE " . implode(" AND ", $filter_clauses);
+        $filtered_where_sql = "WHERE " . implode(" AND ", $filtered_clauses);
+        $all_time_where_sql = "WHERE " . implode(" AND ", $base_clauses);
 
         $source_join = "LEFT JOIN $custom_field_values_table AS source_cf ON source_cf.related_to_type='leads' AND source_cf.related_to_id=leads.id AND source_cf.deleted=0 AND source_cf.custom_field_id=" . self::LEAD_SOURCE_CUSTOM_FIELD_ID;
 
         $filtered_leads_subquery = "SELECT leads.id, leads.labels
             FROM $clients_table AS leads
             $source_join
-            $where_sql";
+            $filtered_where_sql";
+
+        $all_time_leads_subquery = "SELECT leads.id, leads.labels
+            FROM $clients_table AS leads
+            $source_join
+            $all_time_where_sql";
 
         $sql = "SELECT labels.id AS label_id, labels.title AS label_title,
-                COUNT(DISTINCT filtered_leads.id) AS total_count
+                COUNT(DISTINCT filtered_leads.id) AS total_count,
+                COUNT(DISTINCT all_time_leads.id) AS all_time_count
             FROM $labels_table AS labels
             LEFT JOIN ($filtered_leads_subquery) AS filtered_leads ON FIND_IN_SET(labels.id, filtered_leads.labels)
+            LEFT JOIN ($all_time_leads_subquery) AS all_time_leads ON FIND_IN_SET(labels.id, all_time_leads.labels)
             WHERE labels.deleted=0 AND labels.context IN('client','lead')
             GROUP BY labels.id
             ORDER BY labels.title ASC";
@@ -901,9 +911,17 @@ function get_details($options = array()) {
         $no_label_result = $this->db->query($no_label_sql)->getRow();
         $no_label_count = $no_label_result ? intval($no_label_result->total_count) : 0;
 
+        $no_label_all_time_sql = "SELECT COUNT(DISTINCT all_time_leads.id) AS total_count
+            FROM ($all_time_leads_subquery) AS all_time_leads
+            WHERE all_time_leads.labels IS NULL OR all_time_leads.labels=''";
+
+        $no_label_all_time_result = $this->db->query($no_label_all_time_sql)->getRow();
+        $no_label_all_time_count = $no_label_all_time_result ? intval($no_label_all_time_result->total_count) : 0;
+
         return array(
             "label_counts" => $label_counts,
-            "no_label_count" => $no_label_count
+            "no_label_count" => $no_label_count,
+            "no_label_all_time_count" => $no_label_all_time_count
         );
     }
 

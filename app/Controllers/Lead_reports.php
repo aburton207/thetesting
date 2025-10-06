@@ -30,20 +30,23 @@ class Lead_reports extends Security_Controller {
         $summary = $this->Clients_model->get_lead_label_summary($filters);
         $label_counts = get_array_value($summary, "label_counts", array());
         $no_label_count = intval(get_array_value($summary, "no_label_count", 0));
+        $no_label_all_time_count = intval(get_array_value($summary, "no_label_all_time_count", 0));
 
         $rows = array();
         if ($label_counts) {
             foreach ($label_counts as $label_info) {
                 $total = isset($label_info->total_count) ? intval($label_info->total_count) : 0;
+                $all_time_total = isset($label_info->all_time_count) ? intval($label_info->all_time_count) : 0;
 
                 $rows[] = array(
                     $label_info->label_title,
-                    to_decimal_format($total)
+                    to_decimal_format($total),
+                    to_decimal_format($all_time_total)
                 );
             }
         }
 
-        $rows[] = array(app_lang("no_label"), to_decimal_format($no_label_count));
+        $rows[] = array(app_lang("no_label"), to_decimal_format($no_label_count), to_decimal_format($no_label_all_time_count));
 
         echo json_encode(array("data" => $rows));
     }
