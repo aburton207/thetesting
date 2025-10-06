@@ -848,6 +848,73 @@ function get_details($options = array()) {
         return $this->db->query($sql);
     }
 
+    function get_lead_label_summary($options = array()) {
+        $clients_table = $this->db->prefixTable('clients');
+        $labels_table = $this->db->prefixTable('labels');
+        $custom_field_values_table = $this->db->prefixTable('custom_field_values');
+
+        $start_date = $this->_get_clean_value($options, "start_date");
+        $end_date = $this->_get_clean_value($options, "end_date");
+        $source_value = $this->_get_clean_value($options, "source_value");
+
+        if (is_string($source_value)) {
+            $source_value = trim($source_value);
+        }
+
+        $filter_clauses = array();
+
+        if ($start_date) {
+            $filter_clauses[] = "DATE(leads.created_date)>=" . $this->db->escape($start_date);
+        }
+
+        if ($end_date) {
+            $filter_clauses[] = "DATE(leads.created_date)<=" . $this->db->escape($end_date);
+        }
+
+        if ($source_value !== null && $source_value !== "") {
+            $filter_clauses[] = "TRIM(IFNULL(source_cf.value, ''))=" . $this->db->escape($source_value);
+        }
+
+        $filters_sql = "";
+        if ($filter_clauses) {
+            $filters_sql = " AND " . implode(" AND ", $filter_clauses);
+        }
+
+        $source_join = "LEFT JOIN $custom_field_values_table AS source_cf ON source_cf.related_to_type='clients' AND source_cf.related_to_id=leads.id AND source_cf.deleted=0 AND source_cf.custom_field_id=" . self::LEAD_SOURCE_CUSTOM_FIELD_ID;
+
+        $sql = "SELECT labels.id AS label_id, labels.title AS label_title,
+                (
+                    SELECT COUNT(DISTINCT leads.id)
+                    FROM $clients_table AS leads
+                    $source_join
+                    WHERE leads.deleted=0
+                        AND leads.is_lead=1
+                        AND FIND_IN_SET(labels.id, leads.labels)
+                        $filters_sql
+                ) AS total_count
+            FROM $labels_table AS labels
+            WHERE labels.deleted=0 AND labels.context='leads'
+            ORDER BY labels.title ASC";
+
+        $label_counts = $this->db->query($sql)->getResult();
+
+        $no_label_sql = "SELECT COUNT(DISTINCT leads.id) AS total_count
+            FROM $clients_table AS leads
+            $source_join
+            WHERE leads.deleted=0
+                AND leads.is_lead=1
+                AND (leads.labels IS NULL OR leads.labels='')
+                $filters_sql";
+
+        $no_label_result = $this->db->query($no_label_sql)->getRow();
+        $no_label_count = $no_label_result ? intval($no_label_result->total_count) : 0;
+
+        return array(
+            "label_counts" => $label_counts,
+            "no_label_count" => $no_label_count
+        );
+    }
+
     function get_converted_to_client_statistics($options = array()) {
         $clients_table = $this->db->prefixTable('clients');
         $users_table = $this->db->prefixTable('users');
