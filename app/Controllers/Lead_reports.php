@@ -203,11 +203,45 @@ class Lead_reports extends Security_Controller {
             $value = $this->request->getGet($key);
         }
 
+        if ($value === null && $key !== "filter_params") {
+            $filter_params = $this->_get_filter_params_array();
+            if (array_key_exists($key, $filter_params)) {
+                $value = $filter_params[$key];
+            }
+        }
+
         if (is_string($value)) {
             $value = trim($value);
         }
 
         return $value;
+    }
+
+    private function _get_filter_params_array() {
+        $filter_params = $this->request->getPost("filter_params");
+
+        if ($filter_params === null) {
+            $filter_params = $this->request->getGet("filter_params");
+        }
+
+        if ($filter_params === null || $filter_params === "") {
+            return array();
+        }
+
+        if (is_array($filter_params)) {
+            return $filter_params;
+        }
+
+        if (is_string($filter_params)) {
+            $filter_params = trim($filter_params);
+        }
+
+        $decoded = json_decode($filter_params, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            return $decoded;
+        }
+
+        return array();
     }
 
     private function _normalize_campaign_filter_values($value) {
