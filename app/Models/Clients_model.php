@@ -861,7 +861,7 @@ function get_details($options = array()) {
             $source_value = trim($source_value);
         }
 
-        $filter_clauses = array();
+        $filter_clauses = array("leads.deleted=0", "leads.is_lead=1");
 
         if ($start_date) {
             $filter_clauses[] = "DATE(leads.created_date)>=" . $this->db->escape($start_date);
@@ -875,36 +875,28 @@ function get_details($options = array()) {
             $filter_clauses[] = "TRIM(IFNULL(source_cf.value, ''))=" . $this->db->escape($source_value);
         }
 
-        $filters_sql = "";
-        if ($filter_clauses) {
-            $filters_sql = " AND " . implode(" AND ", $filter_clauses);
-        }
+        $where_sql = "WHERE " . implode(" AND ", $filter_clauses);
 
         $source_join = "LEFT JOIN $custom_field_values_table AS source_cf ON source_cf.related_to_type='clients' AND source_cf.related_to_id=leads.id AND source_cf.deleted=0 AND source_cf.custom_field_id=" . self::LEAD_SOURCE_CUSTOM_FIELD_ID;
 
+        $filtered_leads_subquery = "SELECT leads.id, leads.labels
+            FROM $clients_table AS leads
+            $source_join
+            $where_sql";
+
         $sql = "SELECT labels.id AS label_id, labels.title AS label_title,
-                (
-                    SELECT COUNT(DISTINCT leads.id)
-                    FROM $clients_table AS leads
-                    $source_join
-                    WHERE leads.deleted=0
-                        AND leads.is_lead=1
-                        AND FIND_IN_SET(labels.id, leads.labels)
-                        $filters_sql
-                ) AS total_count
+                COUNT(DISTINCT filtered_leads.id) AS total_count
             FROM $labels_table AS labels
-            WHERE labels.deleted=0 AND labels.context='leads'
+            LEFT JOIN ($filtered_leads_subquery) AS filtered_leads ON FIND_IN_SET(labels.id, filtered_leads.labels)
+            WHERE labels.deleted=0 AND labels.context IN('client','lead')
+            GROUP BY labels.id
             ORDER BY labels.title ASC";
 
         $label_counts = $this->db->query($sql)->getResult();
 
-        $no_label_sql = "SELECT COUNT(DISTINCT leads.id) AS total_count
-            FROM $clients_table AS leads
-            $source_join
-            WHERE leads.deleted=0
-                AND leads.is_lead=1
-                AND (leads.labels IS NULL OR leads.labels='')
-                $filters_sql";
+        $no_label_sql = "SELECT COUNT(DISTINCT filtered_leads.id) AS total_count
+            FROM ($filtered_leads_subquery) AS filtered_leads
+            WHERE filtered_leads.labels IS NULL OR filtered_leads.labels=''";
 
         $no_label_result = $this->db->query($no_label_sql)->getRow();
         $no_label_count = $no_label_result ? intval($no_label_result->total_count) : 0;
