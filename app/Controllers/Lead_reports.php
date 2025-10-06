@@ -84,17 +84,20 @@ class Lead_reports extends Security_Controller {
     public function campaign_pipeline() {
         $this->_validate_lead_access();
 
-        $selected_campaign = $this->_get_filter_value("campaign");
+        $selected_campaigns = $this->_normalize_campaign_filter_values($this->_get_filter_value("campaign"));
         $campaign_field_ids = array(
             \App\Models\Clients_model::LEAD_SOURCE_CUSTOM_FIELD_ID,
             \App\Models\Clients_model::CLIENT_SOURCE_CUSTOM_FIELD_ID
         );
 
         $view_data["campaigns_dropdown"] = json_encode($this->_get_sources_dropdown(
-                                $selected_campaign,
+                                $selected_campaigns,
                                 "campaign",
                                 $campaign_field_ids
         ));
+
+        $view_data["campaign_status_columns"] = json_encode($this->Clients_model->get_campaign_pipeline_status_definitions());
+        $view_data["selected_campaigns"] = json_encode($selected_campaigns);
 
         return $this->template->rander("lead_reports/campaign_pipeline", $view_data);
     }
@@ -102,55 +105,35 @@ class Lead_reports extends Security_Controller {
     public function campaign_pipeline_summary_list() {
         $this->_validate_lead_access();
 
-        $campaign = $this->_get_filter_value("campaign");
+        $campaigns = $this->_normalize_campaign_filter_values($this->_get_filter_value("campaign"));
         $summary = $this->Clients_model->get_campaign_pipeline_summary(array(
-                    "campaign" => $campaign
+                    "campaign" => $campaigns
         ));
 
+        $status_definitions = get_array_value($summary, "status_definitions", array());
+        $campaign_rows = get_array_value($summary, "campaigns", array());
+
         $rows = array();
-        $status_rows = get_array_value($summary, "rows", array());
 
-        if ($status_rows) {
-            foreach ($status_rows as $status_row) {
-                $lead_count = intval(get_array_value($status_row, "leads_count", 0));
-                $client_count = intval(get_array_value($status_row, "clients_count", 0));
-                $total = $lead_count + $client_count;
+        if ($campaign_rows) {
+            foreach ($campaign_rows as $campaign_row) {
+                $row = array(get_array_value($campaign_row, "label", app_lang("not_specified")));
 
-                if ($total === 0) {
-                    continue;
+                if ($status_definitions) {
+                    foreach ($status_definitions as $definition) {
+                        $counts = get_array_value($campaign_row, "counts", array());
+                        $value = intval(get_array_value($counts, get_array_value($definition, "key"), 0));
+                        $row[] = to_decimal_format($value);
+                    }
                 }
 
-                $rows[] = array(
-                    get_array_value($status_row, "status_title", app_lang("not_specified")),
-                    to_decimal_format($lead_count),
-                    to_decimal_format($client_count),
-                    to_decimal_format($total)
-                );
+                $row[] = to_decimal_format(intval(get_array_value($campaign_row, "total", 0)));
+                $rows[] = $row;
             }
         }
 
-        $no_status = get_array_value($summary, "no_status", array());
-        $no_status_leads = intval(get_array_value($no_status, "leads", 0));
-        $no_status_clients = intval(get_array_value($no_status, "clients", 0));
-
-        if ($no_status_leads > 0 || $no_status_clients > 0) {
-            $rows[] = array(
-                app_lang("not_specified"),
-                to_decimal_format($no_status_leads),
-                to_decimal_format($no_status_clients),
-                to_decimal_format($no_status_leads + $no_status_clients)
-            );
-        }
-
-        $totals = get_array_value($summary, "totals", array());
-        $total_leads = intval(get_array_value($totals, "leads", 0));
-        $total_clients = intval(get_array_value($totals, "clients", 0));
-
         $response = array(
-            "data" => $rows,
-            "total_leads" => to_decimal_format($total_leads),
-            "total_clients" => to_decimal_format($total_clients),
-            "total_combined" => to_decimal_format($total_leads + $total_clients)
+            "data" => $rows
         );
 
         echo json_encode($response);
@@ -159,54 +142,10 @@ class Lead_reports extends Security_Controller {
     public function campaign_pipeline_breakdown_list() {
         $this->_validate_lead_access();
 
-        $campaign = $this->_get_filter_value("campaign");
-        $results = $this->Clients_model->get_campaign_pipeline_breakdown(array(
-                    "campaign" => $campaign
-        ))->getResult();
-
-        $rows = array();
-        $total_leads = 0;
-        $total_clients = 0;
-
-        if ($results) {
-            foreach ($results as $result) {
-                $lead_count = isset($result->leads_count) ? intval($result->leads_count) : 0;
-                $client_count = isset($result->clients_count) ? intval($result->clients_count) : 0;
-                $total = $lead_count + $client_count;
-
-                if ($total === 0) {
-                    continue;
-                }
-
-                $campaign_label = trim(get_array_value((array) $result, "campaign", ""));
-                $campaign_label = $campaign_label !== "" ? $campaign_label : app_lang("not_specified");
-
-                $owner_name = trim(trim(get_array_value((array) $result, "first_name", "")) . " " . trim(get_array_value((array) $result, "last_name", "")));
-                $owner_name = $owner_name !== "" ? $owner_name : app_lang("not_specified");
-
-                $status_title = get_array_value((array) $result, "status_title");
-                $status_title = $status_title ? $status_title : app_lang("not_specified");
-
-                $rows[] = array(
-                    $campaign_label,
-                    $owner_name,
-                    $status_title,
-                    to_decimal_format($lead_count),
-                    to_decimal_format($client_count),
-                    to_decimal_format($total)
-                );
-
-                $total_leads += $lead_count;
-                $total_clients += $client_count;
-            }
-        }
-
-        $response = array(
-            "data" => $rows,
-            "total_leads" => to_decimal_format($total_leads),
-            "total_clients" => to_decimal_format($total_clients),
-            "total_combined" => to_decimal_format($total_leads + $total_clients)
-        );
+        $campaigns = $this->_normalize_campaign_filter_values($this->_get_filter_value("campaign"));
+        $response = $this->Clients_model->get_campaign_pipeline_breakdown(array(
+                    "campaign" => $campaigns
+        ));
 
         echo json_encode($response);
     }
@@ -224,12 +163,25 @@ class Lead_reports extends Security_Controller {
 
     private function _get_sources_dropdown($selected_source_value = null, $placeholder_lang_key = "source", $field_ids = null) {
         $sources = $this->Clients_model->get_lead_conversion_source_values($field_ids)->getResult();
-        $selected_source_value = $selected_source_value !== null ? trim($selected_source_value) : $selected_source_value;
+
+        $selected_values = array();
+        if (is_array($selected_source_value)) {
+            foreach ($selected_source_value as $value) {
+                if ($value === null) {
+                    continue;
+                }
+                $selected_values[] = trim($value);
+            }
+        } elseif ($selected_source_value !== null && $selected_source_value !== "") {
+            $selected_values[] = trim($selected_source_value);
+        }
+
+        $selected_values = array_unique($selected_values);
 
         $dropdown = array(array(
             "id" => "",
             "text" => "- " . app_lang($placeholder_lang_key) . " -",
-            "isSelected" => ($selected_source_value === null || $selected_source_value === "")
+            "isSelected" => empty($selected_values)
         ));
 
         foreach ($sources as $source) {
@@ -237,7 +189,7 @@ class Lead_reports extends Security_Controller {
             $dropdown[] = array(
                 "id" => $value,
                 "text" => $value,
-                "isSelected" => ($selected_source_value !== null && $selected_source_value !== "" && $selected_source_value === $value)
+                "isSelected" => in_array($value, $selected_values, true)
             );
         }
 
@@ -256,6 +208,45 @@ class Lead_reports extends Security_Controller {
         }
 
         return $value;
+    }
+
+    private function _normalize_campaign_filter_values($value) {
+        if ($value === null || $value === "") {
+            return array();
+        }
+
+        if (is_array($value)) {
+            $normalized = array();
+            foreach ($value as $item) {
+                if ($item === null) {
+                    continue;
+                }
+
+                if (is_string($item)) {
+                    $item = trim($item);
+                }
+
+                $normalized[] = $item;
+            }
+
+            return array_values(array_unique($normalized));
+        }
+
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                return $this->_normalize_campaign_filter_values($decoded);
+            }
+
+            if (strpos($value, ",") !== false) {
+                $parts = explode(",", $value);
+                return $this->_normalize_campaign_filter_values($parts);
+            }
+
+            return array($value);
+        }
+
+        return array($value);
     }
 
     private function _validate_lead_access() {
