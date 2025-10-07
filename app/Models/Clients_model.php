@@ -5,8 +5,8 @@ namespace App\Models;
 class Clients_model extends Crud_model {
 
     protected $table = null;
-    private const LEAD_SOURCE_CUSTOM_FIELD_ID = 238;
-    private const CLIENT_SOURCE_CUSTOM_FIELD_ID = 265;
+    public const LEAD_SOURCE_CUSTOM_FIELD_ID = 238;
+    public const CLIENT_SOURCE_CUSTOM_FIELD_ID = 265;
 
     function __construct() {
         $this->table = 'clients';
@@ -923,6 +923,338 @@ function get_details($options = array()) {
             "no_label_count" => $no_label_count,
             "no_label_all_time_count" => $no_label_all_time_count
         );
+    }
+
+    function get_campaign_pipeline_summary($options = array()) {
+        $clients_table = $this->db->prefixTable('clients');
+        $lead_status_table = $this->db->prefixTable('lead_status');
+        $custom_field_values_table = $this->db->prefixTable('custom_field_values');
+
+        $campaign_values = $this->_prepare_campaign_filter_values(get_array_value($options, "campaign"));
+
+        $lead_source_custom_field_id = self::LEAD_SOURCE_CUSTOM_FIELD_ID;
+        $client_source_custom_field_id = self::CLIENT_SOURCE_CUSTOM_FIELD_ID;
+
+        $combined_records_sql = "SELECT leads.lead_status_id,"
+                . "       'lead' AS record_type,"
+                . "       TRIM(lead_cf.value) AS campaign"
+                . "    FROM $clients_table AS leads"
+                . "    LEFT JOIN $custom_field_values_table AS lead_cf ON lead_cf.related_to_type='leads'"
+                . "        AND lead_cf.related_to_id=leads.id AND lead_cf.deleted=0 AND lead_cf.custom_field_id=$lead_source_custom_field_id"
+                . "    WHERE leads.deleted=0 AND leads.is_lead=1 "
+                . "UNION ALL "
+                . "    SELECT clients.lead_status_id,"
+                . "       'client' AS record_type,"
+                . "       TRIM(client_cf.value) AS campaign"
+                . "    FROM $clients_table AS clients"
+                . "    LEFT JOIN $custom_field_values_table AS client_cf ON client_cf.related_to_type='clients'"
+                . "        AND client_cf.related_to_id=clients.id AND client_cf.deleted=0 AND client_cf.custom_field_id=$client_source_custom_field_id"
+                . "    WHERE clients.deleted=0 AND clients.is_lead=0";
+
+        $campaign_filter = "";
+        $campaign_params = array();
+        if (!empty($campaign_values)) {
+            $placeholders = implode(',', array_fill(0, count($campaign_values), '?'));
+            $campaign_filter = "WHERE TRIM(IFNULL(combined_records.campaign, '')) IN ($placeholders)";
+            $campaign_params = $campaign_values;
+        }
+
+        $aggregated_sql = "SELECT TRIM(IFNULL(combined_records.campaign, '')) AS campaign,"
+                . "       combined_records.lead_status_id,"
+                . "       SUM(CASE WHEN combined_records.record_type='lead' THEN 1 ELSE 0 END) AS leads_count,"
+                . "       SUM(CASE WHEN combined_records.record_type='client' THEN 1 ELSE 0 END) AS clients_count"
+                . "    FROM ($combined_records_sql) AS combined_records"
+                . "    $campaign_filter"
+                . "    GROUP BY TRIM(IFNULL(combined_records.campaign, '')), combined_records.lead_status_id";
+
+        $aggregated = $this->db->query($aggregated_sql, $campaign_params)->getResult();
+
+        $status_definitions = $this->get_campaign_pipeline_status_definitions();
+        $status_keys = array();
+        $status_id_map = array();
+
+        if ($status_definitions) {
+            foreach ($status_definitions as $definition) {
+                $key = get_array_value($definition, 'key');
+                if ($key) {
+                    $status_keys[] = $key;
+                }
+
+                $status_id = get_array_value($definition, 'lead_status_id');
+                if ($status_id) {
+                    $status_id_map[intval($status_id)] = $key;
+                }
+            }
+        }
+
+        $campaign_rows = array();
+
+        if ($aggregated) {
+            foreach ($aggregated as $row) {
+                $campaign_value = trim(get_array_value((array) $row, 'campaign', ''));
+                $campaign_label = $campaign_value !== '' ? $campaign_value : app_lang('not_specified');
+
+                if (!isset($campaign_rows[$campaign_value])) {
+                    $campaign_rows[$campaign_value] = array(
+                        'value' => $campaign_value,
+                        'label' => $campaign_label,
+                        'counts' => array_fill_keys($status_keys, 0),
+                        'total' => 0
+                    );
+                }
+
+                $status_key = 'not_specified';
+                if ($row->lead_status_id !== null) {
+                    $status_id = intval($row->lead_status_id);
+                    if (isset($status_id_map[$status_id])) {
+                        $status_key = $status_id_map[$status_id];
+                    }
+                }
+
+                if (!isset($campaign_rows[$campaign_value]['counts'][$status_key])) {
+                    $campaign_rows[$campaign_value]['counts'][$status_key] = 0;
+                }
+
+                $count = intval(get_array_value((array) $row, 'leads_count', 0)) + intval(get_array_value((array) $row, 'clients_count', 0));
+                $campaign_rows[$campaign_value]['counts'][$status_key] += $count;
+                $campaign_rows[$campaign_value]['total'] += $count;
+            }
+        }
+
+        if (!empty($campaign_values)) {
+            $campaign_rows = array_intersect_key($campaign_rows, array_flip($campaign_values));
+        }
+
+        if (!empty($campaign_values)) {
+            foreach ($campaign_values as $selected_value) {
+                $selected_value = trim($selected_value);
+                if (!isset($campaign_rows[$selected_value])) {
+                    $campaign_rows[$selected_value] = array(
+                        'value' => $selected_value,
+                        'label' => $selected_value !== '' ? $selected_value : app_lang('not_specified'),
+                        'counts' => array_fill_keys($status_keys, 0),
+                        'total' => 0
+                    );
+                }
+            }
+        }
+
+        $campaign_rows = array_values($campaign_rows);
+
+        usort($campaign_rows, function ($a, $b) {
+            return strcasecmp(get_array_value($a, 'label', ''), get_array_value($b, 'label', ''));
+        });
+
+        return array(
+            'status_definitions' => $status_definitions,
+            'campaigns' => $campaign_rows
+        );
+    }
+
+    function get_campaign_pipeline_breakdown($options = array()) {
+        $clients_table = $this->db->prefixTable('clients');
+        $custom_field_values_table = $this->db->prefixTable('custom_field_values');
+
+        $campaign_values = $this->_prepare_campaign_filter_values(get_array_value($options, "campaign"));
+
+        $lead_source_custom_field_id = self::LEAD_SOURCE_CUSTOM_FIELD_ID;
+        $client_source_custom_field_id = self::CLIENT_SOURCE_CUSTOM_FIELD_ID;
+
+        $combined_records_sql = "SELECT leads.owner_id,"
+                . "       TRIM(lead_cf.value) AS campaign"
+                . "    FROM $clients_table AS leads"
+                . "    LEFT JOIN $custom_field_values_table AS lead_cf ON lead_cf.related_to_type='leads'"
+                . "        AND lead_cf.related_to_id=leads.id AND lead_cf.deleted=0 AND lead_cf.custom_field_id=$lead_source_custom_field_id"
+                . "    WHERE leads.deleted=0 AND leads.is_lead=1 "
+                . "UNION ALL "
+                . "    SELECT clients.owner_id,"
+                . "       TRIM(client_cf.value) AS campaign"
+                . "    FROM $clients_table AS clients"
+                . "    LEFT JOIN $custom_field_values_table AS client_cf ON client_cf.related_to_type='clients'"
+                . "        AND client_cf.related_to_id=clients.id AND client_cf.deleted=0 AND client_cf.custom_field_id=$client_source_custom_field_id"
+                . "    WHERE clients.deleted=0 AND clients.is_lead=0";
+
+        $campaign_filter = "";
+        $campaign_params = array();
+        if (!empty($campaign_values)) {
+            $placeholders = implode(',', array_fill(0, count($campaign_values), '?'));
+            $campaign_filter = "WHERE TRIM(IFNULL(combined_records.campaign, '')) IN ($placeholders)";
+            $campaign_params = $campaign_values;
+        }
+
+        $assigned_user_id = 309;
+
+        $sql = "SELECT TRIM(IFNULL(combined_records.campaign, '')) AS campaign,"
+                . "       SUM(CASE WHEN combined_records.owner_id IS NULL OR combined_records.owner_id = $assigned_user_id THEN 1 ELSE 0 END) AS unassigned_count,"
+                . "       SUM(CASE WHEN combined_records.owner_id IS NOT NULL AND combined_records.owner_id <> $assigned_user_id THEN 1 ELSE 0 END) AS assigned_count"
+                . "    FROM ($combined_records_sql) AS combined_records"
+                . "    $campaign_filter"
+                . "    GROUP BY TRIM(IFNULL(combined_records.campaign, ''))";
+
+        $results = $this->db->query($sql, $campaign_params)->getResult();
+
+        $campaign_map = array();
+
+        if ($results) {
+            foreach ($results as $row) {
+                $campaign_value = trim(get_array_value((array) $row, 'campaign', ''));
+                $campaign_label = $campaign_value !== '' ? $campaign_value : app_lang('not_specified');
+
+                $assigned = intval(get_array_value((array) $row, 'assigned_count', 0));
+                $unassigned = intval(get_array_value((array) $row, 'unassigned_count', 0));
+
+                $campaign_map[$campaign_value] = array(
+                    'value' => $campaign_value,
+                    'label' => $campaign_label,
+                    'assigned' => $assigned,
+                    'unassigned' => $unassigned,
+                    'total' => $assigned + $unassigned
+                );
+            }
+        }
+
+        if (!empty($campaign_values)) {
+            $campaign_map = array_intersect_key($campaign_map, array_flip($campaign_values));
+        }
+
+        if (!empty($campaign_values)) {
+            foreach ($campaign_values as $selected_value) {
+                $selected_value = trim($selected_value);
+                if (!isset($campaign_map[$selected_value])) {
+                    $campaign_map[$selected_value] = array(
+                        'value' => $selected_value,
+                        'label' => $selected_value !== '' ? $selected_value : app_lang('not_specified'),
+                        'assigned' => 0,
+                        'unassigned' => 0,
+                        'total' => 0
+                    );
+                }
+            }
+        }
+
+        $campaigns = array_values($campaign_map);
+
+        if ($campaigns) {
+            usort($campaigns, function ($a, $b) {
+                return strcasecmp(get_array_value($a, 'label', ''), get_array_value($b, 'label', ''));
+            });
+        }
+
+        return array(
+            'campaigns' => $campaigns
+        );
+    }
+
+    function get_campaign_pipeline_status_definitions() {
+        $lead_status_table = $this->db->prefixTable('lead_status');
+
+        $ordered_statuses = array(
+            array('key' => 'not_specified', 'title' => app_lang('not_specified')),
+            array('key' => 'qualified', 'title' => 'Qualified'),
+            array('key' => 'contact_15', 'title' => 'Contact – 15%'),
+            array('key' => 'qualify_40', 'title' => 'Qualify – 40%'),
+            array('key' => 'negotiate_50', 'title' => 'Negotiate – 50%'),
+            array('key' => 'implement_70', 'title' => 'Implement – 70%'),
+            array('key' => 'closed_lost_0', 'title' => 'Closed Lost – 0%'),
+            array('key' => 'stalled_0', 'title' => 'Stalled – 0%'),
+            array('key' => 'closed_won_100', 'title' => 'Closed Won – 100%')
+        );
+
+        $statuses = $this->db->table($lead_status_table)
+                ->select('id, title')
+                ->where('deleted', 0)
+                ->get()
+                ->getResult();
+
+        $normalized_statuses = array();
+        if ($statuses) {
+            foreach ($statuses as $status) {
+                $normalized_statuses[$this->_normalize_status_reference($status->title)] = $status;
+            }
+        }
+
+        $definitions = array();
+
+        foreach ($ordered_statuses as $status_info) {
+            $definition = array(
+                'key' => get_array_value($status_info, 'key'),
+                'title' => get_array_value($status_info, 'title'),
+                'lead_status_id' => null
+            );
+
+            if ($definition['key'] !== 'not_specified') {
+                $normalized_title = $this->_normalize_status_reference($definition['title']);
+                if (isset($normalized_statuses[$normalized_title])) {
+                    $matched_status = $normalized_statuses[$normalized_title];
+                    $definition['lead_status_id'] = intval($matched_status->id);
+                    $definition['title'] = $matched_status->title;
+                }
+            }
+
+            $definitions[] = $definition;
+        }
+
+        return $definitions;
+    }
+
+    private function _prepare_campaign_filter_values($campaign_option) {
+        $values = array();
+
+        $collect_values = function ($item) use (&$values, &$collect_values) {
+            if ($item === null) {
+                return;
+            }
+
+            if (is_array($item)) {
+                foreach ($item as $sub_item) {
+                    $collect_values($sub_item);
+                }
+                return;
+            }
+
+            if (is_string($item)) {
+                $item = trim($item);
+
+                if ($item === '') {
+                    return;
+                }
+
+                $decoded = json_decode($item, true);
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    $collect_values($decoded);
+                    return;
+                }
+
+                if (strpos($item, ',') !== false) {
+                    $collect_values(array_map('trim', explode(',', $item)));
+                    return;
+                }
+
+                $values[] = $item;
+                return;
+            }
+
+            $item = trim((string) $item);
+            if ($item === '') {
+                return;
+            }
+
+            $values[] = $item;
+        };
+
+        $collect_values($campaign_option);
+
+        if (empty($values)) {
+            return array();
+        }
+
+        return array_values(array_unique($values));
+    }
+
+    private function _normalize_status_reference($title) {
+        $title = preg_replace('/[\x{2013}\x{2014}]/u', '-', $title);
+        $title = preg_replace('/\s+/u', ' ', trim($title));
+        return function_exists('mb_strtolower') ? mb_strtolower($title) : strtolower($title);
     }
 
     function get_converted_to_client_statistics($options = array()) {

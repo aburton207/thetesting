@@ -2813,6 +2813,12 @@ $lang["converted_to_client_report"] = "Converted to opportunity report";
 $lang["client_conversion_timeline"] = "Opportunity conversion timeline";
 $lang["rep_conversion_rates"] = "Rep conversion rates";
 $lang["lead_label_summary"] = "Lead label summary";
+$lang["campaign"] = "Campaign";
+$lang["campaign_pipeline"] = "Campaign pipeline";
+$lang["campaign_pipeline_summary"] = "Campaign pipeline summary";
+$lang["campaign_pipeline_breakdown"] = "Assigned vs unassigned per campaign";
+$lang["assigned_reps"] = "Assigned reps";
+$lang["unassigned_reps"] = "Unassigned reps";
 $lang["no_label"] = "No label";
 $lang["all_time"] = "All Time";
 

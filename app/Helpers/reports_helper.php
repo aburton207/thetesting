@@ -107,7 +107,8 @@ if (!function_exists('get_reports_topbar')) {
                 "lead_conversion_report" => array("name" => "lead_conversion_report", "url" => "lead_conversion_reports"),
                 "client_conversion_timeline" => array("name" => "client_conversion_timeline", "url" => "lead_conversion_reports/client_timeline"),
                 "rep_conversion_rates" => array("name" => "rep_conversion_rates", "url" => "lead_conversion_reports/rep_conversion_rates"),
-                "lead_label_summary" => array("name" => "lead_label_summary", "url" => "lead_reports/lead_label_summary")
+                "lead_label_summary" => array("name" => "lead_label_summary", "url" => "lead_reports/lead_label_summary"),
+                "campaign_pipeline" => array("name" => "campaign_pipeline", "url" => "lead_reports/campaign_pipeline")
             );
 
             $reports_menu["client_reports"] = array("name" => "client_reports", "url" => "clients/clients_report", "class" => "users", "dropdown_item" => $client_reports_dropdown);
