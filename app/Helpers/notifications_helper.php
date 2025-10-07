@@ -423,6 +423,10 @@ if (!function_exists('get_notification_config')) {
                 "notify_to" => array("owner", "team_members", "team"),
                 "info" => $lead_link
             ),
+            "client_reassigned" => array(
+                "notify_to" => array("owner"),
+                "info" => $client_link
+            ),
             "client_created_from_lead" => array(
                 "notify_to" => array("team_members", "team"),
                 "info" => $client_link
@@ -950,14 +954,16 @@ if (!function_exists('send_notification_emails')) {
             $order_data = get_order_making_data($notification->order_id);
             $attachement_url = prepare_order_pdf($order_data, "send_email");
             $email_options["attachments"] = array(array("file_path" => $attachement_url));
-        } else if ($notification->event == "lead_created") {
+        } else if ($notification->event == "lead_created" || $notification->event == "client_reassigned") {
             $template_name = "lead_created";
 
-            $primary_contact = $ci->Clients_model->get_primary_contact($notification->lead_id, true);
+            $target_id = $notification->event == "lead_created" ? $notification->lead_id : $notification->client_id;
+            $primary_contact = $ci->Clients_model->get_primary_contact($target_id, true);
             $parser_data["CONTACT_FIRST_NAME"] = isset($primary_contact->first_name) ? $primary_contact->first_name : "";
             $parser_data["CONTACT_LAST_NAME"] = isset($primary_contact->last_name) ? $primary_contact->last_name : "";
 
-            $parser_data["LEAD_ID"] = $notification->lead_id;
+            $parser_data["LEAD_ID"] = $target_id;
+            $parser_data["CLIENT_ID"] = $notification->event == "client_reassigned" ? $notification->client_id : "";
             $parser_data["LEAD_URL"] = $url;
             $parser_data["LEAD_SOURCE"] = "";
             $parser_data["LEAD_LABELS"] = "";
@@ -992,8 +998,8 @@ if (!function_exists('send_notification_emails')) {
                 $parser_data['LEAD_LABELS'] = get_array_value($parser_data['FORM_DATA'], 'lead_labels');
             }
 
-            if (!$parser_data['LEAD_SOURCE'] || !$parser_data['LEAD_LABELS']) {
-                $lead_info = $ci->Clients_model->get_details(array("id" => $notification->lead_id))->getRow();
+            if ((!$parser_data['LEAD_SOURCE'] || !$parser_data['LEAD_LABELS']) && $target_id) {
+                $lead_info = $ci->Clients_model->get_details(array("id" => $target_id))->getRow();
                 if ($lead_info) {
                     if (!$parser_data['LEAD_SOURCE'] && $lead_info->lead_source_title) {
                         $parser_data['LEAD_SOURCE'] = $lead_info->lead_source_title;

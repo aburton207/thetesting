@@ -68,7 +68,8 @@ class Notification_processor extends App_Controller {
             "expense_id" => get_array_value($data, "expense_id"),
             "proposal_comment_id" => get_array_value($data, "proposal_comment_id"),
             "reminder_log_id" => get_array_value($data, "reminder_log_id"),
-            "description" => get_array_value($data, "description")
+            "description" => get_array_value($data, "description"),
+            "force_owner_recipient" => get_array_value($data, "force_owner_recipient")
         );
 
         // Fetch custom fields for estimate request notifications
@@ -100,10 +101,13 @@ class Notification_processor extends App_Controller {
         }
 
         // Fetch custom fields for lead notifications
-        if ($event === "lead_created" && $options["lead_id"]) {
+        if (($event === "lead_created" && $options["lead_id"]) || ($event === "client_reassigned" && $options["client_id"])) {
+            $related_type = $event === "lead_created" ? "leads" : "clients";
+            $related_id = $event === "lead_created" ? $options["lead_id"] : $options["client_id"];
+
             $cf_rows = $this->Custom_field_values_model->get_details([
-                "related_to_type" => "leads",
-                "related_to_id"   => $options["lead_id"],
+                "related_to_type" => $related_type,
+                "related_to_id"   => $related_id,
             ])->getResult();
 
             foreach ($cf_rows as $row) {
