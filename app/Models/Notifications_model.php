@@ -49,7 +49,7 @@ class Notifications_model extends Crud_model {
                     "enable_email" => 1,
                     "enable_web" => 1,
                     "enable_slack" => 0,
-                    "notify_to_terms" => "owner,team_members,team",
+                    "notify_to_terms" => "owner",
                     "notify_to_team_members" => "",
                     "notify_to_team" => ""
                 ];
