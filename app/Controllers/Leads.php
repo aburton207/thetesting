@@ -346,8 +346,10 @@ class Leads extends Security_Controller {
                 $owner_has_changed = intval($previous_owner_id) !== intval($data["owner_id"]);
             }
 
-            if (!$client_id || ($owner_has_changed && $data["owner_id"])) {
-                $this->_send_lead_owner_notification($save_id, $this->login_user->id);
+            $force_owner_recipient = $client_id && $owner_has_changed && $data["owner_id"];
+
+            if (!$client_id || $force_owner_recipient) {
+                $this->_send_lead_owner_notification($save_id, $this->login_user->id, $force_owner_recipient);
             }
 
             echo json_encode(array("success" => true, "data" => $this->_row_data($save_id), 'id' => $save_id, 'view' => $this->request->getPost('view'), 'message' => app_lang('record_saved')));
@@ -2327,7 +2329,7 @@ class Leads extends Security_Controller {
                     if ($save_id && array_key_exists("owner_id", $data)) {
                         $new_owner_id = $data["owner_id"];
                         if ($new_owner_id && intval($previous_owner_id) !== intval($new_owner_id)) {
-                            $this->_send_lead_owner_notification($id, $this->login_user->id);
+                            $this->_send_lead_owner_notification($id, $this->login_user->id, true);
                         }
                     }
                 }
@@ -2423,17 +2425,23 @@ class Leads extends Security_Controller {
         );
     }
 
-    private function _send_lead_owner_notification($lead_id, $triggered_by_user_id) {
+    private function _send_lead_owner_notification($lead_id, $triggered_by_user_id, $force_owner_recipient = false) {
         $notification_data = $this->_prepare_lead_notification_data($lead_id, $triggered_by_user_id);
         if (!$notification_data) {
             return;
         }
 
-        log_notification("lead_created", array(
+        $options = array(
             "lead_id" => $lead_id,
             "user_id" => $triggered_by_user_id,
             "description" => json_encode($notification_data)
-        ));
+        );
+
+        if ($force_owner_recipient) {
+            $options["force_owner_recipient"] = 1;
+        }
+
+        log_notification("lead_created", $options);
     }
 
     /* delete selected leads */

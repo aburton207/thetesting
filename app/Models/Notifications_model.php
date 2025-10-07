@@ -49,7 +49,7 @@ class Notifications_model extends Crud_model {
                     "enable_email" => 1,
                     "enable_web" => 1,
                     "enable_slack" => 0,
-                    "notify_to_terms" => "owner",
+                    "notify_to_terms" => "owner,team_members,team",
                     "notify_to_team_members" => "",
                     "notify_to_team" => ""
                 ];
@@ -61,6 +61,7 @@ class Notifications_model extends Crud_model {
         $where = "";
         $notify_to_terms = $notification_settings->notify_to_terms;
         $options = $this->_get_clean_value($options);
+        $force_owner_recipient = get_array_value($options, "force_owner_recipient");
         $project_id = get_array_value($options, "project_id");
         $task_id = get_array_value($options, "task_id");
         $leave_id = get_array_value($options, "leave_id");
@@ -97,6 +98,12 @@ class Notifications_model extends Crud_model {
         $extra_data = array();
 
         //prepare notifiy to terms 
+        if ($force_owner_recipient && $lead_id) {
+            $notify_to_terms = "owner";
+            $notification_settings->notify_to_team_members = "";
+            $notification_settings->notify_to_team = "";
+        }
+
         if ($notify_to_terms) {
             $notify_to_terms = explode(",", $notify_to_terms);
         } else {

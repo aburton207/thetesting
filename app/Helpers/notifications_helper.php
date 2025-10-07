@@ -420,7 +420,7 @@ if (!function_exists('get_notification_config')) {
                 "info" => $task_link
             ),
             "lead_created" => array(
-                "notify_to" => array("owner"),
+                "notify_to" => array("owner", "team_members", "team"),
                 "info" => $lead_link
             ),
             "client_created_from_lead" => array(
