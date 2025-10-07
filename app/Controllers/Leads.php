@@ -2376,6 +2376,12 @@ class Leads extends Security_Controller {
             "gst_number" => $lead_info->gst_number
         );
 
+        $primary_contact = $this->Clients_model->get_primary_contact($lead_id, true);
+        if ($primary_contact) {
+            $form_data['primary_contact_first_name'] = $primary_contact->first_name;
+            $form_data['primary_contact_last_name'] = $primary_contact->last_name;
+        }
+
         $lead_source_title = $lead_info->lead_source_title ? $lead_info->lead_source_title : "";
         if ($lead_source_title) {
             $form_data['lead_source'] = $lead_source_title;
