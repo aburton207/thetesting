@@ -65,8 +65,8 @@
             <?php echo $custom_field_filters; ?>
             ],
             rangeDatepicker: [{startDate: {name: "start_date", value: ""}, endDate: {name: "end_date", value: ""}, label: "<?php echo app_lang('created_date'); ?>", showClearButton: true}],
-            printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 8, 9], '<?php echo $custom_field_headers; ?>'),
-            xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 8, 9], '<?php echo $custom_field_headers; ?>')
+            printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 7, 8], '<?php echo $custom_field_headers; ?>'),
+            xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 7, 8], '<?php echo $custom_field_headers; ?>')
     });
     }
     );
