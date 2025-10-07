@@ -320,6 +320,11 @@ class Notifications_model extends Crud_model {
             $where .= " OR ($users_table.id=(SELECT $clients_table.owner_id FROM $clients_table WHERE $clients_table.id=$lead_id)) ";
         }
 
+        //find owner by client
+        if (in_array("owner", $notify_to_terms) && !$lead_id && $client_id) {
+            $where .= " OR ($users_table.id=(SELECT $clients_table.owner_id FROM $clients_table WHERE $clients_table.id=$client_id)) ";
+        }
+
         //find event recipient
         if (in_array("recipient", $notify_to_terms) && $event_id) {
 
