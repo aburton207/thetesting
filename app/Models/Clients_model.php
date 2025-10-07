@@ -1022,6 +1022,10 @@ function get_details($options = array()) {
         }
 
         if (!empty($campaign_values)) {
+            $campaign_rows = array_intersect_key($campaign_rows, array_flip($campaign_values));
+        }
+
+        if (!empty($campaign_values)) {
             foreach ($campaign_values as $selected_value) {
                 $selected_value = trim($selected_value);
                 if (!isset($campaign_rows[$selected_value])) {
@@ -1107,6 +1111,10 @@ function get_details($options = array()) {
                     'total' => $assigned + $unassigned
                 );
             }
+        }
+
+        if (!empty($campaign_values)) {
+            $campaign_map = array_intersect_key($campaign_map, array_flip($campaign_values));
         }
 
         if (!empty($campaign_values)) {
