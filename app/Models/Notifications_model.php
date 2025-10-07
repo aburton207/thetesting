@@ -53,6 +53,17 @@ class Notifications_model extends Crud_model {
                     "notify_to_team_members" => "",
                     "notify_to_team" => ""
                 ];
+            } else if ($event === "client_reassigned") {
+                $notification_settings = (object) [
+                    "event" => "client_reassigned",
+                    "category" => "client",
+                    "enable_email" => 1,
+                    "enable_web" => 1,
+                    "enable_slack" => 0,
+                    "notify_to_terms" => "owner",
+                    "notify_to_team_members" => "",
+                    "notify_to_team" => ""
+                ];
             } else {
                 return false; //no notification settings found
             }
@@ -98,7 +109,7 @@ class Notifications_model extends Crud_model {
         $extra_data = array();
 
         //prepare notifiy to terms 
-        if ($force_owner_recipient && $lead_id) {
+        if ($force_owner_recipient && ($lead_id || $client_id)) {
             $notify_to_terms = "owner";
             $notification_settings->notify_to_team_members = "";
             $notification_settings->notify_to_team = "";

@@ -144,6 +144,15 @@ class Clients extends Security_Controller {
     $client_id = $this->request->getPost('id');
     $this->_validate_client_manage_access($client_id);
 
+    $existing_client = null;
+    $previous_owner_id = null;
+    if ($client_id) {
+        $existing_client = $this->Clients_model->get_one($client_id);
+        if ($existing_client) {
+            $previous_owner_id = $existing_client->owner_id;
+        }
+    }
+
     $this->validate_submitted_data(array(
         "id" => "numeric",
         "company_name" => "required"
@@ -234,6 +243,15 @@ class Clients extends Security_Controller {
         if ($ticket_id) {
             $ticket_data = array("client_id" => $save_id);
             $this->Tickets_model->ci_save($ticket_data, $ticket_id);
+        }
+
+        $owner_has_changed = false;
+        if ($client_id && $existing_client && array_key_exists("owner_id", $data)) {
+            $owner_has_changed = intval($previous_owner_id) !== intval($data["owner_id"]);
+        }
+
+        if ($owner_has_changed && !empty($data["owner_id"])) {
+            $this->_send_client_owner_notification($save_id, $this->login_user->id, true);
         }
 
         echo json_encode(array("success" => true, "data" => $this->_row_data($save_id), 'id' => $save_id, 'view' => $this->request->getPost('view'), 'message' => app_lang('record_saved')));
@@ -3055,6 +3073,95 @@ private function _save_a_row_of_excel_data($row_data) {
         }
 
         return $this->General_files_model->get_all_where(array("folder_id" => $folder_id, "client_id" => $client_id))->getResult();
+    }
+
+    private function _prepare_client_notification_data($client_id, $triggered_by_user_id) {
+        $options = array(
+            "id" => $client_id
+        );
+
+        $client_info = $this->Clients_model->get_details($options)->getRow();
+        if (!$client_info) {
+            return null;
+        }
+
+        $form_data = array(
+            "company_name" => $client_info->company_name,
+            "type" => $client_info->account_type,
+            "address" => $client_info->address,
+            "city" => $client_info->city,
+            "state" => $client_info->state,
+            "zip" => $client_info->zip,
+            "country" => $client_info->country,
+            "phone" => $client_info->phone,
+            "website" => $client_info->website,
+            "vat_number" => $client_info->vat_number,
+            "gst_number" => $client_info->gst_number,
+            "client_groups" => $client_info->client_groups
+        );
+
+        $primary_contact = $this->Clients_model->get_primary_contact($client_id, true);
+        if ($primary_contact) {
+            $form_data['primary_contact_first_name'] = $primary_contact->first_name;
+            $form_data['primary_contact_last_name'] = $primary_contact->last_name;
+        }
+
+        $lead_source_title = $client_info->lead_source_title ? $client_info->lead_source_title : "";
+        if ($lead_source_title) {
+            $form_data['lead_source'] = $lead_source_title;
+        }
+
+        $client_labels_text = "";
+        if ($client_info->labels) {
+            $label_titles = $this->Labels_model->get_titles_by_ids($client_info->labels);
+            if ($label_titles) {
+                $client_labels_text = implode(', ', $label_titles);
+                $form_data['lead_labels'] = $client_labels_text;
+            }
+        }
+
+        $custom_field_values = array();
+        $custom_fields = $this->Custom_fields_model->get_combined_details("clients", $client_id, $this->login_user->is_admin, $this->login_user->user_type)->getResult();
+        foreach ($custom_fields as $field) {
+            if ($field->value !== null && $field->value !== "") {
+                $field_title = $field->title_language_key ? app_lang($field->title_language_key) : $field->title;
+                $custom_field_values[] = array(
+                    "title" => $field_title,
+                    "value" => $field->value
+                );
+            }
+        }
+
+        return array(
+            "client_id" => $client_id,
+            "user_id" => $triggered_by_user_id,
+            "form_data" => $form_data,
+            "custom_field_values" => $custom_field_values,
+            "files_data" => array(),
+            "lead_source" => $lead_source_title,
+            "lead_source_id" => $client_info->lead_source_id,
+            "lead_labels" => $client_labels_text,
+            "lead_label_ids" => $client_info->labels
+        );
+    }
+
+    private function _send_client_owner_notification($client_id, $triggered_by_user_id, $force_owner_recipient = false) {
+        $notification_data = $this->_prepare_client_notification_data($client_id, $triggered_by_user_id);
+        if (!$notification_data) {
+            return;
+        }
+
+        $options = array(
+            "client_id" => $client_id,
+            "user_id" => $triggered_by_user_id,
+            "description" => json_encode($notification_data)
+        );
+
+        if ($force_owner_recipient) {
+            $options["force_owner_recipient"] = 1;
+        }
+
+        log_notification("client_reassigned", $options);
     }
 
     //used by App_folders
