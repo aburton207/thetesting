@@ -298,6 +298,15 @@ class Leads extends Security_Controller {
         $labels = $this->request->getPost('labels');
         validate_list_of_numbers($labels);
 
+        $existing_lead = null;
+        $previous_owner_id = null;
+        if ($client_id) {
+            $existing_lead = $this->Clients_model->get_one($client_id);
+            if ($existing_lead) {
+                $previous_owner_id = $existing_lead->owner_id;
+            }
+        }
+
         $data = array(
             "company_name" => $this->request->getPost('company_name'),
             "type" => $this->request->getPost('account_type'),
@@ -330,76 +339,13 @@ class Leads extends Security_Controller {
         if ($save_id) {
             save_custom_fields("leads", $save_id, $this->login_user->is_admin, $this->login_user->user_type);
 
-            if (!$client_id) {
-                //prepare standard form data
-                $form_data = array(
-                    "company_name" => $this->request->getPost('company_name'),
-                    "type" => $this->request->getPost('account_type'),
-                    "address" => $this->request->getPost('address'),
-                    "city" => $this->request->getPost('city'),
-                    "state" => $this->request->getPost('state'),
-                    "zip" => $this->request->getPost('zip'),
-                    "country" => $this->request->getPost('country'),
-                    "phone" => $this->request->getPost('phone'),
-                    "website" => $this->request->getPost('website'),
-                    "vat_number" => $this->request->getPost('vat_number'),
-                    "gst_number" => $this->request->getPost('gst_number')
-                );
+            $owner_has_changed = false;
+            if ($client_id && $existing_lead) {
+                $owner_has_changed = intval($previous_owner_id) !== intval($data["owner_id"]);
+            }
 
-                //prepare custom field data
-                $custom_field_values = array();
-                $form_fields = $this->Custom_fields_model->get_details(array("related_to" => "leads"))->getResult();
-                foreach ($form_fields as $field) {
-                    $value = $this->request->getPost("custom_field_" . $field->id);
-                    if ($value !== null && $value !== "") {
-                        $field_title = $field->title_language_key ? app_lang($field->title_language_key) : $field->title;
-                        $custom_field_values[] = array(
-                            "title" => $field_title,
-                            "value" => $value
-                        );
-                    }
-                }
-
-                $lead_source_title = "";
-                $lead_source_id = $this->request->getPost('lead_source_id');
-                if ($lead_source_id) {
-                    $lead_source = $this->Lead_source_model->get_one($lead_source_id);
-                    if ($lead_source && $lead_source->id) {
-                        $lead_source_title = $lead_source->title;
-                    }
-                }
-
-                $lead_labels_text = "";
-                $label_titles = $this->Labels_model->get_titles_by_ids($labels);
-                if ($label_titles) {
-                    $lead_labels_text = implode(', ', $label_titles);
-                }
-
-                if ($lead_source_title) {
-                    $form_data['lead_source'] = $lead_source_title;
-                }
-
-                if ($lead_labels_text) {
-                    $form_data['lead_labels'] = $lead_labels_text;
-                }
-
-                $notification_data = array(
-                    "lead_id" => $save_id,
-                    "user_id" => $this->login_user->id,
-                    "form_data" => $form_data,
-                    "custom_field_values" => $custom_field_values,
-                    "files_data" => array(),
-                    "lead_source" => $lead_source_title,
-                    "lead_source_id" => $lead_source_id,
-                    "lead_labels" => $lead_labels_text,
-                    "lead_label_ids" => $labels
-                );
-
-                log_notification("lead_created", array(
-                    "lead_id" => $save_id,
-                    "user_id" => $this->login_user->id,
-                    "description" => json_encode($notification_data)
-                ));
+            if (!$client_id || ($owner_has_changed && $data["owner_id"])) {
+                $this->_send_lead_owner_notification($save_id, $this->login_user->id);
             }
 
             echo json_encode(array("success" => true, "data" => $this->_row_data($save_id), 'id' => $save_id, 'view' => $this->request->getPost('view'), 'message' => app_lang('record_saved')));
@@ -509,6 +455,7 @@ class Leads extends Security_Controller {
             anchor(get_uri("leads/view/" . $data->id), $data->company_name, array("class" => "js-selection-id", "data-id" => $data->id)),
             $data->primary_contact ? $primary_contact : "",
             $phone,
+            $this->_prepare_lead_full_address($data),
             $owner,
             $data->lead_source_title ? $data->lead_source_title : "-",
 
@@ -2364,7 +2311,16 @@ class Leads extends Security_Controller {
 
                 foreach ($lead_ids_array as $id) {
                     $this->validate_lead_access($id);
-                    $this->Clients_model->ci_save($data, $id);
+                    $existing_lead = $this->Clients_model->get_one($id);
+                    $previous_owner_id = $existing_lead ? $existing_lead->owner_id : null;
+                    $save_id = $this->Clients_model->ci_save($data, $id);
+
+                    if ($save_id && array_key_exists("owner_id", $data)) {
+                        $new_owner_id = $data["owner_id"];
+                        if ($new_owner_id && intval($previous_owner_id) !== intval($new_owner_id)) {
+                            $this->_send_lead_owner_notification($id, $this->login_user->id);
+                        }
+                    }
                 }
 
                 echo json_encode(array("success" => true, 'message' => app_lang('record_saved')));
@@ -2373,6 +2329,96 @@ class Leads extends Security_Controller {
             echo json_encode(array('success' => false, 'message' => app_lang('no_field_has_selected')));
             return false;
         }
+    }
+
+    private function _prepare_lead_full_address($lead_data) {
+        $address_parts = array(
+            trim((string) $lead_data->address),
+            trim((string) $lead_data->city),
+            trim((string) $lead_data->state),
+            trim((string) $lead_data->zip),
+            trim((string) $lead_data->country)
+        );
+
+        $address_parts = array_filter($address_parts);
+        return $address_parts ? implode(", ", $address_parts) : "-";
+    }
+
+    private function _prepare_lead_notification_data($lead_id, $triggered_by_user_id) {
+        $options = array(
+            "id" => $lead_id,
+            "leads_only" => true
+        );
+
+        $lead_info = $this->Clients_model->get_details($options)->getRow();
+        if (!$lead_info) {
+            return null;
+        }
+
+        $form_data = array(
+            "company_name" => $lead_info->company_name,
+            "type" => $lead_info->account_type,
+            "address" => $lead_info->address,
+            "city" => $lead_info->city,
+            "state" => $lead_info->state,
+            "zip" => $lead_info->zip,
+            "country" => $lead_info->country,
+            "phone" => $lead_info->phone,
+            "website" => $lead_info->website,
+            "vat_number" => $lead_info->vat_number,
+            "gst_number" => $lead_info->gst_number
+        );
+
+        $lead_source_title = $lead_info->lead_source_title ? $lead_info->lead_source_title : "";
+        if ($lead_source_title) {
+            $form_data['lead_source'] = $lead_source_title;
+        }
+
+        $lead_labels_text = "";
+        if ($lead_info->labels) {
+            $label_titles = $this->Labels_model->get_titles_by_ids($lead_info->labels);
+            if ($label_titles) {
+                $lead_labels_text = implode(', ', $label_titles);
+                $form_data['lead_labels'] = $lead_labels_text;
+            }
+        }
+
+        $custom_field_values = array();
+        $custom_fields = $this->Custom_fields_model->get_combined_details("leads", $lead_id, $this->login_user->is_admin, $this->login_user->user_type)->getResult();
+        foreach ($custom_fields as $field) {
+            if ($field->value !== null && $field->value !== "") {
+                $field_title = $field->title_language_key ? app_lang($field->title_language_key) : $field->title;
+                $custom_field_values[] = array(
+                    "title" => $field_title,
+                    "value" => $field->value
+                );
+            }
+        }
+
+        return array(
+            "lead_id" => $lead_id,
+            "user_id" => $triggered_by_user_id,
+            "form_data" => $form_data,
+            "custom_field_values" => $custom_field_values,
+            "files_data" => array(),
+            "lead_source" => $lead_source_title,
+            "lead_source_id" => $lead_info->lead_source_id,
+            "lead_labels" => $lead_labels_text,
+            "lead_label_ids" => $lead_info->labels
+        );
+    }
+
+    private function _send_lead_owner_notification($lead_id, $triggered_by_user_id) {
+        $notification_data = $this->_prepare_lead_notification_data($lead_id, $triggered_by_user_id);
+        if (!$notification_data) {
+            return;
+        }
+
+        log_notification("lead_created", array(
+            "lead_id" => $lead_id,
+            "user_id" => $triggered_by_user_id,
+            "description" => json_encode($notification_data)
+        ));
     }
 
     /* delete selected leads */

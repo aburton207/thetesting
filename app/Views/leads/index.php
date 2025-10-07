@@ -43,6 +43,7 @@
             {title: "<?php echo app_lang("name") ?>", "class": "all", order_by: "company_name"},
             {title: "<?php echo app_lang("primary_contact") ?>", order_by: "primary_contact"},
             {title: "<?php echo app_lang("phone") ?>"},
+            {title: "<?php echo app_lang("address") ?>", order_by: "address"},
             {title: "<?php echo app_lang("owner") ?>", order_by: "owner_name"},
             {title: "<?php echo app_lang('source') ?>", order_by: "lead_source_title"},
 
@@ -64,8 +65,8 @@
             <?php echo $custom_field_filters; ?>
             ],
             rangeDatepicker: [{startDate: {name: "start_date", value: ""}, endDate: {name: "end_date", value: ""}, label: "<?php echo app_lang('created_date'); ?>", showClearButton: true}],
-            printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 7, 8], '<?php echo $custom_field_headers; ?>'),
-            xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 7, 8], '<?php echo $custom_field_headers; ?>')
+            printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 8, 9], '<?php echo $custom_field_headers; ?>'),
+            xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 6, 8, 9], '<?php echo $custom_field_headers; ?>')
     });
     }
     );
