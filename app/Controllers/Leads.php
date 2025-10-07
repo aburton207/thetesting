@@ -450,12 +450,19 @@ class Leads extends Security_Controller {
         }
         $phone = $phone ?: "-";
 
+        $city = $data->city ? $data->city : "-";
+        $state = $data->state ? $data->state : "-";
+        $zip = $data->zip ? $data->zip : "-";
+
 
         $row_data = array(
             anchor(get_uri("leads/view/" . $data->id), $data->company_name, array("class" => "js-selection-id", "data-id" => $data->id)),
             $data->primary_contact ? $primary_contact : "",
             $phone,
             $this->_prepare_lead_full_address($data),
+            $city,
+            $state,
+            $zip,
             $owner,
             $data->lead_source_title ? $data->lead_source_title : "-",
 
